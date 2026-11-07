@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: forkemail
+      POSTGRES_PASSWORD: forkemail
+      POSTGRES_DB: forkemail
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forkemail"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:

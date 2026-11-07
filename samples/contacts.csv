@@ -1,0 +1,13 @@
+email,first_name,last_name
+success@simulator.amazonses.com,Sam,Success
+bounce@simulator.amazonses.com,Bo,Bounce
+complaint@simulator.amazonses.com,Cam,Complaint
+ada@example.com,Ada,Lovelace
+grace@example.com,Grace,Hopper
+alan@example.com,Alan,Turing
+katherine@example.com,Katherine,Johnson
+linus@example.com,Linus,Torvalds
+ADA@Example.com,Ada,Duplicate
+  margaret@example.com  ,Margaret,Hamilton
+not-an-email,Invalid,Row
+missing@domain,Invalid,Domain
