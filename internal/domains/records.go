@@ -38,12 +38,11 @@ func DNSRecords(kind, name string, tokens []string) []Record {
 	if kind != "domain" {
 		return []Record{}
 	}
-	records := make([]Record, 0, len(tokens)+2)
+	records := make([]Record, 0, len(tokens)+1)
 	for _, t := range tokens {
 		records = append(records, Record{Type: "CNAME", Name: t + "._domainkey." + name, Value: t + ".dkim.amazonses.com"})
 	}
 	return append(records,
-		Record{Type: "TXT", Name: name, Value: "v=spf1 include:amazonses.com ~all"},
 		Record{Type: "TXT", Name: "_dmarc." + name, Value: "v=DMARC1; p=none;"},
 	)
 }

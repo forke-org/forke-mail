@@ -53,6 +53,7 @@ var routeScopes = map[string][]string{
 	"GET /api/domains":                workspace,
 	"POST /api/domains":               workspace,
 	"POST /api/domains/{id}/verify":   workspace,
+	"GET /api/domains/{id}/dns":       workspace,
 	"DELETE /api/domains/{id}":        workspace,
 	"GET /api/suppressions":           workspace,
 	"POST /api/suppressions":          workspace,

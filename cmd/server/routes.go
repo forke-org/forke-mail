@@ -78,6 +78,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	emailH := &emails.Handler{Pool: pool}
 	eventH := &events.Handler{Pool: pool, SendingMode: svc.sendingMode}
 	domainH := &domains.Handler{Pool: pool, Identities: svc.identities}
+	dnsH := &domains.DNSHandler{Pool: pool, Region: cfg.AWS.Region}
 	unsubH := &unsub.Handler{Pool: pool, Signer: unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)}}
 
 	r := chi.NewRouter()
@@ -126,6 +127,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/domains", domainH.List)
 		api.Post("/api/domains", domainH.Create)
 		api.Post("/api/domains/{id}/verify", domainH.Verify)
+		api.Get("/api/domains/{id}/dns", dnsH.Check)
 		api.Delete("/api/domains/{id}", domainH.Delete)
 
 		api.Get("/api/suppressions", contactH.ListSuppressions)

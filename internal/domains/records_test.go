@@ -14,7 +14,6 @@ func TestDNSRecords(t *testing.T) {
 		{"CNAME", "aaa._domainkey.mail.example.com", "aaa.dkim.amazonses.com"},
 		{"CNAME", "bbb._domainkey.mail.example.com", "bbb.dkim.amazonses.com"},
 		{"CNAME", "ccc._domainkey.mail.example.com", "ccc.dkim.amazonses.com"},
-		{"TXT", "mail.example.com", "v=spf1 include:amazonses.com ~all"},
 		{"TXT", "_dmarc.mail.example.com", "v=DMARC1; p=none;"},
 	}
 	if !reflect.DeepEqual(got, want) {
