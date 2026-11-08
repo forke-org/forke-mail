@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -67,7 +68,11 @@ func (h *DNSHandler) Check(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, 422, "invalid_mail_from_domain")
 		return
 	}
-	if mailFrom != "" && h.Region == "" {
+	region := h.Region
+	if region == "" {
+		region = os.Getenv("AWS_REGION")
+	}
+	if mailFrom != "" && region == "" {
 		httpx.Error(w, 503, "aws_region_required_for_preview")
 		return
 	}
@@ -77,7 +82,7 @@ func (h *DNSHandler) Check(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	httpx.JSON(w, 200, CheckDNS(ctx, resolver, name, tokens, mailFrom, h.Region))
+	httpx.JSON(w, 200, CheckDNS(ctx, resolver, name, tokens, mailFrom, region))
 }
 
 var dmarcPolicy = regexp.MustCompile(`(^|;)\s*p=(none|quarantine|reject)\s*(;|$)`)
@@ -103,7 +108,7 @@ func CheckDNS(ctx context.Context, resolver DNSResolver, name string, tokens []s
 				policies = append(policies, v)
 			}
 		}
-		match := len(policies) == 1 && (strings.Contains(" "+policies[0]+" ", " include:amazonses.com "))
+		match := len(policies) == 1 && authorizesSES(policies[0])
 		out.Checks = append(out.Checks, checked(record, values, err, match))
 		if region != "" {
 			record = Record{Type: "MX", Name: mailFrom, Value: "10 feedback-smtp." + region + ".amazonses.com"}
@@ -129,6 +134,18 @@ func CheckDNS(ctx context.Context, resolver DNSResolver, name string, tokens []s
 	}
 	out.Checks = append(out.Checks, checked(record, values, err, len(policies) == 1 && dmarcPolicy.MatchString(policies[0])))
 	return out
+}
+
+func authorizesSES(policy string) bool {
+	for _, mechanism := range strings.Fields(strings.ToLower(policy)) {
+		switch mechanism {
+		case "include:amazonses.com", "+include:amazonses.com":
+			return true
+		case "all", "+all", "-all", "~all", "?all":
+			return false
+		}
+	}
+	return false
 }
 
 func checked(r Record, observed []string, err error, matches bool) DNSCheck {

@@ -18,6 +18,9 @@ func (d fakeDNS) LookupCNAME(context.Context, string) (string, error)     { retu
 func (d fakeDNS) LookupMX(context.Context, string) ([]*net.MX, error)     { return d.mx, d.err }
 
 func TestDNSStatuses(t *testing.T) {
+	if authorizesSES("v=spf1 -all include:amazonses.com") || !authorizesSES("v=spf1 +include:amazonses.com ~all") {
+		t.Fatal("SPF mechanism ordering ignored")
+	}
 	d := fakeDNS{txt: map[string][]string{"_dmarc.example.com": {"v=DMARC1; p=reject;"}, "bounce.example.com": {"v=spf1 include:amazonses.com ~all"}}, cname: "token.dkim.amazonses.com.", mx: []*net.MX{{Host: "feedback-smtp.us-east-1.amazonses.com.", Pref: 10}}}
 	r := CheckDNS(context.Background(), d, "example.com", []string{"token"}, "bounce.example.com", "us-east-1")
 	for _, c := range r.Checks {
