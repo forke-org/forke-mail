@@ -106,7 +106,11 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 - **`message_logs`**: rendered messages written by `LogSender`.
 - **`usage_daily`**: `(workspace_id, date, sent_count)` for daily limits.
 - **`processed_sns_messages`**: `sns_message_id` PK, the webhook dedupe.
-- **`webhook_endpoints`**: the schema exists but is unused (reserved for customer webhooks).
+- **`webhook_endpoints`**: customer HTTPS endpoints; the secret column contains workspace-bound AES-GCM ciphertext for newly managed endpoints. Legacy endpoints migrate disabled and require signing-secret rotation. A trigger on email_events atomically creates webhook_deliveries, including events inserted directly by campaign launch.
+- **`webhook_deliveries`**: PostgreSQL outbox with HMAC signing, leases, bounded retries and seven-day finished-history retention. internal/webhooks owns endpoint management, URL/network protection, encryption and dispatch. WEBHOOK_ENCRYPTION_KEY enables dispatch; missing configuration disables creation/rotation.
+- **`transactional_requests`**: 24-hour workspace-scoped HTTP idempotency receipts. internal/transactional defines EmailEnqueuer; no production engine adapter is wired. POST /api/emails defaults to 503; TRANSACTIONAL_STUB_ENABLED=true is allowed only in development and returns mode=development_stub without sending mail.
+
+Intern 3 extensions are registered in cmd/server/developer.go. Domain diagnostics live in internal/domains/dns.go; GET /api/domains/{id}/dns is independent of SES identity verification. Custom MAIL FROM is a DNS preview, not provider configuration. Full API examples and signing contracts are in docs/developer-quickstart.md and docs/openapi.yaml.
 
 **Report counts** come from `email_recipients`: status counts plus `COUNT(delivered_at)`, `COUNT(bounced_at)`, `COUNT(complained_at)` and `COUNT(unsubscribed_at)`. They do not come from `email_events`.
 

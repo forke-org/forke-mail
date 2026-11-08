@@ -1,0 +1,260 @@
+openapi: 3.1.0
+info:
+  title: Forke Mail Developer API
+  version: 1.0.0
+  description: Intern 3 surface. Transactional delivery requires an EmailEnqueuer adapter; the optional development stub does not send email. See developer-quickstart.md for the complete signing and failure contract.
+servers:
+  - url: http://localhost:8080
+security:
+  - BearerKey: []
+  - DashboardSession: []
+paths:
+  /api/keys:
+    get:
+      operationId: listKeys
+      security: [{DashboardSession: []}]
+      responses:
+        '200': {description: Key metadata without raw keys or hashes}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      operationId: createKey
+      security: [{DashboardSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name, scope, password]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 100}
+                scope: {type: string, enum: [sending_access, full_access]}
+                password: {type: string, writeOnly: true}
+      responses:
+        '201': {description: Metadata plus one-time key; Cache-Control no-store}
+        default: {$ref: '#/components/responses/Error'}
+  /api/keys/{id}:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    delete:
+      operationId: revokeKey
+      security: [{DashboardSession: []}]
+      responses:
+        '204': {description: Revoked; subsequent authentication fails}
+        default: {$ref: '#/components/responses/Error'}
+  /api/keys/{id}/rotate:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      operationId: rotateKey
+      security: [{DashboardSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [password]
+              properties:
+                password: {type: string, writeOnly: true}
+      responses:
+        '201': {description: One-time replacement key; old key immediately revoked}
+        default: {$ref: '#/components/responses/Error'}
+  /api/domains:
+    get:
+      operationId: listDomains
+      description: Requires dashboard session or full_access key.
+      responses:
+        '200': {description: Workspace sending identities}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      operationId: createDomain
+      description: Requires dashboard session or full_access key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name]
+              properties:
+                name: {type: string}
+                kind: {type: string, enum: [domain, email], default: domain}
+      responses:
+        '201': {description: Identity and DNS guidance; SES verifies actual sending eligibility}
+        default: {$ref: '#/components/responses/Error'}
+  /api/domains/{id}:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    delete:
+      operationId: deleteDomain
+      responses:
+        '204': {description: Removed identity}
+        default: {$ref: '#/components/responses/Error'}
+  /api/domains/{id}/verify:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      operationId: verifyDomain
+      responses:
+        '200': {description: Refreshed provider identity status; log driver uses a fake provider}
+        default: {$ref: '#/components/responses/Error'}
+  /api/domains/{id}/dns:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+      - name: mail_from
+        in: query
+        schema: {type: string}
+        description: Optional subdomain; DNS preview only, does not configure SES.
+    get:
+      operationId: inspectDomainDNS
+      responses:
+        '200':
+          description: Expected and observed DKIM, DMARC and optional custom MAIL FROM SPF/MX records.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mail_from_mode: {type: string, enum: [ses_default, custom_dns_preview]}
+                  ses_configuration_required: {type: boolean}
+                  checked_at: {type: string, format: date-time}
+                  checks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type: {type: string, enum: [CNAME, TXT, MX]}
+                        name: {type: string}
+                        value: {type: string}
+                        status: {type: string, enum: [found, pending, mismatch]}
+                        observed: {type: array, items: {type: string}}
+                        reason: {type: string}
+        default: {$ref: '#/components/responses/Error'}
+  /api/webhooks:
+    get:
+      operationId: listWebhooks
+      description: Dashboard session or full_access only. No signing secrets returned.
+      responses:
+        '200': {description: Workspace webhook metadata}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      operationId: createWebhook
+      description: Public HTTPS on port 443 only; maximum ten endpoints per workspace.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/WebhookCreate'}
+      responses:
+        '201': {description: Endpoint metadata plus one-time secret; Cache-Control no-store}
+        default: {$ref: '#/components/responses/Error'}
+  /api/webhooks/{id}:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    patch:
+      operationId: updateWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                url: {type: string, format: uri}
+                events: {$ref: '#/components/schemas/Events'}
+                enabled: {type: boolean}
+      responses:
+        '200': {description: Updated safe metadata; disabling cancels outstanding jobs}
+        default: {$ref: '#/components/responses/Error'}
+    delete:
+      operationId: deleteWebhook
+      responses:
+        '204': {description: Endpoint and its delivery history removed}
+        default: {$ref: '#/components/responses/Error'}
+  /api/webhooks/{id}/rotate:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      operationId: rotateWebhookSecret
+      responses:
+        '201': {description: New one-time secret and incremented secret_version; brief overlap for in-flight attempts}
+        default: {$ref: '#/components/responses/Error'}
+  /api/webhooks/{id}/deliveries:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+      - {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    get:
+      operationId: listWebhookDeliveries
+      responses:
+        '200': {description: Delivery IDs, event IDs, status, attempts, next attempt, response code and timestamps; no receiver response bodies}
+        default: {$ref: '#/components/responses/Error'}
+  /api/emails:
+    post:
+      operationId: enqueueTransactionalEmail
+      description: Durable idempotency receipt plus shared enqueue adapter. Unwired engine returns 503. Explicit development_stub mode never sends mail.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: {type: string, minLength: 1, maxLength: 128, pattern: '^[!-~]+$'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [from, to, subject]
+              anyOf: [{required: [html]}, {required: [text]}]
+              properties:
+                from: {type: string, format: email}
+                to: {type: string, format: email}
+                subject: {type: string, minLength: 1, maxLength: 256}
+                html: {type: string, minLength: 1}
+                text: {type: string, minLength: 1}
+      responses:
+        '202':
+          description: Stable message ID; repeats within 24 hours carry Idempotency-Replayed true.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status, mode]
+                properties:
+                  id: {type: string, format: uuid}
+                  status: {const: queued}
+                  mode: {type: string, enum: [engine, development_stub]}
+        default: {$ref: '#/components/responses/Error'}
+components:
+  securitySchemes:
+    BearerKey: {type: http, scheme: bearer, bearerFormat: fm_live_ API key}
+    DashboardSession: {type: apiKey, in: cookie, name: fm_session}
+  parameters:
+    ID: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+  responses:
+    Error:
+      description: JSON error. See quickstart for 400/401/403/404/409/413/422/429/500/502/503 conditions.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error: {type: string}
+  schemas:
+    WebhookCreate:
+      type: object
+      additionalProperties: false
+      required: [url, events]
+      properties:
+        url: {type: string, format: uri, maxLength: 2048}
+        events: {$ref: '#/components/schemas/Events'}
+    Events:
+      type: array
+      minItems: 1
+      maxItems: 11
+      uniqueItems: true
+      items:
+        type: string
+        enum: [email.queued, email.sent, email.delivered, email.bounced, email.soft_bounced, email.complained, email.unsubscribed, email.failed, email.rejected, email.delayed, workspace.sending_paused]

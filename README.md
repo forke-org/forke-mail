@@ -405,7 +405,7 @@ With the SES driver:
 On the **Domains** page, choose one of:
 
 - **Domain** (recommended). Enter `yourdomain.com`.
-  - Publish the records shown at your DNS provider: three DKIM `CNAME`s (required) and an SPF `TXT` and a DMARC `TXT` (recommended).
+  - Publish the returned DKIM `CNAME`s and review DMARC guidance. Default SES MAIL FROM already uses SES SPF. A custom MAIL FROM subdomain needs separate provider configuration plus its own regional MX and SPF records; `/api/domains/{id}/dns?mail_from=...` is a DNS-readiness preview only.
   - The server asks SES for the status every 60 seconds; you can also click **Verify**. SES runs its own DNS checks, usually within minutes but sometimes hours, and up to 72 hours.
   - Once verified, you can send from any address on the domain.
 - **Single email address** (fastest for testing). SES emails the address a link; click it, then press **Verify**. You can then send from exactly that address.
