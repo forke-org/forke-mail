@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"forkemail/internal/db/dbtest"
+	"forkemail/internal/domains"
 	"forkemail/internal/events"
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/webhooks"
@@ -23,7 +24,7 @@ func (publicDNS) LookupNetIP(context.Context, string, string) ([]netip.Addr, err
 
 func (f *apiFixture) developer(d *developerServices) {
 	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
-	f.router = newRouter(testConfig("development"), f.pool, lim, services{developer: d, sendRate: func() float64 { return 20 }})
+	f.router = newRouter(testConfig("development"), f.pool, lim, services{developer: d, identities: domains.Local{}, sendRate: func() float64 { return 20 }})
 }
 
 func TestCustomerWebhookManagement(t *testing.T) {

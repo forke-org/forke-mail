@@ -11,6 +11,7 @@ import (
 
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/events"
+	"forkemail/internal/feedback"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -97,6 +98,27 @@ func TestDurableWebhookFlow(t *testing.T) {
 	n := dbtest.QueryString(t, pool, `SELECT count(*)::text FROM webhook_deliveries WHERE endpoint_id=$1 AND workspace_id=$2`, endpoint, ws)
 	if n != "1" {
 		t.Fatal("rollback left a delivery")
+	}
+}
+
+func TestSNSDeduplicationQueuesOneDelivery(t *testing.T) {
+	ctx := context.Background()
+	pool := dbtest.Pool(t)
+	ws := dbtest.Workspace(t, pool, "paid", 100)
+	v := testVault(t)
+	endpoint := dbtest.QueryString(t, pool, `INSERT INTO webhook_endpoints(workspace_id,url,secret,events,enabled) VALUES($1,'https://hooks.example.com',$2,ARRAY['email.delivered'],true) RETURNING id`, ws, v.Seal("secret", ws))
+	email := dbtest.DraftEmail(t, pool, ws)
+	messageID := "message-" + ws
+	dbtest.SentRecipient(t, pool, ws, email, "person@example.com", messageID)
+	p := feedback.Processor{Pool: pool}
+	raw := []byte(`{"eventType":"Delivery","mail":{"messageId":"` + messageID + `"}}`)
+	for range 2 {
+		if _, err := p.Handle(ctx, "sns-"+ws, raw); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if n := dbtest.QueryString(t, pool, `SELECT count(*)::text FROM webhook_deliveries WHERE endpoint_id=$1 AND workspace_id=$2`, endpoint, ws); n != "1" {
+		t.Fatalf("duplicate fanout %s", n)
 	}
 }
 

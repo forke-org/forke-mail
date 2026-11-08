@@ -17,9 +17,11 @@ import (
 )
 
 type Dispatcher struct {
-	Pool   *pgxpool.Pool
-	Vault  *Vault
-	Client *http.Client
+	maintenanceMu sync.Mutex
+	maintainedAt  time.Time
+	Pool          *pgxpool.Pool
+	Vault         *Vault
+	Client        *http.Client
 }
 type job struct {
 	id, workspace, endpoint, lease, url, payload, encrypted string
@@ -51,17 +53,9 @@ func (d *Dispatcher) Run(ctx context.Context) {
 func (d *Dispatcher) claim(ctx context.Context) (job, error) {
 	var j job
 	err := pgx.BeginFunc(ctx, d.Pool, func(tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `UPDATE webhook_deliveries SET status=CASE WHEN attempts>=8 OR created_at<now()-interval '24 hours' THEN 'failed' ELSE 'pending' END,lease_token=NULL,claimed_at=NULL,last_error='lease_expired' WHERE status='processing' AND claimed_at<now()-interval '30 seconds'`)
-		if err != nil {
-			return err
-		}
-		_, err = tx.Exec(ctx, `UPDATE webhook_deliveries SET status='failed',finished_at=now(),last_error='expired' WHERE status='pending' AND (attempts>=8 OR created_at<now()-interval '24 hours')`)
-		if err != nil {
-			return err
-		}
-		err = tx.QueryRow(ctx, `SELECT d.id,d.workspace_id,d.endpoint_id,e.url,d.payload,e.secret,e.secret_version,d.attempts,d.created_at
+		err := tx.QueryRow(ctx, `SELECT d.id,d.workspace_id,d.endpoint_id,e.url,d.payload,e.secret,e.secret_version,d.attempts,d.created_at
 		FROM webhook_deliveries d JOIN webhook_endpoints e ON e.id=d.endpoint_id AND e.workspace_id=d.workspace_id
-		WHERE d.status='pending' AND d.next_attempt_at<=now() AND e.enabled AND e.next_dispatch_at<=now()
+		WHERE d.status='pending' AND d.attempts<8 AND d.created_at>now()-interval '24 hours' AND d.next_attempt_at<=now() AND e.enabled AND e.next_dispatch_at<=now()
 		ORDER BY d.next_attempt_at,d.id LIMIT 1 FOR UPDATE OF d,e SKIP LOCKED`).Scan(&j.id, &j.workspace, &j.endpoint, &j.url, &j.payload, &j.encrypted, &j.version, &j.attempts, &j.created)
 		if err != nil {
 			return err
@@ -82,6 +76,9 @@ func retryDelay(attempt int) time.Duration {
 }
 
 func (d *Dispatcher) Once(ctx context.Context) (bool, error) {
+	if err := d.maintain(ctx); err != nil {
+		return false, err
+	}
 	j, err := d.claim(ctx)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return false, nil
@@ -138,4 +135,26 @@ func (d *Dispatcher) Once(ctx context.Context) (bool, error) {
 	delay := retryDelay(j.attempts).Seconds()
 	_, err = d.Pool.Exec(ctx, `UPDATE webhook_deliveries SET status=$4,response_code=NULLIF($5,0),last_error=NULLIF($6,''),next_attempt_at=now()+make_interval(secs=>$7),finished_at=CASE WHEN $4='pending' THEN NULL ELSE now() END,lease_token=NULL,claimed_at=NULL WHERE id=$1 AND workspace_id=$2 AND lease_token=$3 AND status='processing'`, j.id, j.workspace, j.lease, status, code, reason, delay)
 	return true, err
+}
+
+func (d *Dispatcher) maintain(ctx context.Context) error {
+	d.maintenanceMu.Lock()
+	defer d.maintenanceMu.Unlock()
+	if time.Since(d.maintainedAt) < time.Minute {
+		return nil
+	}
+	err := pgx.BeginFunc(ctx, d.Pool, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `UPDATE webhook_deliveries SET status=CASE WHEN attempts>=8 OR created_at<now()-interval '24 hours' THEN 'failed' ELSE 'pending' END,finished_at=CASE WHEN attempts>=8 OR created_at<now()-interval '24 hours' THEN now() END,lease_token=NULL,claimed_at=NULL,last_error='lease_expired' WHERE status='processing' AND claimed_at<now()-interval '30 seconds'`); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE webhook_deliveries SET status='failed',finished_at=now(),last_error='expired' WHERE status='pending' AND (attempts>=8 OR created_at<now()-interval '24 hours')`); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `DELETE FROM webhook_deliveries WHERE id IN (SELECT id FROM webhook_deliveries WHERE status IN ('delivered','failed','cancelled') AND finished_at<now()-interval '7 days' LIMIT 1000)`)
+		return err
+	})
+	if err == nil {
+		d.maintainedAt = time.Now()
+	}
+	return err
 }
