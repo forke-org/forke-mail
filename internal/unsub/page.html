@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unsubscribe</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/theme.js"></script>
+</head>
+<body class="public">
+<main class="public-card">
+{{if eq .State "confirm"}}
+<h1>Unsubscribe</h1>
+<p class="muted">You will stop receiving these emails. This takes effect immediately.</p>
+<form method="post">
+<button class="btn btn-primary btn-block" type="submit">Unsubscribe</button>
+</form>
+{{else if eq .State "done"}}
+<h1>You're unsubscribed</h1>
+<p class="muted">You will no longer receive these emails.</p>
+{{else}}
+<h1>Link not found</h1>
+<p class="muted">This unsubscribe link is invalid or has expired.</p>
+{{end}}
+</main>
+</body>
+</html>

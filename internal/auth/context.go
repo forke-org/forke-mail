@@ -1,0 +1,23 @@
+package auth
+
+import "context"
+
+type Identity struct {
+	UserID      string
+	KeyID       string
+	KeyPrefix   string
+	Scope       string
+	WorkspaceID string
+	Plan        string
+}
+
+type identityKey struct{}
+
+func withIdentity(ctx context.Context, id Identity) context.Context {
+	return context.WithValue(ctx, identityKey{}, id)
+}
+
+func FromContext(ctx context.Context) Identity {
+	id, _ := ctx.Value(identityKey{}).(Identity)
+	return id
+}

@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+/server
+/sesbootstrap
+/sescheck
+*.test
+*.out
+coverage.*
+.DS_Store
+frontend/node_modules
+frontend/.next
+frontend/out/*
+!frontend/out/.keep
+npm-debug.log*
