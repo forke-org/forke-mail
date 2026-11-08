@@ -58,6 +58,12 @@ func run() error {
 	}}
 	svc := services{identities: domains.Local{}, feedback: processor, sendingMode: func() string { return "log" }}
 	var tasks []func(context.Context)
+	developer, err := newDeveloperServices(pool)
+	if err != nil {
+		return err
+	}
+	svc.developer = developer
+	tasks = append(tasks, developer.Run)
 	var mailer sender.Sender = sender.LogSender{Pool: pool, Feedback: processor}
 	var account *ses.Account
 	if cfg.SES() {

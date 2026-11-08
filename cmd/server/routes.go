@@ -34,6 +34,7 @@ type limiters struct {
 }
 
 type services struct {
+	developer   *developerServices
 	identities  domains.Identities
 	feedback    *feedback.Processor
 	verifier    *sns.Verifier
@@ -134,6 +135,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Post("/api/suppressions", contactH.CreateSuppression)
 		api.Post("/api/suppressions/import", contactH.ImportSuppressions)
 		api.Delete("/api/suppressions/{id}", contactH.DeleteSuppression)
+		registerDeveloperRoutes(api, pool, svc.developer)
 	})
 
 	r.Get("/healthz", db.Health(pool))
