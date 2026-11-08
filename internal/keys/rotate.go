@@ -44,6 +44,7 @@ func (h *Handler) Rotate(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		httpx.Internal(w, r, err)
 	default:
+		w.Header().Set("Cache-Control", "no-store")
 		httpx.JSON(w, http.StatusCreated, created)
 	}
 }

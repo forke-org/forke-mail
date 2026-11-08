@@ -70,6 +70,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		httpx.Internal(w, r, err)
 		return
 	}
+	w.Header().Set("Cache-Control", "no-store")
 	httpx.JSON(w, http.StatusCreated, created)
 }
 
