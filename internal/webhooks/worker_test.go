@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -98,6 +100,34 @@ func TestDurableWebhookFlow(t *testing.T) {
 	n := dbtest.QueryString(t, pool, `SELECT count(*)::text FROM webhook_deliveries WHERE endpoint_id=$1 AND workspace_id=$2`, endpoint, ws)
 	if n != "1" {
 		t.Fatal("rollback left a delivery")
+	}
+}
+
+func TestConcurrentDispatchDoesNotDoubleClaim(t *testing.T) {
+	ctx := context.Background()
+	pool := dbtest.Pool(t)
+	ws := dbtest.Workspace(t, pool, "paid", 100)
+	v := testVault(t)
+	dbtest.Exec(t, pool, `INSERT INTO webhook_endpoints(workspace_id,url,secret,events,enabled) VALUES($1,'https://hooks.example.com',$2,ARRAY['email.delivered'],true)`, ws, v.Seal("secret", ws))
+	if err := events.Record(ctx, pool, events.Event{WorkspaceID: ws, Type: "delivered"}); err != nil {
+		t.Fatal(err)
+	}
+	var calls atomic.Int32
+	d := &Dispatcher{Pool: pool, Vault: v, Client: &http.Client{Transport: transportFunc(func(*http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return &http.Response{StatusCode: 204, Body: io.NopCloser(strings.NewReader("")), Header: make(http.Header)}, nil
+	})}}
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Go(func() {
+			if _, err := d.Once(ctx); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	wg.Wait()
+	if calls.Load() != 1 {
+		t.Fatalf("dispatch count %d", calls.Load())
 	}
 }
 
