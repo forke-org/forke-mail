@@ -58,7 +58,7 @@ func run() error {
 	}}
 	svc := services{identities: domains.Local{}, feedback: processor, sendingMode: func() string { return "log" }}
 	var tasks []func(context.Context)
-	developer, err := newDeveloperServices(pool)
+	developer, err := newDeveloperServices(pool, cfg.Development())
 	if err != nil {
 		return err
 	}
