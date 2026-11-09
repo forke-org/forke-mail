@@ -117,3 +117,35 @@ func TestResendCompatibleEmails(t *testing.T) {
 		t.Fatalf("sending key created audience: %d", w.Code)
 	}
 }
+
+func TestResendCompatibleRemoveContact(t *testing.T) {
+	f := newAPIFixture(t)
+	key := f.key(t, "full_access")
+	w := f.request("POST", "/api/resend/audiences", `{"name":"Subscribers"}`, key)
+	audienceID := decodeJSON(t, w.Body.String())["id"].(string)
+	for _, email := range []string{"stay@example.com", "leave@example.com", "byid@example.com"} {
+		if w := f.request("POST", "/api/resend/audiences/"+audienceID+"/contacts", `{"email":"`+email+`"}`, key); w.Code != 201 {
+			t.Fatalf("contact %s %d", email, w.Code)
+		}
+	}
+	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/Leave@Example.com", "", key); w.Code != 200 {
+		t.Fatalf("delete by email %d %s", w.Code, w.Body)
+	}
+	byID := dbtest.QueryString(t, f.pool, `SELECT id::text FROM contacts WHERE lower(email) = 'byid@example.com'`)
+	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/"+byID, "", key); w.Code != 200 {
+		t.Fatalf("delete by id %d %s", w.Code, w.Body)
+	}
+	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/leave@example.com", "", key); w.Code != 404 {
+		t.Fatalf("second delete %d", w.Code)
+	}
+	if w := f.request("DELETE", "/api/resend/audiences/00000000-0000-0000-0000-000000000000/contacts/stay@example.com", "", key); w.Code != 404 {
+		t.Fatalf("unknown audience %d", w.Code)
+	}
+	if got := dbtest.QueryString(t, f.pool, `SELECT string_agg(email, ',') FROM contacts WHERE email LIKE '%@example.com' AND workspace_id = (SELECT workspace_id FROM api_keys WHERE prefix = $1)`, key[:12]); got != "stay@example.com" {
+		t.Fatalf("remaining %q", got)
+	}
+	sending := f.key(t, "sending_access")
+	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/stay@example.com", "", sending); w.Code != 403 {
+		t.Fatalf("sending key %d", w.Code)
+	}
+}

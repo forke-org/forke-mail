@@ -113,3 +113,43 @@ func (h *Handler) AddContact(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.JSON(w, http.StatusCreated, map[string]string{"object": "contact", "id": id})
 }
+
+func (h *Handler) RemoveContact(w http.ResponseWriter, r *http.Request) {
+	ws := auth.FromContext(r.Context()).WorkspaceID
+	audienceID := chi.URLParam(r, "id")
+	if !httpx.ValidID(audienceID) {
+		fail(w, http.StatusNotFound, "audience_not_found")
+		return
+	}
+	var exists bool
+	if err := h.Pool.QueryRow(r.Context(), `SELECT EXISTS (SELECT 1 FROM tags WHERE id = $1 AND workspace_id = $2)`, audienceID, ws).Scan(&exists); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	if !exists {
+		fail(w, http.StatusNotFound, "audience_not_found")
+		return
+	}
+	ref := chi.URLParam(r, "contact")
+	var id string
+	var err error
+	if httpx.ValidID(ref) {
+		err = h.Pool.QueryRow(r.Context(), `DELETE FROM contacts WHERE id = $1 AND workspace_id = $2 RETURNING id`, ref, ws).Scan(&id)
+	} else {
+		email := contacts.NormalizeEmail(ref)
+		if !contacts.ValidEmail(email) {
+			fail(w, http.StatusUnprocessableEntity, "invalid_email")
+			return
+		}
+		err = h.Pool.QueryRow(r.Context(), `DELETE FROM contacts WHERE workspace_id = $1 AND lower(email) = $2 RETURNING id`, ws, email).Scan(&id)
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		fail(w, http.StatusNotFound, "contact_not_found")
+		return
+	}
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, map[string]any{"object": "contact", "contact": id, "deleted": true})
+}

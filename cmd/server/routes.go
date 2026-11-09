@@ -161,6 +161,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/resend/audiences", resendH.ListAudiences)
 		api.Post("/api/resend/audiences", resendH.CreateAudience)
 		api.Post("/api/resend/audiences/{id}/contacts", resendH.AddContact)
+		api.Delete("/api/resend/audiences/{id}/contacts/{contact}", resendH.RemoveContact)
 		api.Post("/api/resend/broadcasts", resendH.CreateBroadcast)
 		api.Post("/api/resend/broadcasts/{id}/send", resendH.SendBroadcast)
 	})
