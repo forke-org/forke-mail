@@ -2,11 +2,9 @@
 
 Forke Mail uses an authenticated developer API, verified sending identities and signed customer webhooks. Examples below use Bash/curl (Git Bash on Windows). Replace placeholders locally; never commit credentials or cookie jars.
 
-## Current delivery boundary
+## Delivery
 
-The customer webhook pipeline is implemented. The new direct-send API accepts an `EmailEnqueuer` adapter, but Advik's branch currently exposes campaign sending rather than a direct transactional enqueue service. Until that shared engine is connected, production `POST /api/emails` returns `503 transactional_engine_unavailable`.
-
-For API development only, set `APP_ENV=development` and `TRANSACTIONAL_STUB_ENABLED=true`. Responses explicitly contain `"mode":"development_stub"`. The stub records an idempotent receipt in PostgreSQL, does not retain message contents, does not dispatch email and does not generate synthetic delivery notifications. Startup rejects this flag outside development. A queued stub receipt is not evidence that any email will be delivered.
+Transactional sends go through `POST /api/transactional` (or the Resend-compatible `POST /api/resend/emails`) and the priority dispatcher. Broadcasts go through campaigns. Both deliver with the configured `SENDER_DRIVER` (`log`, `smtp` or `ses`).
 
 ## Local setup
 
@@ -91,27 +89,21 @@ curl -i -b "$COOKIE_JAR" -X DELETE "$BASE/api/webhooks/WEBHOOK_ID"
 
 Keep the one-time returned `secret` separately from your API key. At most ten endpoints per workspace. URLs must resolve to public HTTPS destinations on port 443, with no credentials or fragment. Private, loopback, link-local, metadata, reserved and mixed public/private DNS destinations are blocked. DNS is checked at the actual connection and connections use vetted IPs with normal TLS hostname verification. Redirects and environment HTTP proxies are disabled. Localhost receivers require test doubles in automated tests or a public HTTPS endpoint for manual development.
 
-Supported events: `email.queued`, `email.sent`, `email.delivered`, `email.bounced`, `email.soft_bounced`, `email.complained`, `email.unsubscribed`, `email.failed`, `email.rejected`, `email.delayed`, `workspace.sending_paused`. Opens/clicks are not implemented in the upstream engine and are rejected as subscriptions. `email.sent` means provider acceptance, while `email.delivered` means recipient-server acceptance; neither proves inbox placement or human engagement.
+Supported events: `email.queued`, `email.opened`, `email.clicked`, `email.sent`, `email.delivered`, `email.bounced`, `email.soft_bounced`, `email.complained`, `email.unsubscribed`, `email.failed`, `email.rejected`, `email.delayed`, `workspace.sending_paused`. `email.opened` and `email.clicked` are emitted for transactional messages sent with `track_opens`/`track_clicks`. `email.sent` means provider acceptance, while `email.delivered` means recipient-server acceptance; neither proves inbox placement or human engagement.
 
-## 4. Submit a transactional request
+## 4. Send a transactional email
 
 ```bash
-curl -i "$BASE/api/emails" \
+curl -i "$BASE/api/transactional" \
   -H 'Authorization: Bearer YOUR_API_KEY' \
   -H 'Idempotency-Key: signup-user-123-v1' \
   -H 'Content-Type: application/json' \
-  -d '{"from":"welcome@your-owned.example","to":"person@example.com","subject":"Welcome","text":"Hello from Forke Mail"}'
+  -d '{"from_name":"Forke","from_address":"welcome@your-owned.example","to":"person@example.com","subject":"Welcome","text":"Hello from Forke Mail"}'
 ```
 
-Development-stub example:
+The response is `202` with the message (`id`, `status: "queued"`, …). The `Idempotency-Key` header is optional. With it, the same key and payload within 24 hours returns the original message with `Idempotent-Replayed: true`, and a different payload returns `409 idempotency_key_reused`. Without it, an identical message within 60 seconds is returned as a `duplicate_content` replay.
 
-```json
-{"id":"message-uuid","status":"queued","mode":"development_stub"}
-```
-
-The idempotency key is required, 1-128 printable non-space ASCII characters, workspace-scoped and retained for 24 hours. Same normalized payload/key returns the same ID with `Idempotency-Replayed: true`; changed payload returns 409. The PostgreSQL record survives handler/server restart. Expired keys can be reused and may represent another send. At most 1,000 unexpired direct-send receipts per workspace. This is separate from the existing sender quota; actual dispatch quota reservation belongs in the shared enqueue/worker engine.
-
-The request currently supports one `to` address, a plain sender address, a subject up to 256 characters and HTML and/or text. Unknown JSON fields, invalid addresses and subject CR/LF are rejected. The sender must belong to a verified identity in the same workspace. Existing suppressions and inactive contacts block new requests conservatively; marketing versus transactional opt-out policy must be agreed with Intern 1 before production wiring. Recipients are not imported into marketing contacts by this endpoint.
+The sender must belong to a verified identity in the same workspace. Recipients suppressed for bounces, complaints or manual blocks are refused with `422 recipient_suppressed`; unsubscribing from broadcasts does not block transactional mail. Recipients are not added to marketing contacts by this endpoint.
 
 ## 5. Verify customer webhook signatures and reject replays
 
@@ -204,25 +196,23 @@ Errors are JSON `{"error":"snake_case_code"}`.
 | 401 | `unauthorized` for missing/invalid/revoked credentials |
 | 403 | `insufficient_scope`, `incorrect_password` |
 | 404 | `not_found`, including IDs owned by another workspace |
-| 409 | `idempotency_conflict`, `workspace_sending_paused`, `webhook_endpoint_limit`, `webhook_secret_rotation_required` |
+| 409 | `idempotency_key_reused`, `workspace_sending_paused`, `webhook_endpoint_limit`, `webhook_secret_rotation_required` |
 | 413 | `body_too_large` (JSON limit 1 MiB) |
-| 422 | `invalid_email_request`, `sender_not_verified`, `recipient_suppressed`, `invalid_webhook_url`, `invalid_webhook_events`, `invalid_mail_from_domain` |
-| 429 | API rate limit or `transactional_queue_full` |
+| 422 | `invalid_to`, `invalid_from_address`, `from_domain_not_verified`, `recipient_suppressed`, `invalid_webhook_url`, `invalid_webhook_events`, `invalid_mail_from_domain` |
+| 429 | API rate limit |
 | 500 | `internal_error` |
 | 502 | `ses_request_failed` |
-| 503 | `transactional_engine_unavailable`, `webhooks_not_configured`, `aws_region_required_for_preview` |
+| 503 | `webhooks_not_configured`, `aws_region_required_for_preview` |
 
-## Reproducible demo and engine handoff
+## Reproducible demo
 
 Run tests with `TEST_DATABASE_URL` pointing to disposable PostgreSQL. These use a real database and fake network/provider adapters:
 
 ```bash
-go test ./cmd/server -run TestDeveloperContractEndToEndWithFakeEngine -v
+go test ./cmd/server -run TestDeveloperContractEndToEnd -v
 go test ./internal/webhooks -run 'TestDurableWebhookFlow|TestSNSDeduplicationQueuesOneDelivery' -v
 ```
 
-The end-to-end test creates a key, verifies a domain with the local fake identity provider, submits an authenticated request through a fixture enqueue adapter, receives its stable message ID, processes simulated provider feedback and validates the signed outgoing customer webhook. It does not prove AWS delivery or provide the missing production transactional engine.
+The end-to-end test creates a key, verifies a domain with the local identity provider, sends a transactional message, processes simulated provider feedback and validates the signed outgoing customer webhook, whose payload carries the `message_id`.
 
-Advik's adapter must implement `transactional.EmailEnqueuer.Enqueue(ctx, tx, job)`, persist its priority job using the supplied transaction and provided stable message ID, and return only after durable enqueue. Errors must roll back that transaction. The worker must enforce quota/suppression checks and emit normal persisted events correlated to that ID. Then assign the adapter to `developerServices.transaction.Enqueuer` with `Development=false`. Do not make direct SES calls in the HTTP handler. Existing campaign endpoints remain usable through the existing broadcast engine; this adapter must not silently route OTPs through marketing audiences or add newsletter footers.
-
-OpenAPI for the Intern 3 surface is in `docs/openapi.yaml`. SES Open/Click plumbing and custom MAIL FROM provider configuration remain explicit follow-up integration items; current endpoints do not claim they exist.
+OpenAPI for these endpoints is in `docs/openapi.yaml`. Custom MAIL FROM provider configuration remains a follow-up; the DNS preview does not claim it exists.

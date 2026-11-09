@@ -8,7 +8,9 @@ Forke Mail is a multi-tenant email service with two sending paths: broadcasts (c
 
 - **Tenancy.** A workspace (tenant) has users, API keys, contacts, tags, suppressions, sending identities, campaigns, and emails inside campaigns.
 - **Launch.** Launching an email snapshots its audience into per-recipient rows.
-- **Sending.** A background worker sends each recipient through a `Sender`: `log` locally, Amazon SES in production.
+- **Sending.** A background worker sends each recipient through a `Sender`: `log` locally, `smtp` (OCI Email Delivery or any relay) or Amazon SES in production.
+- **Sign-in.** There is no public sign-up. Forke admins sign in with their Forke credentials (`internal/forke` reads Forke's `admins` table); `super_admin` and `admin` become session scopes.
+- **Resend compatibility.** `/api/resend/*` translates Resend's REST calls onto the native handlers (`internal/resendapi`), so Forke's apps switch by changing a base URL.
 - **Transactional.** `POST /api/transactional` accepts one message, checks idempotency and dedupe, and hands it to a priority dispatcher that preempts broadcast lanes on the shared SES limiter.
 - **Feedback.** SES delivery, bounce and complaint events arrive over SNS at `/webhooks/ses` and update recipients, suppressions and workspace reputation.
 
@@ -54,14 +56,17 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 | `cmd/server/routes.go` | router: middleware chain, authenticated API group, public group, `/healthz`, `/webhooks/ses` (only when SES is configured), `/dev/*` (development only) |
 | `cmd/sesbootstrap`, `cmd/sescheck` | operator CLIs (see README) |
 | `internal/config` | env parsing and validation (`Load`, `LoadAWS`, `ValidateBaseURL`). Startup fails on invalid config |
-| `internal/accounts` | signup (creates a trial workspace, plus a sandbox domain only with the log driver), login (bcrypt, timing-equalized), logout, `CreateWorkspace`, `AddVerifiedIdentity`, `CreateUser` |
-| `internal/auth` | `GenerateKey`/`HashKey` (`fm_live_` + 64 hex, SHA-256, 12-char prefix), sessions (`fm_session` cookie, hashed in `sessions`), `Authenticator.Middleware` (Bearer key first, then cookie; session mutations must pass `httpx.SameOrigin`), `Authorize` + `routeScopes` |
+| `internal/accounts` | `Login` (Forke `Directory` when `FORKE_DATABASE_URL` is set, else local bcrypt users for development), `ForkeWorkspace`/`UpsertAdmin` (link a Forke admin to a local user by `forke_admin_id`), `Passwords.Verify` (Forke or local password re-check), logout, `CreateWorkspace`, `AddVerifiedIdentity`, `CreateUser` |
+| `internal/forke` | `Directory` over Forke's database: `Authenticate` (email or username + bcrypt, timing-equalized), `CheckPassword`, `Role` (live role; `ErrInactive` when disabled, uninvited or not an admin role) |
+| `internal/relay` | SMTP `Sender` (STARTTLS/TLS/none, PLAIN auth, `classify` reply codes → `sender.Action`), `Build` (MIME with `X-Forke-*` headers, plain text derived from HTML), `Quota` (rolling 24 h + calendar month caps → `Worker.SetLimits`), `Identities` (allow-list from `SMTP_ALLOWED_SENDERS`) |
+| `internal/resendapi` | Resend-compatible `/api/resend` handlers. They call the native handlers through `delegate` (same identity, rewritten body and path id) and translate errors to Resend's `{statusCode,name,message}`. Audiences are tags; broadcasts are emails in a campaign named after the broadcast |
+| `internal/auth` | `GenerateKey`/`HashKey` (`fm_live_` + 64 hex, SHA-256, 12-char prefix), sessions (`fm_session` cookie, hashed in `sessions`; users linked to a Forke admin re-read their role through `AdminRoles` on every request and lose all sessions when inactive), `Authenticator.Middleware` (Bearer key first, then cookie; session mutations must pass `httpx.SameOrigin`), `Authorize` + `routeScopes` |
 | `internal/httpx` | JSON encode/decode (strict, 1 MB), `PathID`/`ValidID`/`Page`, security headers + CSP, recover, logger, body limit, `SameOrigin`, `TokenMatches` (constant time) |
 | `internal/ratelimit` | token-bucket `Store` with a janitor, per-key/per-IP middleware, `FailureGuard` for auth failures, `IPResolver` (`X-Forwarded-For` only from `TRUSTED_PROXY`) |
 | `internal/contacts` | contact list/delete, CSV parse (`ParseCSV`, 50k-row cap), `Import` (never reactivates blocked or suppressed contacts; can attach tags and add contacts to a draft email's audience), tags, `Suppress`, suppression handlers |
 | `internal/campaigns` | campaign CRUD (a campaign is a named group of emails) |
 | `internal/emails` | email CRUD, `Audience` (all / tags / contacts), `audienceMatch` SQL shared by size and `Snapshot`, `checkDomain`, `send` (launch), pause/resume, report, recipients, messages |
-| `internal/sender` | `Worker` (per-workspace lanes + global limiter; `AcquireUrgent`/`waitBulk` give transactional sends strict priority, see `priority.go`), `Claim`/`Unclaim` (SKIP LOCKED), `process` (per-recipient send path), `Render` (merge fields, unsubscribe footer and headers), `LogSender` (+ `Simulate` synthetic SES events), `Limits`/idle logic, `RunSweeper` |
+| `internal/sender` | `Worker` (per-workspace lanes + global limiter; `AcquireUrgent`/`waitBulk` give transactional sends strict priority, see `priority.go`), `Claim`/`Unclaim` (SKIP LOCKED), `process` (per-recipient send path), `Render` (merge fields, unsubscribe footer and headers; `{{{RESEND_UNSUBSCRIBE_URL}}}` or `{{unsubscribe_url}}` in the body replaces the footer), `LogSender` (+ `Simulate` synthetic SES events), `Limits`/idle logic, `RunSweeper` |
 | `internal/ses` | `Sender` (SESv2 `SendEmail`, SDK retries off), `Classify` (SES error → `sender.Action`), `Account` (GetAccount every 10 min → `Worker.SetLimits`, `Mode()`), `Identities` (create/get/delete email identity) |
 | `internal/sns` | `Message`, `StringToSign`, `Verifier.Verify` (cert URL allowlist `https://sns.<region>.amazonaws.com/…pem`, cert cache, SignatureVersion 1 = SHA1 and 2 = SHA256, topic check), `Verifier.Confirm`. `snstest` has the test signer |
 | `internal/feedback` | `Event` (SES event JSON model), `Processor.Handle` (dedupe + apply in one transaction), reputation guard, `Webhook` handler, `DevHandler` |
@@ -73,7 +78,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 | `internal/unsub` | `Signer` (HMAC token `base64url(ws:contact:email).base64url(mac)`, strict base64), confirm page + POST (one-click) |
 | `internal/seed` | dev seed: Forke (paid, `full_access`), Acme Trial (100), Beta Trial (5) |
 | `internal/db` | `Connect`, `Migrate` (goose provider over the embedded FS), `Health`, `Querier`; `dbtest` holds test helpers and fixtures |
-| `migrations/` | `00001` workspaces/users/sessions/keys/domains · `00002` contacts/tags/suppressions · `00003` campaigns/emails/audience/recipients · `00004` message_logs/events/usage/webhook_endpoints · `00005` SES columns, pause reasons, suppression source, processed SNS messages · `00006` customer webhook outbox · `00007` transactional_messages, `email_events.message_id`, opened/clicked, nullable `message_logs` targets · `00008` webhook retention · `00009` webhook payloads carry `message_id` |
+| `migrations/` | `00001` workspaces/users/sessions/keys/domains · `00002` contacts/tags/suppressions · `00003` campaigns/emails/audience/recipients · `00004` message_logs/events/usage/webhook_endpoints · `00005` SES columns, pause reasons, suppression source, processed SNS messages · `00006` customer webhook outbox · `00007` transactional_messages, `email_events.message_id`, opened/clicked, nullable `message_logs` targets · `00008` webhook retention · `00009` webhook payloads carry `message_id` · `00010` global `sent_at` indexes for relay quotas · `00011` Forke admin link and roles on `users` · `00012` `emails.reply_to` |
 | `frontend/` | Next.js 16 pages router, static export, React 19, TanStack Table v8. `lib/api.js` (fetch wrapper + error messages), `lib/session.js` (auth state, upgrade modal), `components/` (DataTable, Modal/Confirm, Layout, …), `pages/` (one page per route). Theme tokens live in `public/app.css`; `public/theme.js` sets the theme before paint |
 
 ## Data model (key columns only)
@@ -81,7 +86,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 - **`workspaces`**
   - `plan` (`paid`|`trial`), `status`, `daily_limit`, `rate_limit_per_sec`, `trial_send_limit`, `trial_sent_count`
   - `sending_paused` + `pause_reason` (`bounce_rate_exceeded`|`complaint_rate_exceeded`). A check constraint keeps them consistent.
-- **`users`** (unique `lower(email)`), **`sessions`** (`token_hash` PK), **`api_keys`** (`scope`, `prefix`, `key_hash`, `revoked_at`).
+- **`users`** (unique `lower(email)`; `role` `super_admin`|`admin`; `forke_admin_id` unique when set; `password_hash` is null for Forke-linked users), **`sessions`** (`token_hash` PK), **`api_keys`** (`scope`, `prefix`, `key_hash`, `revoked_at`).
 - **`domains`**: the sending identities.
   - `kind` (`domain`|`email`), `status` (`pending`|`verified`|`failed`), `ses_status`, `dkim_tokens[]`, `verified_at`, `last_checked_at`.
   - `name` is **globally unique** on `lower(name)`, because an SES identity is account-wide.
@@ -93,7 +98,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
   - `detail` is jsonb.
 - **`campaigns`**: unique `(workspace_id, lower(name))`.
 - **`emails`**
-  - `campaign_id`, `subject`, `from_name`, `from_address`, `html`, `text`, `audience_all`.
+  - `campaign_id`, `subject`, `from_name`, `from_address`, `reply_to`, `html`, `text`, `audience_all`.
   - `status`: `draft`|`scheduled`|`sending`|`paused`|`done`. `scheduled` is accepted by launch, but nothing sets it yet.
   - `pause_reason`: `manual`|`trial_quota_exhausted`|`daily_limit_reached`|`ses_sending_paused`|`identity_not_verified`|`reputation`. Constraint: `(status = 'paused') = (pause_reason IS NOT NULL)`.
 - **`email_tags`**, **`email_contacts`**: the saved audience of an email.
@@ -127,7 +132,7 @@ Intern 3 extensions are registered in cmd/server/developer.go. Domain diagnostic
 `httpx.Logger → Recover → SecurityHeaders → LimitBody`. Then one of three paths:
 
 - **API group:** `Authenticator.Middleware → per-key rate limit → auth.Authorize`.
-  - Scope principals are `session`, `full_access` and `sending_access`.
+  - Scope principals are `super_admin`, `admin` (sessions, from the user's role), `full_access` and `sending_access`.
   - `auth.FromContext(ctx)` gives `Identity{UserID, KeyID, KeyPrefix, Scope, WorkspaceID, Plan}`.
 - **Public group:** per-IP limit, covering signup (with an extra hourly limit), login, unsubscribe, tracking (`/t/o/*`, `/t/c/*`), the dev routes and the static frontend.
 - **`/webhooks/ses` and `/healthz`:** attached directly to the router, with no rate limiting.
@@ -272,8 +277,10 @@ Links use `PUBLIC_BASE_URL`.
 
 | Principal set | Allowed |
 |---|---|
-| `sessionOnly` | logout and API key management |
-| `workspace` (session + `full_access`) | dashboard, events, transactional list and stats, contacts read and write, tags, campaign create/read/update, email update/delete/pause/resume/messages/recipients, domains, suppressions |
+| `superAdminOnly` | API key management |
+| `sessions` (`super_admin` + `admin`) | logout |
+| `manage` (`super_admin` + `full_access`) | add/remove domains, create/update/delete/rotate webhooks, remove suppressions |
+| `workspace` (`super_admin` + `admin` + `full_access`) | dashboard, events, transactional list and stats, contacts read and write, tags, campaign create/read/update, email update/delete/pause/resume/messages/recipients, domains, suppressions |
 | `anyone` (+ `sending_access`) | `GET /api/me`, contact import, `GET /api/campaigns`, create an email in a campaign, `GET` an email, send, report, `POST /api/transactional`, `GET /api/transactional/{id}` |
 
 ## Frontend notes

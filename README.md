@@ -1,6 +1,8 @@
 # Forke Mail
 
-Forke Mail is a multi-tenant email service, similar to Resend or Loops. Each workspace imports contacts, groups broadcast emails into campaigns, sends one-to-one transactional email (sign-in codes, password resets, receipts) over the API, and delivers everything through **Amazon SES**. Delivery, bounce and complaint feedback comes back over **Amazon SNS**.
+Forke Mail is Forke's own email service and our replacement for Resend. It imports contacts, groups broadcast emails into campaigns, sends one-to-one transactional email (sign-in codes, password resets, receipts) over the API, and delivers through an **SMTP relay** (OCI Email Delivery on the Oracle Always Free tier) or **Amazon SES**.
+
+It speaks a **Resend-compatible API** under `/api/resend`, so the Forke apps switch over by changing a base URL and an API key. Forke admins sign in with their existing Forke accounts: `super_admin` and `admin` roles come straight from Forke's `admins` table.
 
 It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for all state. It needs no Redis, message broker or ORM.
 
@@ -11,6 +13,9 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
 - [Requirements](#requirements)
 - [Quick start (local, no AWS needed)](#quick-start-local-no-aws-needed)
 - [Configuration](#configuration)
+- [Sign-in and roles](#sign-in-and-roles)
+- [Switching Forke from Resend](#switching-forke-from-resend)
+- [Sending through OCI Email Delivery](#sending-through-oci-email-delivery)
 - [Using the dashboard](#using-the-dashboard)
 - [REST API](#rest-api)
 - [Transactional email](#transactional-email)
@@ -21,10 +26,12 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
 - [Project layout](#project-layout)
 - [Troubleshooting](#troubleshooting)
 - [Security model](#security-model)
+- [Credits](#credits)
 
 ## Features
 
-- **Workspaces and accounts.** Sign up with email and password, and get a session cookie. Each workspace is fully isolated from the others.
+- **Forke sign-in.** No public sign-up. Forke admins log in with their Forke email (or username) and password, checked against Forke's `admins` table. `super_admin` and `admin` roles map to permissions, and a role change or a disabled admin in Forke applies on the very next request.
+- **Workspaces.** Each workspace is fully isolated from the others. Forke admins share one workspace (`FORKE_WORKSPACE_NAME`).
 - **Plans.** Trial workspaces get a fixed send quota, enforced atomically even under concurrency. When the quota runs out, the dashboard shows an upgrade prompt. Paid workspaces get a daily limit.
 - **API keys.** `fm_live_…` keys are stored only as SHA-256 hashes. They come in two scopes, `full_access` and `sending_access`, and are created, rotated or revoked in the dashboard after re-entering your password.
 - **Contacts.**
@@ -42,6 +49,8 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
   - Failed sends are retried with backoff.
   - A sweeper recovers recipients stuck mid-send after a crash.
   - Every email gets a per-recipient unsubscribe link and the `List-Unsubscribe` / one-click headers.
+- **SMTP relay.** `SENDER_DRIVER=smtp` delivers through any authenticated SMTP relay over STARTTLS or TLS, built for OCI Email Delivery. Daily and monthly caps keep you inside a free allowance, and a plain-text part is generated from HTML when you only send HTML.
+- **Resend-compatible API.** `POST /emails`, audiences, contacts and broadcasts under `/api/resend`, including the `{{{RESEND_UNSUBSCRIBE_URL}}}` placeholder.
 - **Amazon SES integration.**
   - Sends through SESv2 using a configuration set and message tags.
   - Classifies SES errors without SDK retries; ambiguous outcomes are never retried, so no one gets a duplicate.
@@ -83,6 +92,7 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
    - renders the message and sends it through the configured sender.
 3. **The sender** is selected by `SENDER_DRIVER`:
    - `log` stores the rendered message in `message_logs` and feeds synthetic SES events through the event processor.
+   - `smtp` delivers through an SMTP relay such as OCI Email Delivery.
    - `ses` calls Amazon SES.
 4. **SES events** reach `/webhooks/ses` via SNS. They are verified, deduplicated and applied: a delivery stamps the recipient, and a hard bounce or complaint suppresses the address and re-evaluates the workspace's reputation.
 
@@ -114,7 +124,7 @@ set -a && . ./.env && set +a
 go run ./cmd/server                               # migrations run automatically on startup
 ```
 
-Open **http://localhost:8080** and sign up. New accounts get a trial workspace (100 sends). With the `log` driver they also get a verified sandbox domain, so you can send immediately; the sends are logged rather than delivered.
+Locally you can leave `FORKE_DATABASE_URL` empty and sign in with a demo account from `/dev/seed` (below). To sign in with real Forke accounts, point `FORKE_DATABASE_URL` at a copy of Forke's database (only the `admins` table is read). With the `log` driver, domains you add are verified instantly and sends are logged rather than delivered.
 
 ### Demo data
 
@@ -155,17 +165,32 @@ All configuration comes from environment variables, and `.env.example` lists eve
 | `UNSUBSCRIBE_SECRET` | – (required, 32+ chars) | HMAC key for unsubscribe tokens. Changing it invalidates links in emails already sent |
 | `SEED_TOKEN` | – (32+ chars, development only) | protects `/dev/seed` and `/dev/ses-event` |
 | `TRUSTED_PROXY` | empty | IP or CIDR of your reverse proxy. Only then is `X-Forwarded-For` trusted for client IPs, which rate limits depend on |
+| `FORKE_DATABASE_URL` | – (required outside development) | Forke's PostgreSQL. Only `admins` (`id`, `email`, `username`, `name`, `password_hash`, `role`, `is_disabled`) is read. A read-only database user is enough |
+| `FORKE_WORKSPACE_NAME` | `Forke` | the workspace Forke admins land in; created on first sign-in |
 
 ### Sending
 
 | Variable | Default | Description |
 |---|---|---|
-| `SENDER_DRIVER` | `log` | `log` (store messages, simulate events) or `ses` (real sending) |
-| `SEND_RATE_PER_SEC` | `20` | global send rate for the log driver. With SES it is replaced by the account's `MaxSendRate` |
+| `SENDER_DRIVER` | `log` | `log` (store messages, simulate events), `smtp` (relay such as OCI Email Delivery) or `ses` |
+| `SEND_RATE_PER_SEC` | `20` | global send rate for the log and smtp drivers. With SES it is replaced by the account's `MaxSendRate` |
 | `TRIAL_SEND_RATE_PER_SEC` | `1` | send rate for trial workspaces |
 | `MAX_BOUNCE_RATE` | `0.05` | reputation guard: 30-day hard bounce rate that pauses a workspace |
 | `MAX_COMPLAINT_RATE` | `0.001` | reputation guard: 30-day complaint rate that pauses a workspace |
 | `REPUTATION_MIN_SAMPLE` | `100` | the guard only acts once a workspace has sent to at least this many recipients in 30 days |
+
+### SMTP relay (required when `SENDER_DRIVER=smtp`)
+
+| Variable | Default | Description |
+|---|---|---|
+| `SMTP_HOST` | – | relay host, e.g. `smtp.email.ap-mumbai-1.oci.oraclecloud.com` |
+| `SMTP_PORT` | `587` | relay port |
+| `SMTP_TLS` | `starttls` | `starttls`, `tls` (implicit, port 465) or `none` (development only) |
+| `SMTP_USERNAME`, `SMTP_PASSWORD` | empty | SMTP credentials; set both or neither |
+| `SMTP_HELO_NAME` | empty | name sent in `EHLO`, e.g. `mail.forke.space` |
+| `SMTP_ALLOWED_SENDERS` | – | comma-separated domains or addresses approved at the relay. Only these verify as sending identities |
+| `SMTP_DAILY_LIMIT` | `0` (none) | rolling 24-hour cap across all workspaces. Broadcasts idle at 90 %, transactional mail continues to 100 % |
+| `SMTP_MONTHLY_LIMIT` | `0` (none) | calendar-month cap; sending stops when it is reached |
 
 ### Amazon SES (required when `SENDER_DRIVER=ses`)
 
@@ -184,7 +209,7 @@ All configuration comes from environment variables, and `.env.example` lists eve
 |---|---|---|
 | `API_PAID_RATE_PER_SEC` / `API_PAID_BURST` | `20` / `40` | per-key limit for paid workspaces and dashboard sessions |
 | `API_TRIAL_RATE_PER_SEC` / `API_TRIAL_BURST` | `2` / `5` | per-key limit for trial workspaces |
-| `PUBLIC_RATE_PER_SEC` / `PUBLIC_BURST` | `10` / `30` | per-IP limit for public routes (login, signup, unsubscribe) |
+| `PUBLIC_RATE_PER_SEC` / `PUBLIC_BURST` | `10` / `30` | per-IP limit for public routes (login, unsubscribe, tracking) |
 | `AUTH_FAILURES_PER_MIN` / `AUTH_FAILURE_BURST` | `10` / `10` | per-IP limit on failed logins and invalid API keys |
 
 ## Using the dashboard
@@ -210,7 +235,8 @@ Authenticate with `Authorization: Bearer fm_live_…`. Errors are JSON of the fo
 
 | Scope | Can do |
 |---|---|
-| dashboard session | everything, including managing API keys |
+| `super_admin` session | everything, including managing API keys |
+| `admin` session | everything except API keys, adding or removing domains, managing webhooks and removing suppressions |
 | `full_access` key | everything except managing API keys |
 | `sending_access` key | import contacts, list campaigns, create emails in a campaign, send, read email status and reports |
 
@@ -251,6 +277,87 @@ Other routes:
 | `GET /api/events` | workspace event log |
 | `/api/domains`, `/api/suppressions` | dashboard and `full_access` keys only |
 | `GET /healthz` | database health for load balancers |
+
+## Sign-in and roles
+
+`POST /api/auth/login` with `{"email": "...", "password": "..."}`. The `email` field also accepts a Forke username.
+
+1. The admin is looked up in Forke's `admins` table and the password is checked with bcrypt (`$2a$`/`$2b$` hashes from bcryptjs work as they are).
+2. Only admins with `role` `super_admin` or `admin`, `is_disabled = false` and a password set (accepted invitation) can sign in.
+3. On first sign-in a local user linked by `forke_admin_id` is created in the Forke workspace; later sign-ins refresh name, email and role.
+4. Forke Mail issues its own random session token (stored hashed, `HttpOnly`, 14 days). It never trusts Forke's `admin_token` cookie.
+5. Every request with a session re-reads the admin's role from Forke. Demoting an admin takes effect on the next request, and disabling one ends all their sessions.
+
+Creating, rotating or revoking API keys asks for the Forke password again.
+
+## Switching Forke from Resend
+
+Forke's apps (`forke-admin`, `forke-dashboard`, `forke-marketing`) call Resend's REST API with `fetch`. Forke Mail serves the same calls under `/api/resend`:
+
+| Resend call used by Forke | Forke Mail behaviour |
+|---|---|
+| `POST /emails` | transactional send: one `to` address, optional `reply_to`, `tags`, `Idempotency-Key` header. Returns `{"id"}` |
+| `GET /emails/{id}` | message with `last_event` (`queued`, `sent`, `delivered`, `bounced`, …) |
+| `GET /audiences`, `POST /audiences` | audiences are contact tags. Creating an existing name returns the existing audience |
+| `POST /audiences/{id}/contacts` | upserts the contact and tags it. `unsubscribed: true` suppresses it. Unsubscribed, bounced or complained contacts are never reactivated |
+| `POST /broadcasts` | creates a draft email for the audience inside a campaign named after the broadcast `name` |
+| `POST /broadcasts/{id}/send` | launches it; the worker sends to every active, unsuppressed contact in the audience |
+
+`{{{RESEND_UNSUBSCRIBE_URL}}}` (and `{{unsubscribe_url}}`) in a broadcast's HTML or text becomes the recipient's signed unsubscribe link, and the one-click `List-Unsubscribe` headers are added. Errors keep Resend's shape: `{"statusCode": 422, "name": "validation_error", "message": "..."}`, and `429` keeps `Retry-After`.
+
+Not supported yet, and rejected with a clear 422 instead of being silently dropped: more than one `to`, `cc`/`bcc`, attachments, custom headers and `scheduled_at`.
+
+### Steps
+
+1. Deploy Forke Mail at `https://mail.forke.space` (see [Deploying to production](#deploying-to-production)).
+2. Sign in as a `super_admin`, add the sending domain (`forke.space`) and create a `full_access` API key.
+3. In each Forke app, point the two Resend URLs at Forke Mail and swap the key:
+
+   ```ts
+   const RESEND_API = process.env.FORKE_MAIL_API_URL || 'https://api.resend.com'
+   // and in the single-send helper:
+   const res = await fetch(`${RESEND_API}/emails`, { ... })
+   ```
+
+   ```sh
+   FORKE_MAIL_API_URL=https://mail.forke.space/api/resend
+   RESEND_API_KEY=fm_live_...
+   ```
+
+4. Remove `RESEND_AUDIENCE_ID`, or set it to the Forke Mail audience id. With it unset, the apps find or create "Forke Subscribers" by name, as they already do.
+
+The apps' existing retry logic (`429` with `Retry-After`, `5xx`) works unchanged.
+
+## Sending through OCI Email Delivery
+
+Outbound port 25 is blocked on Oracle Cloud, but OCI Email Delivery accepts authenticated SMTP on port 587, and the Always Free tier includes a monthly allowance (check the current number in the OCI console; it has been 3,000 a month).
+
+1. **OCI console → Developer Services → Email Delivery.** Create an *email domain* for `forke.space`, add its DKIM record, and add the SPF include OCI shows to Cloudflare DNS.
+2. Add **approved senders** for every from address you use (`hello@`, `blog@`, `updates@`…).
+3. Create **SMTP credentials** for an IAM user (Identity → Users → SMTP credentials).
+4. Configure Forke Mail:
+
+   ```sh
+   SENDER_DRIVER=smtp
+   SMTP_HOST=smtp.email.ap-mumbai-1.oci.oraclecloud.com
+   SMTP_PORT=587
+   SMTP_TLS=starttls
+   SMTP_USERNAME=<ocid smtp username>
+   SMTP_PASSWORD=<smtp password>
+   SMTP_ALLOWED_SENDERS=forke.space
+   SMTP_DAILY_LIMIT=100
+   SMTP_MONTHLY_LIMIT=3000
+   ```
+
+5. Set an OCI budget alert. On a pay-as-you-go tenancy, mail over the free allowance is billed, and the limits above are what keep Forke Mail under it.
+
+What the SMTP driver does and doesn't know:
+
+- **Status.** A message is `sent` once the relay accepts it. Delivery, bounce and complaint events need provider feedback, and OCI Email Delivery doesn't push events the way SES/SNS does, so those counters stay empty with this driver.
+- **Bounces.** OCI keeps its own suppression list for hard bounces and complaints, so repeat sends to bad addresses are dropped at the relay.
+- **Unsubscribes** are fully handled by Forke Mail.
+- **Errors.** `4xx` replies are retried with backoff, `5xx` fails the message, and an authentication failure pauses sending for 10 minutes. A connection dropped after the message was handed over is marked `unknown_outcome` and never retried, so nobody gets a duplicate.
+- **Message IDs.** Every message carries `X-Forke-*` headers (workspace, email or message and recipient ids), and its `Message-ID` is stored, ready for bounce processing.
 
 ## Transactional email
 
@@ -475,7 +582,7 @@ set -a && . ./.env && set +a && go run ./cmd/sesbootstrap    # terminal 2
 The second bootstrap subscribes the webhook. SNS sends a `SubscriptionConfirmation`, the server verifies its signature and confirms it automatically, and bootstrap prints `subscription confirmed`. Now remove the bootstrap policy from the IAM user.
 
 With the SES driver:
-- new signups no longer get a fake sandbox domain;
+- domains are no longer verified instantly the way the log driver does it;
 - `/dev/seed` creates no fake domains, except that `SES_TEST_EMAIL`, if set, is added to the Forke workspace;
 - browse the app through your `https://` URL, because session cookies are now marked `Secure`.
 
@@ -612,10 +719,12 @@ docker run --rm --env-file .env.production --entrypoint /app/sesbootstrap forkem
 ### Checklist
 
 - `APP_ENV=production`, which disables the `/dev/*` routes.
-- `PUBLIC_BASE_URL=https://mail.yourcompany.com`, served over TLS by your load balancer or reverse proxy.
+- `PUBLIC_BASE_URL=https://mail.forke.space`, served over TLS by nginx (see `deploy/`).
+- `FORKE_DATABASE_URL` pointing at Forke's database with a read-only user that can `SELECT` from `admins`.
 - `TRUSTED_PROXY` set to the proxy's IP or CIDR, so per-IP rate limits see real client addresses.
 - A managed PostgreSQL with `sslmode=require` in `DATABASE_URL`. Migrations run automatically on startup.
 - Strong, unique `UNSUBSCRIBE_SECRET`, and keep it stable.
+- With `SENDER_DRIVER=smtp`: relay credentials, `SMTP_ALLOWED_SENDERS` and the daily and monthly caps set (see [Sending through OCI Email Delivery](#sending-through-oci-email-delivery)). The SES items below apply only to `SENDER_DRIVER=ses`.
 - Prefer an IAM role (ECS task role, EC2 instance profile) over static keys: leave `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` empty and the default credential chain is used. Attach only the runtime policy.
 - Run `sesbootstrap` once against the production `PUBLIC_BASE_URL`, with the bootstrap policy attached temporarily.
 - SES production access requested and granted.
@@ -634,7 +743,10 @@ cmd/
   sesbootstrap/    idempotent SES/SNS setup
   sescheck/        prints SES account state
 internal/
-  accounts/        signup, login, logout, workspace and user creation
+  accounts/        Forke admin login, local dev login, logout, workspace and user creation
+  forke/           read-only access to Forke's admins table (password check, live role)
+  relay/           SMTP relay sender, MIME builder, quota guard, allowed-sender identities
+  resendapi/       Resend-compatible endpoints translated onto the native handlers
   auth/            API keys, sessions, authentication middleware, route scopes
   campaigns/       campaign CRUD
   config/          environment parsing and validation
@@ -680,11 +792,21 @@ docker/            PostgreSQL init script
 ## Security model
 
 - **Tenant isolation.** Every query is scoped by `workspace_id`; cross-tenant IDs return 404.
-- **Passwords.** Stored with bcrypt (cost 12). Login timing is equalized for unknown emails.
+- **Passwords.** Forke Mail stores no passwords for Forke admins; they are checked against Forke's bcrypt hashes. Login timing is equalized for unknown accounts.
 - **Sessions.** `HttpOnly`, `SameSite=Lax`, `Secure` over https, 14-day lifetime, stored hashed. Mutating session requests must be same-origin (`Sec-Fetch-Site` or `Origin`).
-- **API keys.** Shown once, stored as SHA-256 hashes with a 12-character display prefix. Creating, rotating and revoking keys requires the account password.
+- **API keys.** Shown once, stored as SHA-256 hashes with a 12-character display prefix. Creating, rotating and revoking keys requires a `super_admin` session and the account password.
 - **Unsubscribe links.** HMAC-SHA256 signed tokens, with one-click `List-Unsubscribe-Post` support.
 - **SNS webhook.** Authenticated only by AWS's signature, with a certificate host allowlist, a topic check and dedupe.
 - **Strict CSP.** No inline scripts, `frame-ancestors 'none'`, `nosniff`, and `no-store` on API responses.
 - **Request limits.** Request body limits, server timeouts, per-IP and per-key rate limits, and lockout on failed authentication.
 - **Logging.** Secrets are never logged or returned. Logs carry the route pattern, workspace ID and key prefix only, never authorization headers, keys, passwords or request bodies.
+
+## Credits
+
+Forke Mail was built by the Forke backend interns:
+
+- **Advik Gupta**: the platform: workspaces, API keys, contacts, campaigns, the sending worker, SES and SNS integration, suppressions, the reputation guard and the dashboard.
+- **Diya Gupta**: the transactional email engine: priority dispatch, idempotency, open and click tracking and the transactional dashboard.
+- **Krishna Agarwal**: the developer platform: signed customer webhooks with SSRF protection, DNS diagnostics, API key lifecycle tests, the OpenAPI contract and CI.
+
+Their original branches are preserved in this repository's history.

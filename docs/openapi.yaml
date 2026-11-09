@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Forke Mail Developer API
   version: 1.0.0
-  description: Intern 3 surface. Transactional delivery requires an EmailEnqueuer adapter; the optional development stub does not send email. See developer-quickstart.md for the complete signing and failure contract.
+  description: Webhooks, DNS diagnostics and transactional sending. See developer-quickstart.md for the complete signing and failure contract.
 servers:
   - url: http://localhost:8080
 security:
@@ -189,15 +189,15 @@ paths:
       responses:
         '200': {description: Delivery IDs, event IDs, status, attempts, next attempt, response code and timestamps; no receiver response bodies}
         default: {$ref: '#/components/responses/Error'}
-  /api/emails:
+  /api/transactional:
     post:
-      operationId: enqueueTransactionalEmail
-      description: Durable idempotency receipt plus shared enqueue adapter. Unwired engine returns 503. Explicit development_stub mode never sends mail.
+      operationId: sendTransactionalEmail
+      description: Queues one transactional message for the priority dispatcher.
       parameters:
         - name: Idempotency-Key
           in: header
-          required: true
-          schema: {type: string, minLength: 1, maxLength: 128, pattern: '^[!-~]+$'}
+          required: false
+          schema: {type: string, minLength: 1, maxLength: 256}
       requestBody:
         required: true
         content:
@@ -205,26 +205,30 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [from, to, subject]
+              required: [from_address, to, subject]
               anyOf: [{required: [html]}, {required: [text]}]
               properties:
-                from: {type: string, format: email}
                 to: {type: string, format: email}
-                subject: {type: string, minLength: 1, maxLength: 256}
-                html: {type: string, minLength: 1}
-                text: {type: string, minLength: 1}
+                from_name: {type: string, maxLength: 100}
+                from_address: {type: string, format: email}
+                reply_to: {type: string, format: email}
+                subject: {type: string, minLength: 1, maxLength: 300}
+                html: {type: string}
+                text: {type: string}
+                tags: {type: object, additionalProperties: {type: string}}
+                track_opens: {type: boolean}
+                track_clicks: {type: boolean}
       responses:
         '202':
-          description: Stable message ID; repeats within 24 hours carry Idempotency-Replayed true.
+          description: Queued message. A replay returns 200 with Idempotent-Replayed true.
           content:
             application/json:
               schema:
                 type: object
-                required: [id, status, mode]
+                required: [id, status]
                 properties:
                   id: {type: string, format: uuid}
-                  status: {const: queued}
-                  mode: {type: string, enum: [engine, development_stub]}
+                  status: {type: string, enum: [queued, sending, sent, failed]}
         default: {$ref: '#/components/responses/Error'}
 components:
   securitySchemes:
