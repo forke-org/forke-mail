@@ -43,8 +43,12 @@ func (s Sender) input(m sender.Message) *sesv2.SendEmailInput {
 	if m.HTML != "" {
 		body.Html = &types.Content{Data: aws.String(m.HTML), Charset: utf8}
 	}
-	if m.Text != "" {
-		body.Text = &types.Content{Data: aws.String(m.Text), Charset: utf8}
+	text := m.Text
+	if strings.TrimSpace(text) == "" && m.HTML != "" {
+		text = sender.PlainText(m.HTML)
+	}
+	if text != "" {
+		body.Text = &types.Content{Data: aws.String(text), Charset: utf8}
 	}
 	var headers []types.MessageHeader
 	for _, name := range []string{"List-Unsubscribe", "List-Unsubscribe-Post"} {

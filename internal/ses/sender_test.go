@@ -127,3 +127,10 @@ func TestSendBuildsRequest(t *testing.T) {
 		t.Fatalf("error not classified: %v", err)
 	}
 }
+
+func TestInputDerivesTextFromHTML(t *testing.T) {
+	in := Sender{ConfigurationSet: "cs"}.input(sender.Message{From: "a@forke.space", To: "b@x.io", Subject: "s", HTML: `<p>Hello <a href="https://forke.space">Forke</a></p>`})
+	if in.Content.Simple.Body.Text == nil || *in.Content.Simple.Body.Text.Data != "Hello Forke (https://forke.space)\n" {
+		t.Fatalf("text part %v", in.Content.Simple.Body.Text)
+	}
+}

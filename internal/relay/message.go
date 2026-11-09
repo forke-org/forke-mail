@@ -61,7 +61,7 @@ func Build(m sender.Message, messageID string, now time.Time) ([]byte, error) {
 
 	text := m.Text
 	if strings.TrimSpace(text) == "" && m.HTML != "" {
-		text = PlainText(m.HTML)
+		text = sender.PlainText(m.HTML)
 	}
 	var body bytes.Buffer
 	contentType, err := writeBody(&body, text, m.HTML)
