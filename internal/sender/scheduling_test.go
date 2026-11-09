@@ -73,3 +73,45 @@ func TestStaleBroadcastOutcomeNeverRequeued(t *testing.T) {
 		t.Fatal("ambiguous outcome requeued", err)
 	}
 }
+
+func TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate(t *testing.T) {
+	w := NewWorker(nil, nil, unsub.Signer{}, "", 40, 10)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	var urgent, bulk atomic.Int32
+	var wg sync.WaitGroup
+	start := time.Now()
+	for range 8 {
+		wg.Go(func() {
+			for ctx.Err() == nil {
+				if err := w.AcquireUrgent(ctx); err != nil {
+					return
+				}
+				urgent.Add(1)
+				w.CountSent()
+				w.ReleaseSend()
+			}
+		})
+	}
+	deadline := time.Now().Add(time.Second)
+	for urgent.Load() < 8 && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	for range 4 {
+		if err := w.waitBulk(ctx); err != nil {
+			cancel()
+			wg.Wait()
+			t.Fatal("broadcast starved under actual urgent load", err)
+		}
+		bulk.Add(1)
+		w.CountSent()
+		w.ReleaseSend()
+	}
+	cancel()
+	wg.Wait()
+	if urgent.Load() < 8 || bulk.Load() != 4 {
+		t.Fatal("both work classes did not progress")
+	}
+	if total := urgent.Load() + bulk.Load(); float64(total) > 41+40*time.Since(start).Seconds() {
+		t.Fatalf("shared token bucket exceeded: %d", total)
+	}
+}
