@@ -8,6 +8,7 @@ import (
 	"forkemail/internal/accounts"
 	"forkemail/internal/auth"
 	"forkemail/internal/campaigns"
+	"forkemail/internal/compatapi"
 	"forkemail/internal/config"
 	"forkemail/internal/contacts"
 	"forkemail/internal/db"
@@ -20,7 +21,6 @@ import (
 	"forkemail/internal/keys"
 	"forkemail/internal/lifecycle"
 	"forkemail/internal/ratelimit"
-	"forkemail/internal/resendapi"
 	"forkemail/internal/seed"
 	"forkemail/internal/sns"
 	"forkemail/internal/tracking"
@@ -89,7 +89,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	dnsH := &domains.DNSHandler{Pool: pool, Region: cfg.AWS.Region}
 	transactionalH := &transactional.Handler{Pool: pool, Dispatcher: svc.dispatcher}
 	trackH := &tracking.Handler{Pool: pool, Tracker: tracking.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)}
-	resendH := &resendapi.Handler{Pool: pool, Transactional: transactionalH, Emails: emailH, Tags: contactH.CreateTag}
+	compatH := &compatapi.Handler{Pool: pool, Transactional: transactionalH, Emails: emailH, Tags: contactH.CreateTag}
 	unsubH := &unsub.Handler{Pool: pool, Signer: unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)}}
 
 	r := chi.NewRouter()
@@ -156,14 +156,22 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/transactional/stats", transactionalH.Stats)
 		api.Get("/api/transactional/{id}", transactionalH.Get)
 
-		api.Post("/api/resend/emails", resendH.SendEmail)
-		api.Get("/api/resend/emails/{id}", resendH.GetEmail)
-		api.Get("/api/resend/audiences", resendH.ListAudiences)
-		api.Post("/api/resend/audiences", resendH.CreateAudience)
-		api.Post("/api/resend/audiences/{id}/contacts", resendH.AddContact)
-		api.Delete("/api/resend/audiences/{id}/contacts/{contact}", resendH.RemoveContact)
-		api.Post("/api/resend/broadcasts", resendH.CreateBroadcast)
-		api.Post("/api/resend/broadcasts/{id}/send", resendH.SendBroadcast)
+		api.Post("/api/v1/emails", compatH.SendEmail)
+		api.Get("/api/v1/emails/{id}", compatH.GetEmail)
+		api.Get("/api/v1/audiences", compatH.ListAudiences)
+		api.Post("/api/v1/audiences", compatH.CreateAudience)
+		api.Post("/api/v1/audiences/{id}/contacts", compatH.AddContact)
+		api.Delete("/api/v1/audiences/{id}/contacts/{contact}", compatH.RemoveContact)
+		api.Post("/api/v1/broadcasts", compatH.CreateBroadcast)
+		api.Post("/api/v1/broadcasts/{id}/send", compatH.SendBroadcast)
+		api.Post("/api/resend/emails", compatH.SendEmail)
+		api.Get("/api/resend/emails/{id}", compatH.GetEmail)
+		api.Get("/api/resend/audiences", compatH.ListAudiences)
+		api.Post("/api/resend/audiences", compatH.CreateAudience)
+		api.Post("/api/resend/audiences/{id}/contacts", compatH.AddContact)
+		api.Delete("/api/resend/audiences/{id}/contacts/{contact}", compatH.RemoveContact)
+		api.Post("/api/resend/broadcasts", compatH.CreateBroadcast)
+		api.Post("/api/resend/broadcasts/{id}/send", compatH.SendBroadcast)
 	})
 
 	r.Get("/healthz", db.Health(pool))

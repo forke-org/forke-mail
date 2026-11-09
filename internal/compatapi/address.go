@@ -1,4 +1,4 @@
-package resendapi
+package compatapi
 
 import (
 	"encoding/json"
