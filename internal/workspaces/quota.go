@@ -26,6 +26,9 @@ type Reservation struct {
 func Reserve(ctx context.Context, pool beginner, workspaceID string) (Reservation, error) {
 	res := Reservation{WorkspaceID: workspaceID}
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		if err := checkMonthly(ctx, tx); err != nil {
+			return err
+		}
 		var plan string
 		var dailyLimit int
 		err := tx.QueryRow(ctx, `

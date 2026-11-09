@@ -165,6 +165,7 @@ func (h *Handler) missingOr(r *http.Request, id, ws string, otherwise error) err
 func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 	var invalid invalidError
 	var quota *quotaError
+	var monthly *monthlyError
 	switch {
 	case err == nil:
 		return false
@@ -178,6 +179,10 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 		httpx.Error(w, http.StatusConflict, "workspace_sending_paused")
 	case errors.As(err, &invalid):
 		httpx.Error(w, http.StatusUnprocessableEntity, invalid.code)
+	case errors.As(err, &monthly):
+		httpx.JSON(w, http.StatusConflict, map[string]any{
+			"error": "monthly_limit_insufficient", "remaining": monthly.remaining, "required": monthly.required,
+		})
 	case errors.As(err, &quota):
 		httpx.JSON(w, http.StatusPaymentRequired, map[string]any{
 			"error": "trial_quota_exceeded", "remaining": quota.remaining, "required": quota.required,

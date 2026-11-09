@@ -32,6 +32,7 @@ type Config struct {
 	MaxComplaintRate    float64
 	ReputationMinSample int
 	SendRatePerSec      float64
+	SendMonthlyLimit    int64
 	TrialSendRatePerSec float64
 	PaidRatePerSec      float64
 	PaidBurst           int
@@ -70,6 +71,7 @@ func Load() (Config, error) {
 		SESTestEmail:      strings.ToLower(strings.TrimSpace(os.Getenv("SES_TEST_EMAIL"))),
 	}
 	c.SendRatePerSec = number(&errs, "SEND_RATE_PER_SEC", 20)
+	c.SendMonthlyLimit = int64(count(&errs, "SEND_MONTHLY_LIMIT"))
 	c.TrialSendRatePerSec = number(&errs, "TRIAL_SEND_RATE_PER_SEC", 1)
 	c.PaidRatePerSec = number(&errs, "API_PAID_RATE_PER_SEC", 20)
 	c.PaidBurst = int(number(&errs, "API_PAID_BURST", 40))

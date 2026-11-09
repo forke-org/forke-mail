@@ -7,6 +7,7 @@ import (
 
 	"forkemail/internal/auth"
 	"forkemail/internal/httpx"
+	"forkemail/internal/workspaces"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -18,6 +19,30 @@ type quotaError struct {
 
 func (e *quotaError) Error() string {
 	return fmt.Sprintf("trial quota exceeded: %d remaining, %d required", e.remaining, e.required)
+}
+
+type monthlyError struct {
+	remaining int64
+	required  int64
+}
+
+func (e *monthlyError) Error() string {
+	return fmt.Sprintf("monthly limit: %d remaining, %d required", e.remaining, e.required)
+}
+
+func checkMonthlyRoom(ctx context.Context, tx pgx.Tx, required int64) error {
+	limit := workspaces.MonthlyLimit()
+	if limit <= 0 {
+		return nil
+	}
+	used, err := workspaces.MonthlyUsage(ctx, tx)
+	if err != nil {
+		return err
+	}
+	if remaining := max(limit-used, 0); required > remaining {
+		return &monthlyError{remaining: remaining, required: required}
+	}
+	return nil
 }
 
 func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +93,9 @@ func send(ctx context.Context, tx pgx.Tx, ws, id string) (int64, error) {
 	}
 	if plan == "trial" && n > int64(remaining) {
 		return 0, &quotaError{remaining: remaining, required: n}
+	}
+	if err := checkMonthlyRoom(ctx, tx, n); err != nil {
+		return 0, err
 	}
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO email_events (workspace_id, email_id, recipient_id, type)

@@ -24,6 +24,7 @@ import (
 	"forkemail/internal/sns"
 	"forkemail/internal/transactional"
 	"forkemail/internal/unsub"
+	"forkemail/internal/workspaces"
 
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 )
@@ -73,6 +74,7 @@ func run() error {
 		slog.Info("forke admins", "visible", visible)
 	}
 
+	workspaces.SetMonthlyLimit(cfg.SendMonthlyLimit)
 	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
 	processor := &feedback.Processor{Pool: pool, Reputation: feedback.Thresholds{
 		MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate, MinSample: cfg.ReputationMinSample,

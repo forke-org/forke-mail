@@ -48,10 +48,12 @@ type meKey struct {
 }
 
 type meQuota struct {
-	TrialUsed  int `json:"trial_used"`
-	TrialLimit int `json:"trial_limit"`
-	DailyLimit int `json:"daily_limit"`
-	SentToday  int `json:"sent_today"`
+	TrialUsed  int   `json:"trial_used"`
+	TrialLimit int   `json:"trial_limit"`
+	DailyLimit int   `json:"daily_limit"`
+	SentToday  int   `json:"sent_today"`
+	SentMonth  int64 `json:"sent_this_month"`
+	MonthLimit int64 `json:"monthly_limit"`
 }
 
 type meRateLimits struct {
@@ -81,6 +83,11 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		&resp.Workspace.SendingPaused, &resp.Workspace.PauseReason,
 		&resp.Quota.TrialUsed, &resp.Quota.TrialLimit, &resp.Quota.DailyLimit, &configuredRate, &resp.Quota.SentToday)
 	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	resp.Quota.MonthLimit = MonthlyLimit()
+	if resp.Quota.SentMonth, err = MonthlyUsage(r.Context(), h.Pool); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

@@ -78,7 +78,7 @@ func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipie
 		}
 		return permit.Start(ctx, tx)
 	})
-	if errors.Is(err, workspaces.ErrTrialQuotaExhausted) || errors.Is(err, workspaces.ErrDailyLimitReached) {
+	if errors.Is(err, workspaces.ErrTrialQuotaExhausted) || errors.Is(err, workspaces.ErrDailyLimitReached) || errors.Is(err, workspaces.ErrMonthlyLimitReached) {
 		w.pause(writeCtx, rec, err.Error())
 		return false
 	}

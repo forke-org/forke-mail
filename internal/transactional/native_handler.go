@@ -138,6 +138,8 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 		httpx.JSON(w, http.StatusPaymentRequired, map[string]any{"error": "trial_quota_exceeded", "remaining": 0, "required": 1})
 	case errors.Is(err, workspaces.ErrDailyLimitReached):
 		httpx.Error(w, http.StatusTooManyRequests, "daily_limit_reached")
+	case errors.Is(err, workspaces.ErrMonthlyLimitReached):
+		httpx.Error(w, http.StatusTooManyRequests, "monthly_limit_reached")
 	default:
 		httpx.Internal(w, r, err)
 	}
