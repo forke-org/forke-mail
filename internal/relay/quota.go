@@ -22,7 +22,7 @@ type Quota struct {
 	SendRate     float64
 	DailyLimit   int
 	MonthlyLimit int
-	Apply        func(sender.Limits)
+	Apply        func(sender.Limits) error
 }
 
 func (q Quota) Limits(u Usage) sender.Limits {
@@ -59,8 +59,7 @@ func (q Quota) Refresh(ctx context.Context) (Usage, error) {
 	if err != nil {
 		return Usage{}, err
 	}
-	q.Apply(q.Limits(u))
-	return u, nil
+	return u, q.Apply(q.Limits(u))
 }
 
 func (q Quota) Run(ctx context.Context) {

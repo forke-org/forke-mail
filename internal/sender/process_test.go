@@ -3,6 +3,7 @@ package sender
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -30,6 +31,9 @@ func (f *fakeSender) Send(ctx context.Context, m Message) (string, error) {
 func sendOne(t *testing.T, pool *pgxpool.Pool, s Sender, ws, address string) (string, string, bool) {
 	t.Helper()
 	email := dbtest.DraftEmail(t, pool, ws)
+	domain := ws + ".sender.test"
+	dbtest.Exec(t, pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified') ON CONFLICT DO NOTHING`, ws, domain)
+	dbtest.Exec(t, pool, `UPDATE emails SET from_address=$2 WHERE id=$1`, email, "sender@"+domain)
 	dbtest.Exec(t, pool, `UPDATE emails SET status = 'sending', started_at = now() WHERE id = $1`, email)
 	contact := dbtest.QueryString(t, pool, `INSERT INTO contacts (workspace_id, email) VALUES ($1, $2) RETURNING id::text`, ws, address)
 	dbtest.Exec(t, pool, `INSERT INTO email_recipients (email_id, workspace_id, contact_id, email) VALUES ($1, $2, $3, $4)`, email, ws, contact, address)
@@ -43,7 +47,6 @@ func sendOne(t *testing.T, pool *pgxpool.Pool, s Sender, ws, address string) (st
 }
 
 func TestSendErrorsNeverSuppressAndUnknownIsNeverRetried(t *testing.T) {
-	pool := dbtest.Pool(t)
 	cases := []struct {
 		action      Action
 		reason      string
@@ -58,29 +61,32 @@ func TestSendErrorsNeverSuppressAndUnknownIsNeverRetried(t *testing.T) {
 		{UnknownOutcome, "unknown_outcome", "failed", "sending", "1"},
 	}
 	for _, c := range cases {
-		ws := dbtest.Workspace(t, pool, "trial", 10)
-		fake := &fakeSender{err: &SendError{Action: c.action, Reason: c.reason, Err: errors.New("aws said no")}}
-		email, rid, _ := sendOne(t, pool, fake, ws, "person@x.io")
-		if got := dbtest.QueryString(t, pool, `SELECT COUNT(*)::text FROM suppressions WHERE workspace_id = $1`, ws); got != "0" {
-			t.Errorf("%s: api error created a suppression", c.reason)
-		}
-		if got := dbtest.QueryString(t, pool, `SELECT status FROM email_recipients WHERE id = $1`, rid); got != c.status {
-			t.Errorf("%s: recipient status %s, want %s", c.reason, got, c.status)
-		}
-		if got := dbtest.QueryString(t, pool, `SELECT status || COALESCE(':' || pause_reason, '') FROM emails WHERE id = $1`, email); got != c.emailStatus {
-			t.Errorf("%s: email %s, want %s", c.reason, got, c.emailStatus)
-		}
-		if got := dbtest.QueryString(t, pool, `SELECT trial_sent_count::text FROM workspaces WHERE id = $1`, ws); got != c.trialUsed {
-			t.Errorf("%s: trial used %s, want %s", c.reason, got, c.trialUsed)
-		}
-		if c.action == UnknownOutcome {
-			if got := dbtest.QueryString(t, pool, `SELECT last_error FROM email_recipients WHERE id = $1`, rid); got != "unknown_outcome" {
-				t.Errorf("unknown outcome last_error %s", got)
+		t.Run(fmt.Sprint(c.action), func(t *testing.T) {
+			pool := dbtest.Pool(t)
+			ws := dbtest.Workspace(t, pool, "trial", 10)
+			fake := &fakeSender{err: &SendError{Action: c.action, Reason: c.reason, Err: errors.New("aws said no")}}
+			email, rid, _ := sendOne(t, pool, fake, ws, "person@x.io")
+			if got := dbtest.QueryString(t, pool, `SELECT COUNT(*)::text FROM suppressions WHERE workspace_id = $1`, ws); got != "0" {
+				t.Errorf("%s: api error created a suppression", c.reason)
 			}
-			if batch, _ := Claim(context.Background(), pool, ws, 10); len(batch) != 0 {
-				t.Error("unknown outcome recipient was claimable again")
+			if got := dbtest.QueryString(t, pool, `SELECT status FROM email_recipients WHERE id = $1`, rid); got != c.status {
+				t.Errorf("%s: recipient status %s, want %s", c.reason, got, c.status)
 			}
-		}
+			if got := dbtest.QueryString(t, pool, `SELECT status || COALESCE(':' || pause_reason, '') FROM emails WHERE id = $1`, email); got != c.emailStatus {
+				t.Errorf("%s: email %s, want %s", c.reason, got, c.emailStatus)
+			}
+			if got := dbtest.QueryString(t, pool, `SELECT trial_sent_count::text FROM workspaces WHERE id = $1`, ws); got != c.trialUsed {
+				t.Errorf("%s: trial used %s, want %s", c.reason, got, c.trialUsed)
+			}
+			if c.action == UnknownOutcome {
+				if got := dbtest.QueryString(t, pool, `SELECT last_error FROM email_recipients WHERE id = $1`, rid); got != "unknown_outcome" {
+					t.Errorf("unknown outcome last_error %s", got)
+				}
+				if batch, _ := Claim(context.Background(), pool, ws, 10); len(batch) != 0 {
+					t.Error("unknown outcome recipient was claimable again")
+				}
+			}
+		})
 	}
 }
 

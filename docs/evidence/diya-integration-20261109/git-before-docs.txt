@@ -1,0 +1,13 @@
+5b7d780 test: verify bulk progress under sustained concurrent transactional load
+5ef3a59 fix: serve dashboard chunks without consuming public API limits
+393c0cc test: cover tenant isolation, key revocation, shared quota and durable recovery
+112308f feat: correlate shared webhook events and verify signed transactional tracking
+99ab3cd fix: share quota slots, bound priority bursts and prevent ambiguous broadcast resends
+1293109 feat: route both transactional APIs through canonical acceptance and retire stub
+f2596e4 test: verify unique migrations and data-preserving Krishna v8 upgrade
+7b0dfa1 merge: integrate Diya engine and preserve Krishna developer platform
+f704c79 feat: transactional email engine on top of advik's forke mail base
+
+5b7d78044fd64c63ad062f88f3d7abd53641b192
+a7d4f0c626369a3241aa168d241cdb2499e0f08d
+f704c79db0313f15b81c86986653fb284accaf94

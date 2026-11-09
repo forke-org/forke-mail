@@ -24,6 +24,7 @@ type Recipient struct {
 	Email       string
 	FirstName   string
 	Attempts    int
+	ClaimToken  string
 }
 
 func Render(c Content, r Recipient, unsubscribeURL string) Message {

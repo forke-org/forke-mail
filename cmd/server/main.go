@@ -79,7 +79,7 @@ func run() error {
 	}}
 	svc := services{identities: domains.Local{}, feedback: processor, sendingMode: func() string { return "log" }, admins: admins}
 	var tasks []func(context.Context)
-	developer, err := newDeveloperServices(pool, cfg.Development())
+	developer, err := newDeveloperServices(pool)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func run() error {
 		}
 		client := sesv2.NewFromConfig(awsCfg)
 		mailer = ses.Sender{Client: client, ConfigurationSet: cfg.AWS.ConfigurationSet}
-		account = &ses.Account{Client: client}
+		account = &ses.Account{Client: client, Pool: pool}
 		identities := ses.Identities{Client: client}
 		svc.identities = identities
 		svc.verifier = sns.NewVerifier(cfg.AWS.Region, cfg.AWS.TopicARN)
@@ -109,8 +109,7 @@ func run() error {
 	worker := sender.NewWorker(pool, mailer, unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)},
 		cfg.PublicBaseURL, cfg.SendRatePerSec, cfg.TrialSendRatePerSec)
 	svc.sendRate = worker.GlobalRate
-	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker,
-		transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL))
+	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL))
 	if cfg.SMTP() {
 		quota := relay.Quota{Pool: pool, SendRate: cfg.SendRatePerSec, DailyLimit: cfg.Relay.DailyLimit, MonthlyLimit: cfg.Relay.MonthlyLimit, Apply: worker.SetLimits}
 		usage, err := quota.Refresh(ctx)
@@ -120,6 +119,10 @@ func run() error {
 		slog.Info("smtp relay", "addr", cfg.Relay.Addr(), "tls", cfg.Relay.TLS, "daily_limit", cfg.Relay.DailyLimit,
 			"monthly_limit", cfg.Relay.MonthlyLimit, "sent_24h", usage.Last24Hours, "sent_month", usage.ThisMonth)
 		tasks = append(tasks, quota.Run, func(ctx context.Context) { domains.RunPoller(ctx, pool, svc.identities) })
+	} else if account == nil {
+		if err := worker.SetLimits(sender.Limits{MaxSendRate: cfg.SendRatePerSec}); err != nil {
+			return err
+		}
 	}
 	if account != nil {
 		account.Apply = worker.SetLimits

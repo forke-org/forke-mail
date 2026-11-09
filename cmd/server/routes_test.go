@@ -51,3 +51,27 @@ func TestWebhookRejectsForeignTopic(t *testing.T) {
 		t.Errorf("forged webhook returned %d, want 403", rec.Code)
 	}
 }
+
+func TestStaticChunksDoNotConsumePublicEndpointBudget(t *testing.T) {
+	cfg := testConfig("production")
+	cfg.PublicBurst = 1
+	cfg.PublicRatePerSec = 0.00001
+	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
+	router := newRouter(cfg, nil, lim, services{})
+	get := func(path string) int {
+		out := httptest.NewRecorder()
+		router.ServeHTTP(out, httptest.NewRequest("GET", path, nil))
+		return out.Code
+	}
+	for range 40 {
+		if code := get("/_next/static/not-a-real-chunk.js"); code != 404 {
+			t.Fatalf("static chunk consumed rate limit: %d", code)
+		}
+	}
+	if code := get("/t/o/invalid"); code != 200 {
+		t.Fatalf("static assets exhausted public budget: %d", code)
+	}
+	if code := get("/t/o/invalid"); code != 429 {
+		t.Fatalf("public route lost its rate limit: %d", code)
+	}
+}

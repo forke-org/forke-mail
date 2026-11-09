@@ -26,6 +26,7 @@ var (
 
 var routeScopes = map[string][]string{
 	"GET /api/me":                              anyone,
+	"POST /api/emails":                         anyone,
 	"POST /api/auth/logout":                    sessions,
 	"GET /api/keys":                            superAdminOnly,
 	"POST /api/keys":                           superAdminOnly,

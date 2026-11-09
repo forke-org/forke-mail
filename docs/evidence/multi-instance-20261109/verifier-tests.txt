@@ -1,0 +1,1 @@
+ok  	forkemail/cmd/verifyintegration	1.260s

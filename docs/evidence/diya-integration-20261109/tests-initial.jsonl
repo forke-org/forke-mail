@@ -1,0 +1,648 @@
+{"Time":"2026-11-09T12:56:01.3837694+05:30","Action":"start","Package":"forkemail/cmd/server"}
+{"Time":"2026-11-09T12:56:01.9838346+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook"}
+{"Time":"2026-11-09T12:56:01.9855444+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"=== RUN   TestBroadcastAPIToSignedWebhook\n"}
+{"Time":"2026-11-09T12:56:03.0109204+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/keys status=201 duration_ms=449 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:03.4632197+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/keys status=201 duration_ms=452 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:03.5108378+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/contacts/import status=200 duration_ms=38 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.5128703+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/campaigns status=403 duration_ms=2 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_f3e3\n"}
+{"Time":"2026-11-09T12:56:03.523858+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/campaigns status=201 duration_ms=10 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.5284586+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=GET path=/api/campaigns/{id} status=200 duration_ms=4 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.5627831+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=90 max_24h=100\n"}
+{"Time":"2026-11-09T12:56:03.565495+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/campaigns/{id}/emails status=201 duration_ms=37 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.5748829+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=PATCH path=/api/emails/{id} status=200 duration_ms=9 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.5824014+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/webhooks status=201 duration_ms=7 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.5973643+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=14 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_f3e3\n"}
+{"Time":"2026-11-09T12:56:03.6019235+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/emails/{id}/pause status=200 duration_ms=4 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:03.6065352+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:03 INFO request method=POST path=/api/emails/{id}/resume status=200 duration_ms=4 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:04.6881815+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:04 INFO request method=GET path=/api/emails/{id}/report status=200 duration_ms=19 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:04.6911147+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"2026/11/09 12:56:04 INFO request method=GET path=/api/emails/{id}/recipients status=200 duration_ms=2 workspace_id=501684c6-26b2-42bc-a1e1-296184900f3a key_prefix=fm_live_8b04\n"}
+{"Time":"2026-11-09T12:56:04.8060229+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Output":"--- PASS: TestBroadcastAPIToSignedWebhook (2.82s)\n"}
+{"Time":"2026-11-09T12:56:04.8060229+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestBroadcastAPIToSignedWebhook","Elapsed":2.82}
+{"Time":"2026-11-09T12:56:04.8060229+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine"}
+{"Time":"2026-11-09T12:56:04.8060229+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"=== RUN   TestDeveloperContractEndToEndWithRealLogEngine\n"}
+{"Time":"2026-11-09T12:56:05.8120196+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"2026/11/09 12:56:05 INFO request method=POST path=/api/keys status=201 duration_ms=450 workspace_id=614ad6f8-bf91-4c39-ab13-c8d46eb00be9 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:05.8372062+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"2026/11/09 12:56:05 INFO request method=POST path=/api/domains status=201 duration_ms=25 workspace_id=614ad6f8-bf91-4c39-ab13-c8d46eb00be9 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:05.840535+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"2026/11/09 12:56:05 INFO request method=POST path=/api/domains/{id}/verify status=200 duration_ms=2 workspace_id=614ad6f8-bf91-4c39-ab13-c8d46eb00be9 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:05.8491714+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"2026/11/09 12:56:05 INFO request method=POST path=/api/webhooks status=201 duration_ms=9 workspace_id=614ad6f8-bf91-4c39-ab13-c8d46eb00be9 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:05.8974585+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"2026/11/09 12:56:05 INFO request method=POST path=/api/emails status=202 duration_ms=48 workspace_id=614ad6f8-bf91-4c39-ab13-c8d46eb00be9 key_prefix=fm_live_9004\n"}
+{"Time":"2026-11-09T12:56:06.0571125+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Output":"--- PASS: TestDeveloperContractEndToEndWithRealLogEngine (1.25s)\n"}
+{"Time":"2026-11-09T12:56:06.0576628+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestDeveloperContractEndToEndWithRealLogEngine","Elapsed":1.25}
+{"Time":"2026-11-09T12:56:06.0576628+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation"}
+{"Time":"2026-11-09T12:56:06.0576628+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"=== RUN   TestTransactionalSignedSNSAndReceiverFailureIsolation\n"}
+{"Time":"2026-11-09T12:56:06.6344156+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:06 INFO request method=POST path=/api/webhooks status=201 duration_ms=13 workspace_id=512268de-dce5-48ce-aee9-4fa12f92c4d8 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:06.6811722+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:06 INFO request method=POST path=/api/transactional status=202 duration_ms=46 workspace_id=512268de-dce5-48ce-aee9-4fa12f92c4d8 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:06.9450259+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:06 WARN ses event tags do not match recipient event=Bounce recipient_id=f1096114-2eab-4a3b-b8d7-ea398b54f59a\n"}
+{"Time":"2026-11-09T12:56:06.9461005+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:06 INFO ses event sns_message_id=mismatch-f1096114-2eab-4a3b-b8d7-ea398b54f59a result=tag_mismatch\n"}
+{"Time":"2026-11-09T12:56:06.9859283+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:06 INFO ses event sns_message_id=bounce-f1096114-2eab-4a3b-b8d7-ea398b54f59a result=processed\n"}
+{"Time":"2026-11-09T12:56:06.9865082+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:06 INFO ses event sns_message_id=bounce-f1096114-2eab-4a3b-b8d7-ea398b54f59a result=duplicate\n"}
+{"Time":"2026-11-09T12:56:07.0035782+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:07 WARN rejected sns message type=Notification err=\"invalid sns message: crypto/rsa: verification error\"\n"}
+{"Time":"2026-11-09T12:56:07.0400715+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:07 INFO request method=POST path=/api/transactional status=202 duration_ms=28 workspace_id=512268de-dce5-48ce-aee9-4fa12f92c4d8 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:07.0817857+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"2026/11/09 12:56:07 INFO ses event sns_message_id=another-bounce-f1096114-2eab-4a3b-b8d7-ea398b54f59a result=processed\n"}
+{"Time":"2026-11-09T12:56:07.1464207+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Output":"--- PASS: TestTransactionalSignedSNSAndReceiverFailureIsolation (1.09s)\n"}
+{"Time":"2026-11-09T12:56:07.1469305+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestTransactionalSignedSNSAndReceiverFailureIsolation","Elapsed":1.09}
+{"Time":"2026-11-09T12:56:07.1469305+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes"}
+{"Time":"2026-11-09T12:56:07.1469305+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"=== RUN   TestIntegratedTenantIsolationAndSendingScopes\n"}
+{"Time":"2026-11-09T12:56:08.6987927+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=POST path=/api/keys status=201 duration_ms=446 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.7521918+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=POST path=/api/transactional status=202 duration_ms=53 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.763698+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/transactional/{id} status=200 duration_ms=11 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.7647946+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/transactional status=403 duration_ms=1 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.7666265+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/transactional/stats status=403 duration_ms=1 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.7672096+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/webhooks status=403 duration_ms=0 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.7677622+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/keys status=403 duration_ms=0 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.7900805+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/transactional/{id} status=404 duration_ms=22 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.792951+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/transactional status=200 duration_ms=2 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.796688+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/transactional/stats status=200 duration_ms=3 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.8333791+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/emails/{id} status=404 duration_ms=25 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.8354089+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/emails/{id}/report status=404 duration_ms=1 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.8370175+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/emails/{id}/recipients status=404 duration_ms=1 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.837568+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=GET path=/api/emails/{id}/messages status=404 duration_ms=0 workspace_id=83a3b11e-a75f-4834-9e6d-8f8529a84f74 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:08.8381086+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"2026/11/09 12:56:08 INFO request method=POST path=/api/campaigns status=403 duration_ms=0 workspace_id=ef231394-0585-4e9f-af4d-ee8bf250f6bd key_prefix=fm_live_d041\n"}
+{"Time":"2026-11-09T12:56:08.9715509+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Output":"--- PASS: TestIntegratedTenantIsolationAndSendingScopes (1.82s)\n"}
+{"Time":"2026-11-09T12:56:08.972061+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestIntegratedTenantIsolationAndSendingScopes","Elapsed":1.82}
+{"Time":"2026-11-09T12:56:08.972061+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs"}
+{"Time":"2026-11-09T12:56:08.972061+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"=== RUN   TestRotatedAndRevokedKeysRejectedByBothSendAPIs\n"}
+{"Time":"2026-11-09T12:56:09.9709035+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:09 INFO request method=POST path=/api/keys status=201 duration_ms=440 workspace_id=28153d09-aa59-4303-8907-8d163b64cfec key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.4236474+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/keys/{id}/rotate status=201 duration_ms=452 workspace_id=28153d09-aa59-4303-8907-8d163b64cfec key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.4247969+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/emails status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.4269057+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/emails status=422 duration_ms=2 workspace_id=28153d09-aa59-4303-8907-8d163b64cfec key_prefix=fm_live_ae6a\n"}
+{"Time":"2026-11-09T12:56:10.4274144+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/transactional status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.4285493+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/transactional status=422 duration_ms=0 workspace_id=28153d09-aa59-4303-8907-8d163b64cfec key_prefix=fm_live_ae6a\n"}
+{"Time":"2026-11-09T12:56:10.4305389+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=DELETE path=/api/keys/{id} status=204 duration_ms=1 workspace_id=28153d09-aa59-4303-8907-8d163b64cfec key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.4315936+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/emails status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.4321338+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"2026/11/09 12:56:10 INFO request method=POST path=/api/transactional status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:10.5351825+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Output":"--- PASS: TestRotatedAndRevokedKeysRejectedByBothSendAPIs (1.56s)\n"}
+{"Time":"2026-11-09T12:56:10.5351825+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestRotatedAndRevokedKeysRejectedByBothSendAPIs","Elapsed":1.56}
+{"Time":"2026-11-09T12:56:10.5351825+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle"}
+{"Time":"2026-11-09T12:56:10.5351825+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"=== RUN   TestAPIKeyLifecycle\n"}
+{"Time":"2026-11-09T12:56:11.5397361+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=POST path=/api/keys status=201 duration_ms=447 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:11.546268+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=GET path=/api/keys status=200 duration_ms=6 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:11.56148+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=GET path=/api/me status=200 duration_ms=15 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=fm_live_56ee\n"}
+{"Time":"2026-11-09T12:56:11.5620316+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=GET path=/api/keys status=403 duration_ms=0 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=fm_live_56ee\n"}
+{"Time":"2026-11-09T12:56:11.5631808+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=POST path=/api/keys status=403 duration_ms=1 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=fm_live_56ee\n"}
+{"Time":"2026-11-09T12:56:11.5637641+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=POST path=/api/keys/{id}/rotate status=403 duration_ms=0 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=fm_live_56ee\n"}
+{"Time":"2026-11-09T12:56:11.5643366+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:11 INFO request method=DELETE path=/api/keys/{id} status=403 duration_ms=0 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=fm_live_56ee\n"}
+{"Time":"2026-11-09T12:56:12.1446768+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:12 INFO request method=DELETE path=/api/keys/{id} status=404 duration_ms=14 workspace_id=31edda87-04ff-4e77-bfa7-479a8c2c5826 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:12.5834452+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:12 INFO request method=POST path=/api/keys/{id}/rotate status=404 duration_ms=438 workspace_id=31edda87-04ff-4e77-bfa7-479a8c2c5826 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.020622+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:13 INFO request method=POST path=/api/keys/{id}/rotate status=201 duration_ms=437 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.0259387+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:13 INFO request method=GET path=/api/me status=401 duration_ms=4 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.0277033+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:13 INFO request method=GET path=/api/me status=200 duration_ms=1 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=fm_live_d2d6\n"}
+{"Time":"2026-11-09T12:56:13.0293817+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:13 INFO request method=DELETE path=/api/keys/{id} status=204 duration_ms=1 workspace_id=a3328265-9866-429e-a51e-df5fd779d437 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.0293817+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"2026/11/09 12:56:13 INFO request method=GET path=/api/me status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2220149+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Output":"--- PASS: TestAPIKeyLifecycle (2.69s)\n"}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestAPIKeyLifecycle","Elapsed":2.69}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment"}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"=== RUN   TestDevRoutesAbsentOutsideDevelopment\n"}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/* status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/* status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/* status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2225445+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/dev/seed status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2230972+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/* status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2230972+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/* status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2230972+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/* status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"2026/11/09 12:56:13 INFO request method=POST path=/dev/ses-event status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Output":"--- PASS: TestDevRoutesAbsentOutsideDevelopment (0.00s)\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestDevRoutesAbsentOutsideDevelopment","Elapsed":0}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestWebhookRejectsForeignTopic"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestWebhookRejectsForeignTopic","Output":"=== RUN   TestWebhookRejectsForeignTopic\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestWebhookRejectsForeignTopic","Output":"2026/11/09 12:56:13 WARN rejected sns message type=Notification err=\"invalid sns message: topic\"\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestWebhookRejectsForeignTopic","Output":"2026/11/09 12:56:13 INFO request method=POST path=/webhooks/ses status=403 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestWebhookRejectsForeignTopic","Output":"--- PASS: TestWebhookRejectsForeignTopic (0.00s)\n"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestWebhookRejectsForeignTopic","Elapsed":0}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota"}
+{"Time":"2026-11-09T12:56:13.2236376+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota","Output":"=== RUN   TestBothWorkersShareTrialQuota\n"}
+{"Time":"2026-11-09T12:56:13.8357414+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota","Output":"2026/11/09 12:56:13 INFO request method=POST path=/api/transactional status=202 duration_ms=57 workspace_id=2b902f6c-3bc1-4541-88e7-3fad3e9a7b3f key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:13.8969335+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota","Output":"2026/11/09 12:56:13 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=39 workspace_id=2b902f6c-3bc1-4541-88e7-3fad3e9a7b3f key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:14.8256845+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota","Output":"2026/11/09 12:56:14 INFO request method=POST path=/api/transactional status=402 duration_ms=15 workspace_id=2b902f6c-3bc1-4541-88e7-3fad3e9a7b3f key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:14.8629282+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota","Output":"--- PASS: TestBothWorkersShareTrialQuota (1.64s)\n"}
+{"Time":"2026-11-09T12:56:14.8634983+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestBothWorkersShareTrialQuota","Elapsed":1.64}
+{"Time":"2026-11-09T12:56:14.8634983+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook"}
+{"Time":"2026-11-09T12:56:14.8634983+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"=== RUN   TestTrackingEventsReachSignedCustomerWebhook\n"}
+{"Time":"2026-11-09T12:56:15.4414628+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"2026/11/09 12:56:15 INFO request method=POST path=/api/webhooks status=201 duration_ms=14 workspace_id=855030d8-0224-4321-93bc-9991bce4461c key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:15.4896433+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"2026/11/09 12:56:15 INFO request method=POST path=/api/transactional status=202 duration_ms=48 workspace_id=855030d8-0224-4321-93bc-9991bce4461c key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:15.6497094+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"2026/11/09 12:56:15 INFO request method=GET path=/t/o/{token} status=200 duration_ms=16 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:15.6535575+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"2026/11/09 12:56:15 INFO request method=GET path=/t/c/{token} status=302 duration_ms=3 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:15.6620757+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"2026/11/09 12:56:15 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:15.6620757+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"2026/11/09 12:56:15 INFO request method=GET path=/t/c/{token} status=404 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:15.7422078+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Output":"--- PASS: TestTrackingEventsReachSignedCustomerWebhook (0.88s)\n"}
+{"Time":"2026-11-09T12:56:15.7422078+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestTrackingEventsReachSignedCustomerWebhook","Elapsed":0.88}
+{"Time":"2026-11-09T12:56:15.7422078+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency"}
+{"Time":"2026-11-09T12:56:15.7422078+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"=== RUN   TestTransactionalIdempotency\n"}
+{"Time":"2026-11-09T12:56:16.3629429+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=59 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.3711368+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=8 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.5233937+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=158 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.5535142+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=189 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.5765045+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=211 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.5973546+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=232 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.613946+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=248 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.6335918+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=267 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.65276+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=202 duration_ms=285 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.6576572+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/transactional status=200 duration_ms=3 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.6601583+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=409 duration_ms=2 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.660724+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=400 duration_ms=0 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.66186+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=422 duration_ms=0 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.6787023+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"2026/11/09 12:56:16 INFO request method=POST path=/api/emails status=422 duration_ms=7 workspace_id=7df59c0d-22dd-4bbf-9cb0-ea23587db46a key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:16.76984+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Output":"--- PASS: TestTransactionalIdempotency (1.03s)\n"}
+{"Time":"2026-11-09T12:56:16.76984+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestTransactionalIdempotency","Elapsed":1.03}
+{"Time":"2026-11-09T12:56:16.76984+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection"}
+{"Time":"2026-11-09T12:56:16.76984+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection","Output":"=== RUN   TestTransactionalLegacyKeysAndAtomicRejection\n"}
+{"Time":"2026-11-09T12:56:17.3698445+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection","Output":"2026/11/09 12:56:17 INFO request method=POST path=/api/emails status=422 duration_ms=41 workspace_id=4c12816f-ca55-447d-946e-5342cbeccf27 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:17.3765155+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection","Output":"2026/11/09 12:56:17 INFO request method=POST path=/api/emails status=409 duration_ms=1 workspace_id=4c12816f-ca55-447d-946e-5342cbeccf27 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:17.4010245+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection","Output":"2026/11/09 12:56:17 INFO request method=POST path=/api/emails status=202 duration_ms=24 workspace_id=4c12816f-ca55-447d-946e-5342cbeccf27 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:17.4643953+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection","Output":"--- PASS: TestTransactionalLegacyKeysAndAtomicRejection (0.69s)\n"}
+{"Time":"2026-11-09T12:56:17.464907+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestTransactionalLegacyKeysAndAtomicRejection","Elapsed":0.69}
+{"Time":"2026-11-09T12:56:17.464907+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication"}
+{"Time":"2026-11-09T12:56:17.464907+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication","Output":"=== RUN   TestTransactionalBearerAuthentication\n"}
+{"Time":"2026-11-09T12:56:18.0158524+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication","Output":"2026/11/09 12:56:18 INFO request method=POST path=/api/emails status=401 duration_ms=0 workspace_id=\"\" key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:18.4605558+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication","Output":"2026/11/09 12:56:18 INFO request method=POST path=/api/keys status=201 duration_ms=445 workspace_id=8daaab66-1263-452b-8d58-4b9a5c32be19 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:18.4705819+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication","Output":"2026/11/09 12:56:18 INFO request method=POST path=/api/emails status=400 duration_ms=10 workspace_id=8daaab66-1263-452b-8d58-4b9a5c32be19 key_prefix=fm_live_a6d8\n"}
+{"Time":"2026-11-09T12:56:18.5760727+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication","Output":"--- PASS: TestTransactionalBearerAuthentication (1.11s)\n"}
+{"Time":"2026-11-09T12:56:18.5760727+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestTransactionalBearerAuthentication","Elapsed":1.11}
+{"Time":"2026-11-09T12:56:18.5760727+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement"}
+{"Time":"2026-11-09T12:56:18.5760727+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"=== RUN   TestCustomerWebhookManagement\n"}
+{"Time":"2026-11-09T12:56:19.1377539+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=POST path=/api/webhooks status=201 duration_ms=11 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.1393894+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=GET path=/api/webhooks status=200 duration_ms=1 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.6946915+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=PATCH path=/api/webhooks/{id} status=404 duration_ms=9 workspace_id=1b7f48a3-e368-49a3-b0f5-00cb48b96ab3 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.6964404+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=DELETE path=/api/webhooks/{id} status=404 duration_ms=1 workspace_id=1b7f48a3-e368-49a3-b0f5-00cb48b96ab3 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.6975975+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=POST path=/api/webhooks/{id}/rotate status=404 duration_ms=1 workspace_id=1b7f48a3-e368-49a3-b0f5-00cb48b96ab3 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.698731+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=GET path=/api/webhooks/{id}/deliveries status=404 duration_ms=1 workspace_id=1b7f48a3-e368-49a3-b0f5-00cb48b96ab3 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.7192597+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=GET path=/api/webhooks/{id}/deliveries status=200 duration_ms=10 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.7220925+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=POST path=/api/webhooks/{id}/rotate status=201 duration_ms=1 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.725459+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=PATCH path=/api/webhooks/{id} status=200 duration_ms=2 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.7282775+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=DELETE path=/api/webhooks/{id} status=204 duration_ms=1 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.7282775+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"2026/11/09 12:56:19 INFO request method=POST path=/api/webhooks status=422 duration_ms=0 workspace_id=1e1a960b-b262-438b-9a90-d42834ebb132 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:19.8984605+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Output":"--- PASS: TestCustomerWebhookManagement (1.32s)\n"}
+{"Time":"2026-11-09T12:56:19.8984605+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestCustomerWebhookManagement","Elapsed":1.32}
+{"Time":"2026-11-09T12:56:19.8984605+05:30","Action":"run","Package":"forkemail/cmd/server","Test":"TestDomainDNSRouteIsolation"}
+{"Time":"2026-11-09T12:56:19.8984605+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDomainDNSRouteIsolation","Output":"=== RUN   TestDomainDNSRouteIsolation\n"}
+{"Time":"2026-11-09T12:56:21.0236021+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDomainDNSRouteIsolation","Output":"2026/11/09 12:56:21 INFO request method=GET path=/api/domains/{id}/dns status=404 duration_ms=12 workspace_id=a0a858d3-20e2-4e42-bb62-31b80b661353 key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:21.0352629+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDomainDNSRouteIsolation","Output":"2026/11/09 12:56:21 INFO request method=GET path=/api/domains/{id}/dns status=422 duration_ms=11 workspace_id=210ae502-e273-475e-91d9-c4d4eb98878b key_prefix=\"\"\n"}
+{"Time":"2026-11-09T12:56:21.2377584+05:30","Action":"output","Package":"forkemail/cmd/server","Test":"TestDomainDNSRouteIsolation","Output":"--- PASS: TestDomainDNSRouteIsolation (1.34s)\n"}
+{"Time":"2026-11-09T12:56:21.2382757+05:30","Action":"pass","Package":"forkemail/cmd/server","Test":"TestDomainDNSRouteIsolation","Elapsed":1.34}
+{"Time":"2026-11-09T12:56:21.2382757+05:30","Action":"output","Package":"forkemail/cmd/server","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:21.2546491+05:30","Action":"output","Package":"forkemail/cmd/server","Output":"ok  \tforkemail/cmd/server\t19.871s\n"}
+{"Time":"2026-11-09T12:56:21.2551776+05:30","Action":"pass","Package":"forkemail/cmd/server","Elapsed":19.872}
+{"Time":"2026-11-09T12:56:21.3036695+05:30","Action":"start","Package":"forkemail/cmd/sesbootstrap"}
+{"Time":"2026-11-09T12:56:21.3036695+05:30","Action":"output","Package":"forkemail/cmd/sesbootstrap","Output":"?   \tforkemail/cmd/sesbootstrap\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:21.3036695+05:30","Action":"skip","Package":"forkemail/cmd/sesbootstrap","Elapsed":0}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"start","Package":"forkemail/cmd/sescheck"}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"output","Package":"forkemail/cmd/sescheck","Output":"?   \tforkemail/cmd/sescheck\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"skip","Package":"forkemail/cmd/sescheck","Elapsed":0}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"start","Package":"forkemail/frontend"}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"output","Package":"forkemail/frontend","Output":"?   \tforkemail/frontend\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"skip","Package":"forkemail/frontend","Elapsed":0}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"start","Package":"forkemail/internal/accounts"}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"output","Package":"forkemail/internal/accounts","Output":"?   \tforkemail/internal/accounts\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:21.310726+05:30","Action":"skip","Package":"forkemail/internal/accounts","Elapsed":0}
+{"Time":"2026-11-09T12:56:22.765996+05:30","Action":"start","Package":"forkemail/internal/auth"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"run","Package":"forkemail/internal/auth","Test":"TestDeveloperManagementScopes"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestDeveloperManagementScopes","Output":"=== RUN   TestDeveloperManagementScopes\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestDeveloperManagementScopes","Output":"--- PASS: TestDeveloperManagementScopes (0.00s)\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"pass","Package":"forkemail/internal/auth","Test":"TestDeveloperManagementScopes","Elapsed":0}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"run","Package":"forkemail/internal/auth","Test":"TestGenerateKey"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestGenerateKey","Output":"=== RUN   TestGenerateKey\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestGenerateKey","Output":"--- PASS: TestGenerateKey (0.00s)\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"pass","Package":"forkemail/internal/auth","Test":"TestGenerateKey","Elapsed":0}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"run","Package":"forkemail/internal/auth","Test":"TestValidKeyFormat"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestValidKeyFormat","Output":"=== RUN   TestValidKeyFormat\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestValidKeyFormat","Output":"--- PASS: TestValidKeyFormat (0.00s)\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"pass","Package":"forkemail/internal/auth","Test":"TestValidKeyFormat","Elapsed":0}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"run","Package":"forkemail/internal/auth","Test":"TestScopeTable"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestScopeTable","Output":"=== RUN   TestScopeTable\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Test":"TestScopeTable","Output":"--- PASS: TestScopeTable (0.00s)\n"}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"pass","Package":"forkemail/internal/auth","Test":"TestScopeTable","Elapsed":0}
+{"Time":"2026-11-09T12:56:24.5658967+05:30","Action":"output","Package":"forkemail/internal/auth","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:24.5703743+05:30","Action":"output","Package":"forkemail/internal/auth","Output":"ok  \tforkemail/internal/auth\t1.804s\n"}
+{"Time":"2026-11-09T12:56:24.5703743+05:30","Action":"pass","Package":"forkemail/internal/auth","Elapsed":1.804}
+{"Time":"2026-11-09T12:56:24.5758547+05:30","Action":"start","Package":"forkemail/internal/campaigns"}
+{"Time":"2026-11-09T12:56:24.5758547+05:30","Action":"output","Package":"forkemail/internal/campaigns","Output":"?   \tforkemail/internal/campaigns\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:24.5758547+05:30","Action":"skip","Package":"forkemail/internal/campaigns","Elapsed":0}
+{"Time":"2026-11-09T12:56:25.325639+05:30","Action":"start","Package":"forkemail/internal/config"}
+{"Time":"2026-11-09T12:56:26.445969+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestLogDriverDefaults"}
+{"Time":"2026-11-09T12:56:26.4465131+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestLogDriverDefaults","Output":"=== RUN   TestLogDriverDefaults\n"}
+{"Time":"2026-11-09T12:56:26.4470642+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestLogDriverDefaults","Output":"--- PASS: TestLogDriverDefaults (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4470642+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestLogDriverDefaults","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4470642+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation"}
+{"Time":"2026-11-09T12:56:26.4470642+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation","Output":"=== RUN   TestSESDriverValidation\n"}
+{"Time":"2026-11-09T12:56:26.4476083+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_topic"}
+{"Time":"2026-11-09T12:56:26.4476083+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_topic","Output":"=== RUN   TestSESDriverValidation/missing_topic\n"}
+{"Time":"2026-11-09T12:56:26.4487074+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_topic","Output":"--- PASS: TestSESDriverValidation/missing_topic (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4487074+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_topic","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4487074+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/topic_other_region"}
+{"Time":"2026-11-09T12:56:26.4487074+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/topic_other_region","Output":"=== RUN   TestSESDriverValidation/topic_other_region\n"}
+{"Time":"2026-11-09T12:56:26.4492457+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/topic_other_region","Output":"--- PASS: TestSESDriverValidation/topic_other_region (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4492457+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/topic_other_region","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4492457+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/bounce_rate_\u003e_1"}
+{"Time":"2026-11-09T12:56:26.4492457+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/bounce_rate_\u003e_1","Output":"=== RUN   TestSESDriverValidation/bounce_rate_\u003e_1\n"}
+{"Time":"2026-11-09T12:56:26.4503093+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/bounce_rate_\u003e_1","Output":"--- PASS: TestSESDriverValidation/bounce_rate_\u003e_1 (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4503093+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/bounce_rate_\u003e_1","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4503093+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/trailing_slash"}
+{"Time":"2026-11-09T12:56:26.4503093+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/trailing_slash","Output":"=== RUN   TestSESDriverValidation/trailing_slash\n"}
+{"Time":"2026-11-09T12:56:26.4508919+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/trailing_slash","Output":"--- PASS: TestSESDriverValidation/trailing_slash (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4508919+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/trailing_slash","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4508919+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_region"}
+{"Time":"2026-11-09T12:56:26.4508919+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_region","Output":"=== RUN   TestSESDriverValidation/missing_region\n"}
+{"Time":"2026-11-09T12:56:26.4514514+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_region","Output":"--- PASS: TestSESDriverValidation/missing_region (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4514514+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_region","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4514514+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_config_set"}
+{"Time":"2026-11-09T12:56:26.4514514+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_config_set","Output":"=== RUN   TestSESDriverValidation/missing_config_set\n"}
+{"Time":"2026-11-09T12:56:26.4520276+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_config_set","Output":"--- PASS: TestSESDriverValidation/missing_config_set (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4525957+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/missing_config_set","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4525957+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/half_credentials"}
+{"Time":"2026-11-09T12:56:26.4525957+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/half_credentials","Output":"=== RUN   TestSESDriverValidation/half_credentials\n"}
+{"Time":"2026-11-09T12:56:26.4531445+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/half_credentials","Output":"--- PASS: TestSESDriverValidation/half_credentials (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4531445+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/half_credentials","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4531445+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/unknown_driver"}
+{"Time":"2026-11-09T12:56:26.4531445+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/unknown_driver","Output":"=== RUN   TestSESDriverValidation/unknown_driver\n"}
+{"Time":"2026-11-09T12:56:26.4536876+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/unknown_driver","Output":"--- PASS: TestSESDriverValidation/unknown_driver (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4536876+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/unknown_driver","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4536876+05:30","Action":"run","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/http_base_url"}
+{"Time":"2026-11-09T12:56:26.4536876+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/http_base_url","Output":"=== RUN   TestSESDriverValidation/http_base_url\n"}
+{"Time":"2026-11-09T12:56:26.4547536+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/http_base_url","Output":"--- PASS: TestSESDriverValidation/http_base_url (0.00s)\n"}
+{"Time":"2026-11-09T12:56:26.4547536+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation/http_base_url","Elapsed":0}
+{"Time":"2026-11-09T12:56:26.4547536+05:30","Action":"output","Package":"forkemail/internal/config","Test":"TestSESDriverValidation","Output":"--- PASS: TestSESDriverValidation (0.01s)\n"}
+{"Time":"2026-11-09T12:56:26.4547536+05:30","Action":"pass","Package":"forkemail/internal/config","Test":"TestSESDriverValidation","Elapsed":0.01}
+{"Time":"2026-11-09T12:56:26.4547536+05:30","Action":"output","Package":"forkemail/internal/config","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:26.4592515+05:30","Action":"output","Package":"forkemail/internal/config","Output":"ok  \tforkemail/internal/config\t1.134s\n"}
+{"Time":"2026-11-09T12:56:26.4592515+05:30","Action":"pass","Package":"forkemail/internal/config","Elapsed":1.134}
+{"Time":"2026-11-09T12:56:27.4832456+05:30","Action":"start","Package":"forkemail/internal/contacts"}
+{"Time":"2026-11-09T12:56:27.8100521+05:30","Action":"run","Package":"forkemail/internal/contacts","Test":"TestParseCSV"}
+{"Time":"2026-11-09T12:56:27.8100521+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestParseCSV","Output":"=== RUN   TestParseCSV\n"}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestParseCSV","Output":"--- PASS: TestParseCSV (0.00s)\n"}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"pass","Package":"forkemail/internal/contacts","Test":"TestParseCSV","Elapsed":0}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"run","Package":"forkemail/internal/contacts","Test":"TestParseCSVWithoutHeader"}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestParseCSVWithoutHeader","Output":"=== RUN   TestParseCSVWithoutHeader\n"}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestParseCSVWithoutHeader","Output":"--- PASS: TestParseCSVWithoutHeader (0.00s)\n"}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"pass","Package":"forkemail/internal/contacts","Test":"TestParseCSVWithoutHeader","Elapsed":0}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"run","Package":"forkemail/internal/contacts","Test":"TestParseCSVRowCap"}
+{"Time":"2026-11-09T12:56:27.8105968+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestParseCSVRowCap","Output":"=== RUN   TestParseCSVRowCap\n"}
+{"Time":"2026-11-09T12:56:27.8676859+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestParseCSVRowCap","Output":"--- PASS: TestParseCSVRowCap (0.06s)\n"}
+{"Time":"2026-11-09T12:56:27.8680456+05:30","Action":"pass","Package":"forkemail/internal/contacts","Test":"TestParseCSVRowCap","Elapsed":0.06}
+{"Time":"2026-11-09T12:56:27.8680456+05:30","Action":"run","Package":"forkemail/internal/contacts","Test":"TestImportNeverReactivatesBlockedContacts"}
+{"Time":"2026-11-09T12:56:27.8680456+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestImportNeverReactivatesBlockedContacts","Output":"=== RUN   TestImportNeverReactivatesBlockedContacts\n"}
+{"Time":"2026-11-09T12:56:28.1450463+05:30","Action":"output","Package":"forkemail/internal/contacts","Test":"TestImportNeverReactivatesBlockedContacts","Output":"--- PASS: TestImportNeverReactivatesBlockedContacts (0.28s)\n"}
+{"Time":"2026-11-09T12:56:28.1455982+05:30","Action":"pass","Package":"forkemail/internal/contacts","Test":"TestImportNeverReactivatesBlockedContacts","Elapsed":0.28}
+{"Time":"2026-11-09T12:56:28.1455982+05:30","Action":"output","Package":"forkemail/internal/contacts","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:28.1528616+05:30","Action":"output","Package":"forkemail/internal/contacts","Output":"ok  \tforkemail/internal/contacts\t0.670s\n"}
+{"Time":"2026-11-09T12:56:28.1528616+05:30","Action":"pass","Package":"forkemail/internal/contacts","Elapsed":0.67}
+{"Time":"2026-11-09T12:56:29.1877426+05:30","Action":"start","Package":"forkemail/internal/db"}
+{"Time":"2026-11-09T12:56:29.4937259+05:30","Action":"run","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply"}
+{"Time":"2026-11-09T12:56:29.4937259+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply","Output":"=== RUN   TestDeveloperMigrationsRollbackReapply\n"}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply","Output":"--- PASS: TestDeveloperMigrationsRollbackReapply (1.24s)\n"}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"pass","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply","Elapsed":1.24}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"run","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique"}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique","Output":"=== RUN   TestMigrationVersionsUnique\n"}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique","Output":"--- PASS: TestMigrationVersionsUnique (0.00s)\n"}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"pass","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique","Elapsed":0}
+{"Time":"2026-11-09T12:56:30.7338845+05:30","Action":"run","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData"}
+{"Time":"2026-11-09T12:56:30.7344011+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData","Output":"=== RUN   TestUpgradeFromKrishnaV8PreservesData\n"}
+{"Time":"2026-11-09T12:56:31.9374033+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData","Output":"--- PASS: TestUpgradeFromKrishnaV8PreservesData (1.20s)\n"}
+{"Time":"2026-11-09T12:56:31.9374033+05:30","Action":"pass","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData","Elapsed":1.2}
+{"Time":"2026-11-09T12:56:31.9374033+05:30","Action":"output","Package":"forkemail/internal/db","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:31.9504313+05:30","Action":"output","Package":"forkemail/internal/db","Output":"ok  \tforkemail/internal/db\t2.763s\n"}
+{"Time":"2026-11-09T12:56:31.9504313+05:30","Action":"pass","Package":"forkemail/internal/db","Elapsed":2.763}
+{"Time":"2026-11-09T12:56:31.9582216+05:30","Action":"start","Package":"forkemail/internal/db/dbtest"}
+{"Time":"2026-11-09T12:56:31.9582216+05:30","Action":"output","Package":"forkemail/internal/db/dbtest","Output":"?   \tforkemail/internal/db/dbtest\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:31.9582216+05:30","Action":"skip","Package":"forkemail/internal/db/dbtest","Elapsed":0}
+{"Time":"2026-11-09T12:56:32.970122+05:30","Action":"start","Package":"forkemail/internal/domains"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"run","Package":"forkemail/internal/domains","Test":"TestDNSStatuses"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestDNSStatuses","Output":"=== RUN   TestDNSStatuses\n"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestDNSStatuses","Output":"--- PASS: TestDNSStatuses (0.00s)\n"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"pass","Package":"forkemail/internal/domains","Test":"TestDNSStatuses","Elapsed":0}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"run","Package":"forkemail/internal/domains","Test":"TestDNSRecords"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestDNSRecords","Output":"=== RUN   TestDNSRecords\n"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestDNSRecords","Output":"--- PASS: TestDNSRecords (0.00s)\n"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"pass","Package":"forkemail/internal/domains","Test":"TestDNSRecords","Elapsed":0}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"run","Package":"forkemail/internal/domains","Test":"TestValidName"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestValidName","Output":"=== RUN   TestValidName\n"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestValidName","Output":"--- PASS: TestValidName (0.00s)\n"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"pass","Package":"forkemail/internal/domains","Test":"TestValidName","Elapsed":0}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"run","Package":"forkemail/internal/domains","Test":"TestIdentityUniqueAcrossWorkspaces"}
+{"Time":"2026-11-09T12:56:33.2791218+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestIdentityUniqueAcrossWorkspaces","Output":"=== RUN   TestIdentityUniqueAcrossWorkspaces\n"}
+{"Time":"2026-11-09T12:56:33.4926797+05:30","Action":"output","Package":"forkemail/internal/domains","Test":"TestIdentityUniqueAcrossWorkspaces","Output":"--- PASS: TestIdentityUniqueAcrossWorkspaces (0.21s)\n"}
+{"Time":"2026-11-09T12:56:33.4931909+05:30","Action":"pass","Package":"forkemail/internal/domains","Test":"TestIdentityUniqueAcrossWorkspaces","Elapsed":0.21}
+{"Time":"2026-11-09T12:56:33.4931909+05:30","Action":"output","Package":"forkemail/internal/domains","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:33.4995703+05:30","Action":"output","Package":"forkemail/internal/domains","Output":"ok  \tforkemail/internal/domains\t0.529s\n"}
+{"Time":"2026-11-09T12:56:33.4995703+05:30","Action":"pass","Package":"forkemail/internal/domains","Elapsed":0.529}
+{"Time":"2026-11-09T12:56:34.5339565+05:30","Action":"start","Package":"forkemail/internal/emails"}
+{"Time":"2026-11-09T12:56:34.8443851+05:30","Action":"run","Package":"forkemail/internal/emails","Test":"TestSnapshotTargetsAudienceAndExcludesBlocked"}
+{"Time":"2026-11-09T12:56:34.8443851+05:30","Action":"output","Package":"forkemail/internal/emails","Test":"TestSnapshotTargetsAudienceAndExcludesBlocked","Output":"=== RUN   TestSnapshotTargetsAudienceAndExcludesBlocked\n"}
+{"Time":"2026-11-09T12:56:35.1286005+05:30","Action":"output","Package":"forkemail/internal/emails","Test":"TestSnapshotTargetsAudienceAndExcludesBlocked","Output":"--- PASS: TestSnapshotTargetsAudienceAndExcludesBlocked (0.28s)\n"}
+{"Time":"2026-11-09T12:56:35.12911+05:30","Action":"pass","Package":"forkemail/internal/emails","Test":"TestSnapshotTargetsAudienceAndExcludesBlocked","Elapsed":0.28}
+{"Time":"2026-11-09T12:56:35.12911+05:30","Action":"run","Package":"forkemail/internal/emails","Test":"TestCheckDomainRequiresOwnVerifiedIdentity"}
+{"Time":"2026-11-09T12:56:35.12911+05:30","Action":"output","Package":"forkemail/internal/emails","Test":"TestCheckDomainRequiresOwnVerifiedIdentity","Output":"=== RUN   TestCheckDomainRequiresOwnVerifiedIdentity\n"}
+{"Time":"2026-11-09T12:56:35.355252+05:30","Action":"output","Package":"forkemail/internal/emails","Test":"TestCheckDomainRequiresOwnVerifiedIdentity","Output":"--- PASS: TestCheckDomainRequiresOwnVerifiedIdentity (0.23s)\n"}
+{"Time":"2026-11-09T12:56:35.355252+05:30","Action":"pass","Package":"forkemail/internal/emails","Test":"TestCheckDomainRequiresOwnVerifiedIdentity","Elapsed":0.23}
+{"Time":"2026-11-09T12:56:35.355252+05:30","Action":"run","Package":"forkemail/internal/emails","Test":"TestLaunchRefusedWhileWorkspacePaused"}
+{"Time":"2026-11-09T12:56:35.355252+05:30","Action":"output","Package":"forkemail/internal/emails","Test":"TestLaunchRefusedWhileWorkspacePaused","Output":"=== RUN   TestLaunchRefusedWhileWorkspacePaused\n"}
+{"Time":"2026-11-09T12:56:35.6056881+05:30","Action":"output","Package":"forkemail/internal/emails","Test":"TestLaunchRefusedWhileWorkspacePaused","Output":"--- PASS: TestLaunchRefusedWhileWorkspacePaused (0.25s)\n"}
+{"Time":"2026-11-09T12:56:35.6056881+05:30","Action":"pass","Package":"forkemail/internal/emails","Test":"TestLaunchRefusedWhileWorkspacePaused","Elapsed":0.25}
+{"Time":"2026-11-09T12:56:35.6056881+05:30","Action":"output","Package":"forkemail/internal/emails","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:35.6179274+05:30","Action":"output","Package":"forkemail/internal/emails","Output":"ok  \tforkemail/internal/emails\t1.083s\n"}
+{"Time":"2026-11-09T12:56:35.6179274+05:30","Action":"pass","Package":"forkemail/internal/emails","Elapsed":1.084}
+{"Time":"2026-11-09T12:56:35.6269075+05:30","Action":"start","Package":"forkemail/internal/events"}
+{"Time":"2026-11-09T12:56:35.6269075+05:30","Action":"output","Package":"forkemail/internal/events","Output":"?   \tforkemail/internal/events\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:35.6269075+05:30","Action":"skip","Package":"forkemail/internal/events","Elapsed":0}
+{"Time":"2026-11-09T12:56:36.761691+05:30","Action":"start","Package":"forkemail/internal/feedback"}
+{"Time":"2026-11-09T12:56:37.075221+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestPermanentBounceSuppresses"}
+{"Time":"2026-11-09T12:56:37.0757906+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestPermanentBounceSuppresses","Output":"=== RUN   TestPermanentBounceSuppresses\n"}
+{"Time":"2026-11-09T12:56:37.3541548+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestPermanentBounceSuppresses","Output":"--- PASS: TestPermanentBounceSuppresses (0.28s)\n"}
+{"Time":"2026-11-09T12:56:37.3541548+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestPermanentBounceSuppresses","Elapsed":0.28}
+{"Time":"2026-11-09T12:56:37.3541548+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestTransientBounceDoesNotSuppress"}
+{"Time":"2026-11-09T12:56:37.3541548+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestTransientBounceDoesNotSuppress","Output":"=== RUN   TestTransientBounceDoesNotSuppress\n"}
+{"Time":"2026-11-09T12:56:37.6001152+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestTransientBounceDoesNotSuppress","Output":"--- PASS: TestTransientBounceDoesNotSuppress (0.25s)\n"}
+{"Time":"2026-11-09T12:56:37.6001152+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestTransientBounceDoesNotSuppress","Elapsed":0.25}
+{"Time":"2026-11-09T12:56:37.6001152+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestComplaintSuppresses"}
+{"Time":"2026-11-09T12:56:37.6006945+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestComplaintSuppresses","Output":"=== RUN   TestComplaintSuppresses\n"}
+{"Time":"2026-11-09T12:56:37.847167+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestComplaintSuppresses","Output":"--- PASS: TestComplaintSuppresses (0.25s)\n"}
+{"Time":"2026-11-09T12:56:37.847167+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestComplaintSuppresses","Elapsed":0.25}
+{"Time":"2026-11-09T12:56:37.847167+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestDeliveryRejectAndDelay"}
+{"Time":"2026-11-09T12:56:37.847167+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestDeliveryRejectAndDelay","Output":"=== RUN   TestDeliveryRejectAndDelay\n"}
+{"Time":"2026-11-09T12:56:38.1043385+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestDeliveryRejectAndDelay","Output":"--- PASS: TestDeliveryRejectAndDelay (0.26s)\n"}
+{"Time":"2026-11-09T12:56:38.1048851+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestDeliveryRejectAndDelay","Elapsed":0.26}
+{"Time":"2026-11-09T12:56:38.1048851+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestDuplicateSNSMessageProcessedOnce"}
+{"Time":"2026-11-09T12:56:38.1048851+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestDuplicateSNSMessageProcessedOnce","Output":"=== RUN   TestDuplicateSNSMessageProcessedOnce\n"}
+{"Time":"2026-11-09T12:56:38.3492315+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestDuplicateSNSMessageProcessedOnce","Output":"--- PASS: TestDuplicateSNSMessageProcessedOnce (0.24s)\n"}
+{"Time":"2026-11-09T12:56:38.3496287+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestDuplicateSNSMessageProcessedOnce","Elapsed":0.24}
+{"Time":"2026-11-09T12:56:38.3496287+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestUnknownMessageAndTagMismatchIgnored"}
+{"Time":"2026-11-09T12:56:38.3496287+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestUnknownMessageAndTagMismatchIgnored","Output":"=== RUN   TestUnknownMessageAndTagMismatchIgnored\n"}
+{"Time":"2026-11-09T12:56:38.4909926+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestUnknownMessageAndTagMismatchIgnored","Output":"2026/11/09 12:56:38 INFO ses event for unknown message event=Bounce\n"}
+{"Time":"2026-11-09T12:56:38.615676+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestUnknownMessageAndTagMismatchIgnored","Output":"2026/11/09 12:56:38 WARN ses event tags do not match recipient event=Bounce recipient_id=aece4f5b-f95f-487b-9340-cd91e2c72fda\n"}
+{"Time":"2026-11-09T12:56:38.7915346+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestUnknownMessageAndTagMismatchIgnored","Output":"--- PASS: TestUnknownMessageAndTagMismatchIgnored (0.44s)\n"}
+{"Time":"2026-11-09T12:56:38.7920774+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestUnknownMessageAndTagMismatchIgnored","Elapsed":0.44}
+{"Time":"2026-11-09T12:56:38.7920774+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd"}
+{"Time":"2026-11-09T12:56:38.7920774+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"=== RUN   TestWebhookEndToEnd\n"}
+{"Time":"2026-11-09T12:56:39.0325056+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"2026/11/09 12:56:39 INFO ses event sns_message_id=sns-hook-msg-1794209198965505200-hook@x.io result=processed\n"}
+{"Time":"2026-11-09T12:56:39.0428611+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"2026/11/09 12:56:39 INFO ses event for unknown message event=Delivery\n"}
+{"Time":"2026-11-09T12:56:39.0434355+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"2026/11/09 12:56:39 INFO ses event sns_message_id=sns-unknown-msg-1794209198965505200-hook@x.io result=unknown_message\n"}
+{"Time":"2026-11-09T12:56:39.0456996+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"2026/11/09 12:56:39 WARN rejected sns message type=Notification err=\"invalid sns message: crypto/rsa: verification error\"\n"}
+{"Time":"2026-11-09T12:56:39.0479488+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"2026/11/09 12:56:39 INFO sns subscription confirmed topic_arn=arn:aws:sns:us-east-1:123456789012:forkemail-ses-events\n"}
+{"Time":"2026-11-09T12:56:39.050648+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"2026/11/09 12:56:39 ERROR sns subscription confirmation failed err=\"subscribe url is not an sns endpoint\"\n"}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Output":"--- PASS: TestWebhookEndToEnd (0.33s)\n"}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestWebhookEndToEnd","Elapsed":0.33}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestEvaluate"}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestEvaluate","Output":"=== RUN   TestEvaluate\n"}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestEvaluate","Output":"--- PASS: TestEvaluate (0.00s)\n"}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestEvaluate","Elapsed":0}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"run","Package":"forkemail/internal/feedback","Test":"TestReputationGuardPausesWorkspace"}
+{"Time":"2026-11-09T12:56:39.1221837+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestReputationGuardPausesWorkspace","Output":"=== RUN   TestReputationGuardPausesWorkspace\n"}
+{"Time":"2026-11-09T12:56:39.3407921+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestReputationGuardPausesWorkspace","Output":"2026/11/09 12:56:39 WARN workspace sending paused workspace_id=409b3ad5-46ae-4ad8-aa94-08982be9e842 reason=bounce_rate_exceeded sent=20 bounced=4 complained=0\n"}
+{"Time":"2026-11-09T12:56:39.417861+05:30","Action":"output","Package":"forkemail/internal/feedback","Test":"TestReputationGuardPausesWorkspace","Output":"--- PASS: TestReputationGuardPausesWorkspace (0.30s)\n"}
+{"Time":"2026-11-09T12:56:39.4184234+05:30","Action":"pass","Package":"forkemail/internal/feedback","Test":"TestReputationGuardPausesWorkspace","Elapsed":0.3}
+{"Time":"2026-11-09T12:56:39.4184234+05:30","Action":"output","Package":"forkemail/internal/feedback","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:39.4320698+05:30","Action":"output","Package":"forkemail/internal/feedback","Output":"ok  \tforkemail/internal/feedback\t2.670s\n"}
+{"Time":"2026-11-09T12:56:39.4320698+05:30","Action":"pass","Package":"forkemail/internal/feedback","Elapsed":2.67}
+{"Time":"2026-11-09T12:56:39.4409648+05:30","Action":"start","Package":"forkemail/internal/httpx"}
+{"Time":"2026-11-09T12:56:39.4409648+05:30","Action":"output","Package":"forkemail/internal/httpx","Output":"?   \tforkemail/internal/httpx\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:39.4409648+05:30","Action":"skip","Package":"forkemail/internal/httpx","Elapsed":0}
+{"Time":"2026-11-09T12:56:39.4409648+05:30","Action":"start","Package":"forkemail/internal/keys"}
+{"Time":"2026-11-09T12:56:39.4409648+05:30","Action":"output","Package":"forkemail/internal/keys","Output":"?   \tforkemail/internal/keys\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:39.4409648+05:30","Action":"skip","Package":"forkemail/internal/keys","Elapsed":0}
+{"Time":"2026-11-09T12:56:40.550244+05:30","Action":"start","Package":"forkemail/internal/ratelimit"}
+{"Time":"2026-11-09T12:56:42.0386551+05:30","Action":"run","Package":"forkemail/internal/ratelimit","Test":"TestPerKeyLimiterReturns429"}
+{"Time":"2026-11-09T12:56:42.0386551+05:30","Action":"output","Package":"forkemail/internal/ratelimit","Test":"TestPerKeyLimiterReturns429","Output":"=== RUN   TestPerKeyLimiterReturns429\n"}
+{"Time":"2026-11-09T12:56:42.0391715+05:30","Action":"output","Package":"forkemail/internal/ratelimit","Test":"TestPerKeyLimiterReturns429","Output":"--- PASS: TestPerKeyLimiterReturns429 (0.00s)\n"}
+{"Time":"2026-11-09T12:56:42.0391715+05:30","Action":"pass","Package":"forkemail/internal/ratelimit","Test":"TestPerKeyLimiterReturns429","Elapsed":0}
+{"Time":"2026-11-09T12:56:42.0391715+05:30","Action":"output","Package":"forkemail/internal/ratelimit","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:42.0434644+05:30","Action":"output","Package":"forkemail/internal/ratelimit","Output":"ok  \tforkemail/internal/ratelimit\t1.493s\n"}
+{"Time":"2026-11-09T12:56:42.0434644+05:30","Action":"pass","Package":"forkemail/internal/ratelimit","Elapsed":1.4929999999999999}
+{"Time":"2026-11-09T12:56:42.0502231+05:30","Action":"start","Package":"forkemail/internal/seed"}
+{"Time":"2026-11-09T12:56:42.0502231+05:30","Action":"output","Package":"forkemail/internal/seed","Output":"?   \tforkemail/internal/seed\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:42.0502231+05:30","Action":"skip","Package":"forkemail/internal/seed","Elapsed":0}
+{"Time":"2026-11-09T12:56:43.0770022+05:30","Action":"start","Package":"forkemail/internal/sender"}
+{"Time":"2026-11-09T12:56:43.393678+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestClaimNeverReturnsSameRowTwice"}
+{"Time":"2026-11-09T12:56:43.393678+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestClaimNeverReturnsSameRowTwice","Output":"=== RUN   TestClaimNeverReturnsSameRowTwice\n"}
+{"Time":"2026-11-09T12:56:43.8776828+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestClaimNeverReturnsSameRowTwice","Output":"--- PASS: TestClaimNeverReturnsSameRowTwice (0.48s)\n"}
+{"Time":"2026-11-09T12:56:43.8776828+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestClaimNeverReturnsSameRowTwice","Elapsed":0.48}
+{"Time":"2026-11-09T12:56:43.8776828+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestUrgentSendsJumpAheadOfBulk"}
+{"Time":"2026-11-09T12:56:43.8776828+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestUrgentSendsJumpAheadOfBulk","Output":"=== RUN   TestUrgentSendsJumpAheadOfBulk\n"}
+{"Time":"2026-11-09T12:56:43.982323+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestUrgentSendsJumpAheadOfBulk","Output":"--- PASS: TestUrgentSendsJumpAheadOfBulk (0.10s)\n"}
+{"Time":"2026-11-09T12:56:43.982323+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestUrgentSendsJumpAheadOfBulk","Elapsed":0.1}
+{"Time":"2026-11-09T12:56:43.982323+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestUrgentRespectsHoldAndFullQuotaButNotHeadroom"}
+{"Time":"2026-11-09T12:56:43.982323+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestUrgentRespectsHoldAndFullQuotaButNotHeadroom","Output":"=== RUN   TestUrgentRespectsHoldAndFullQuotaButNotHeadroom\n"}
+{"Time":"2026-11-09T12:56:43.9846802+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestUrgentRespectsHoldAndFullQuotaButNotHeadroom","Output":"2026/11/09 12:56:43 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=95 max_24h=100\n"}
+{"Time":"2026-11-09T12:56:43.9846802+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestUrgentRespectsHoldAndFullQuotaButNotHeadroom","Output":"2026/11/09 12:56:43 WARN worker holding sends reason=test until=2026-11-09T13:06:43.984+05:30\n"}
+{"Time":"2026-11-09T12:56:43.9846802+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestUrgentRespectsHoldAndFullQuotaButNotHeadroom","Output":"--- PASS: TestUrgentRespectsHoldAndFullQuotaButNotHeadroom (0.00s)\n"}
+{"Time":"2026-11-09T12:56:43.9846802+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestUrgentRespectsHoldAndFullQuotaButNotHeadroom","Elapsed":0}
+{"Time":"2026-11-09T12:56:43.9846802+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried"}
+{"Time":"2026-11-09T12:56:43.9846802+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"=== RUN   TestSendErrorsNeverSuppressAndUnknownIsNeverRetried\n"}
+{"Time":"2026-11-09T12:56:44.1718537+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=dc40075c-4bac-4e79-99ac-ab434e351030 email_id=38703778-fe88-4807-be99-3a70234a1561 reason=throttled attempts=1\n"}
+{"Time":"2026-11-09T12:56:44.1897075+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=6eeb0cd1-3d39-4841-81cf-413f7935329d email_id=d506282b-8aea-418b-8725-4321c879e213 reason=\"message_rejected: Email address is not verified.\" attempts=1\n"}
+{"Time":"2026-11-09T12:56:44.2195057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=907fe440-f489-405d-840f-133613af5314 email_id=704041eb-4c0b-496c-ae42-57f004643474 reason=ses_sending_paused attempts=1\n"}
+{"Time":"2026-11-09T12:56:44.2195057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"2026/11/09 12:56:44 WARN worker holding sends reason=ses_sending_paused until=2026-11-09T13:06:44.219+05:30\n"}
+{"Time":"2026-11-09T12:56:44.2394396+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=63c89775-bc9d-4ccc-8900-15e3111cdfbb email_id=e973aeb0-4edc-4520-b3a3-37ba3d2a8973 reason=identity_not_verified attempts=1\n"}
+{"Time":"2026-11-09T12:56:44.2597224+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=3b5e53b1-de70-4cd6-9287-1bb18c8ac9b2 email_id=47575ce9-aad7-4032-b500-20d755e60ef5 reason=unknown_outcome attempts=1\n"}
+{"Time":"2026-11-09T12:56:44.3463215+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Output":"--- PASS: TestSendErrorsNeverSuppressAndUnknownIsNeverRetried (0.36s)\n"}
+{"Time":"2026-11-09T12:56:44.3463215+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestSendErrorsNeverSuppressAndUnknownIsNeverRetried","Elapsed":0.36}
+{"Time":"2026-11-09T12:56:44.3463215+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts"}
+{"Time":"2026-11-09T12:56:44.3463215+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Output":"=== RUN   TestRetryGivesUpAfterMaxAttempts\n"}
+{"Time":"2026-11-09T12:56:44.5208994+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=8def57f6-5c56-4496-8c9e-94a896236d54 email_id=ff64e7fc-8656-4a04-85bd-81c91b09b553 reason=throttled attempts=1\n"}
+{"Time":"2026-11-09T12:56:44.5305794+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Output":"2026/11/09 12:56:44 WARN send failed recipient_id=8def57f6-5c56-4496-8c9e-94a896236d54 email_id=ff64e7fc-8656-4a04-85bd-81c91b09b553 reason=throttled attempts=5\n"}
+{"Time":"2026-11-09T12:56:44.6169371+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Output":"--- PASS: TestRetryGivesUpAfterMaxAttempts (0.27s)\n"}
+{"Time":"2026-11-09T12:56:44.6169371+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Elapsed":0.27}
+{"Time":"2026-11-09T12:56:44.6169371+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend"}
+{"Time":"2026-11-09T12:56:44.6169371+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend","Output":"=== RUN   TestSuppressionRecheckedBeforeSend\n"}
+{"Time":"2026-11-09T12:56:44.8764442+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend","Output":"--- PASS: TestSuppressionRecheckedBeforeSend (0.26s)\n"}
+{"Time":"2026-11-09T12:56:44.877055+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend","Elapsed":0.26}
+{"Time":"2026-11-09T12:56:44.877055+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor"}
+{"Time":"2026-11-09T12:56:44.877055+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor","Output":"=== RUN   TestLogSenderEmitsSESEventsThroughProcessor\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor","Output":"--- PASS: TestLogSenderEmitsSESEventsThroughProcessor (0.37s)\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor","Elapsed":0.37}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestRenderEscapesMergeFieldsInHTML"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRenderEscapesMergeFieldsInHTML","Output":"=== RUN   TestRenderEscapesMergeFieldsInHTML\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRenderEscapesMergeFieldsInHTML","Output":"--- PASS: TestRenderEscapesMergeFieldsInHTML (0.00s)\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestRenderEscapesMergeFieldsInHTML","Elapsed":0}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestConcurrentUrgentCannotOversubscribeQuota"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestConcurrentUrgentCannotOversubscribeQuota","Output":"=== RUN   TestConcurrentUrgentCannotOversubscribeQuota\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestConcurrentUrgentCannotOversubscribeQuota","Output":"--- PASS: TestConcurrentUrgentCannotOversubscribeQuota (0.00s)\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestConcurrentUrgentCannotOversubscribeQuota","Elapsed":0}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestBulkProgressUnderContinuousUrgentLoad"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestBulkProgressUnderContinuousUrgentLoad","Output":"=== RUN   TestBulkProgressUnderContinuousUrgentLoad\n"}
+{"Time":"2026-11-09T12:56:45.2472057+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestBulkProgressUnderContinuousUrgentLoad","Output":"--- PASS: TestBulkProgressUnderContinuousUrgentLoad (0.00s)\n"}
+{"Time":"2026-11-09T12:56:45.2477471+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestBulkProgressUnderContinuousUrgentLoad","Elapsed":0}
+{"Time":"2026-11-09T12:56:45.2477471+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestStaleBroadcastOutcomeNeverRequeued"}
+{"Time":"2026-11-09T12:56:45.2477471+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestStaleBroadcastOutcomeNeverRequeued","Output":"=== RUN   TestStaleBroadcastOutcomeNeverRequeued\n"}
+{"Time":"2026-11-09T12:56:45.530524+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestStaleBroadcastOutcomeNeverRequeued","Output":"--- PASS: TestStaleBroadcastOutcomeNeverRequeued (0.28s)\n"}
+{"Time":"2026-11-09T12:56:45.530524+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestStaleBroadcastOutcomeNeverRequeued","Elapsed":0.28}
+{"Time":"2026-11-09T12:56:45.530524+05:30","Action":"output","Package":"forkemail/internal/sender","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:45.5455077+05:30","Action":"output","Package":"forkemail/internal/sender","Output":"ok  \tforkemail/internal/sender\t2.468s\n"}
+{"Time":"2026-11-09T12:56:45.5455077+05:30","Action":"pass","Package":"forkemail/internal/sender","Elapsed":2.469}
+{"Time":"2026-11-09T12:56:47.3056284+05:30","Action":"start","Package":"forkemail/internal/ses"}
+{"Time":"2026-11-09T12:56:49.41756+05:30","Action":"run","Package":"forkemail/internal/ses","Test":"TestClassify"}
+{"Time":"2026-11-09T12:56:49.41756+05:30","Action":"output","Package":"forkemail/internal/ses","Test":"TestClassify","Output":"=== RUN   TestClassify\n"}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"output","Package":"forkemail/internal/ses","Test":"TestClassify","Output":"--- PASS: TestClassify (0.00s)\n"}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"pass","Package":"forkemail/internal/ses","Test":"TestClassify","Elapsed":0}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"run","Package":"forkemail/internal/ses","Test":"TestSendBuildsRequest"}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"output","Package":"forkemail/internal/ses","Test":"TestSendBuildsRequest","Output":"=== RUN   TestSendBuildsRequest\n"}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"output","Package":"forkemail/internal/ses","Test":"TestSendBuildsRequest","Output":"--- PASS: TestSendBuildsRequest (0.00s)\n"}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"pass","Package":"forkemail/internal/ses","Test":"TestSendBuildsRequest","Elapsed":0}
+{"Time":"2026-11-09T12:56:49.418138+05:30","Action":"output","Package":"forkemail/internal/ses","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:49.4238497+05:30","Action":"output","Package":"forkemail/internal/ses","Output":"ok  \tforkemail/internal/ses\t2.118s\n"}
+{"Time":"2026-11-09T12:56:49.4238497+05:30","Action":"pass","Package":"forkemail/internal/ses","Elapsed":2.118}
+{"Time":"2026-11-09T12:56:50.7903813+05:30","Action":"start","Package":"forkemail/internal/sns"}
+{"Time":"2026-11-09T12:56:52.9697825+05:30","Action":"run","Package":"forkemail/internal/sns","Test":"TestVerifyAcceptsBothSignatureVersions"}
+{"Time":"2026-11-09T12:56:52.9697825+05:30","Action":"output","Package":"forkemail/internal/sns","Test":"TestVerifyAcceptsBothSignatureVersions","Output":"=== RUN   TestVerifyAcceptsBothSignatureVersions\n"}
+{"Time":"2026-11-09T12:56:53.0177963+05:30","Action":"output","Package":"forkemail/internal/sns","Test":"TestVerifyAcceptsBothSignatureVersions","Output":"--- PASS: TestVerifyAcceptsBothSignatureVersions (0.05s)\n"}
+{"Time":"2026-11-09T12:56:53.0195884+05:30","Action":"pass","Package":"forkemail/internal/sns","Test":"TestVerifyAcceptsBothSignatureVersions","Elapsed":0.05}
+{"Time":"2026-11-09T12:56:53.0195884+05:30","Action":"run","Package":"forkemail/internal/sns","Test":"TestVerifyRejectsForgedMessages"}
+{"Time":"2026-11-09T12:56:53.0195884+05:30","Action":"output","Package":"forkemail/internal/sns","Test":"TestVerifyRejectsForgedMessages","Output":"=== RUN   TestVerifyRejectsForgedMessages\n"}
+{"Time":"2026-11-09T12:56:53.1899597+05:30","Action":"output","Package":"forkemail/internal/sns","Test":"TestVerifyRejectsForgedMessages","Output":"--- PASS: TestVerifyRejectsForgedMessages (0.17s)\n"}
+{"Time":"2026-11-09T12:56:53.1899597+05:30","Action":"pass","Package":"forkemail/internal/sns","Test":"TestVerifyRejectsForgedMessages","Elapsed":0.17}
+{"Time":"2026-11-09T12:56:53.1899597+05:30","Action":"run","Package":"forkemail/internal/sns","Test":"TestConfirmOnlyFollowsSNSURLs"}
+{"Time":"2026-11-09T12:56:53.1899597+05:30","Action":"output","Package":"forkemail/internal/sns","Test":"TestConfirmOnlyFollowsSNSURLs","Output":"=== RUN   TestConfirmOnlyFollowsSNSURLs\n"}
+{"Time":"2026-11-09T12:56:53.2211928+05:30","Action":"output","Package":"forkemail/internal/sns","Test":"TestConfirmOnlyFollowsSNSURLs","Output":"--- PASS: TestConfirmOnlyFollowsSNSURLs (0.03s)\n"}
+{"Time":"2026-11-09T12:56:53.2211928+05:30","Action":"pass","Package":"forkemail/internal/sns","Test":"TestConfirmOnlyFollowsSNSURLs","Elapsed":0.03}
+{"Time":"2026-11-09T12:56:53.2220288+05:30","Action":"output","Package":"forkemail/internal/sns","Output":"PASS\n"}
+{"Time":"2026-11-09T12:56:53.2267645+05:30","Action":"output","Package":"forkemail/internal/sns","Output":"ok  \tforkemail/internal/sns\t2.436s\n"}
+{"Time":"2026-11-09T12:56:53.2267645+05:30","Action":"pass","Package":"forkemail/internal/sns","Elapsed":2.436}
+{"Time":"2026-11-09T12:56:53.2325598+05:30","Action":"start","Package":"forkemail/internal/sns/snstest"}
+{"Time":"2026-11-09T12:56:53.2325598+05:30","Action":"output","Package":"forkemail/internal/sns/snstest","Output":"?   \tforkemail/internal/sns/snstest\t[no test files]\n"}
+{"Time":"2026-11-09T12:56:53.2325598+05:30","Action":"skip","Package":"forkemail/internal/sns/snstest","Elapsed":0}
+{"Time":"2026-11-09T12:56:54.2432105+05:30","Action":"start","Package":"forkemail/internal/transactional"}
+{"Time":"2026-11-09T12:56:54.5450401+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestAcceptAndDispatchRecordsLatencyAndEvents"}
+{"Time":"2026-11-09T12:56:54.5450401+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestAcceptAndDispatchRecordsLatencyAndEvents","Output":"=== RUN   TestAcceptAndDispatchRecordsLatencyAndEvents\n"}
+{"Time":"2026-11-09T12:56:54.7796331+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestAcceptAndDispatchRecordsLatencyAndEvents","Output":"--- PASS: TestAcceptAndDispatchRecordsLatencyAndEvents (0.23s)\n"}
+{"Time":"2026-11-09T12:56:54.7796331+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestAcceptAndDispatchRecordsLatencyAndEvents","Elapsed":0.23}
+{"Time":"2026-11-09T12:56:54.7796331+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestIdempotencyKeyReplaysAndRejectsDifferentBody"}
+{"Time":"2026-11-09T12:56:54.7796331+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestIdempotencyKeyReplaysAndRejectsDifferentBody","Output":"=== RUN   TestIdempotencyKeyReplaysAndRejectsDifferentBody\n"}
+{"Time":"2026-11-09T12:56:55.0212693+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestIdempotencyKeyReplaysAndRejectsDifferentBody","Output":"--- PASS: TestIdempotencyKeyReplaysAndRejectsDifferentBody (0.24s)\n"}
+{"Time":"2026-11-09T12:56:55.0217805+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestIdempotencyKeyReplaysAndRejectsDifferentBody","Elapsed":0.24}
+{"Time":"2026-11-09T12:56:55.0217805+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestDuplicateContentWithoutKeyIsDeduplicated"}
+{"Time":"2026-11-09T12:56:55.0217805+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestDuplicateContentWithoutKeyIsDeduplicated","Output":"=== RUN   TestDuplicateContentWithoutKeyIsDeduplicated\n"}
+{"Time":"2026-11-09T12:56:55.2635111+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestDuplicateContentWithoutKeyIsDeduplicated","Output":"--- PASS: TestDuplicateContentWithoutKeyIsDeduplicated (0.24s)\n"}
+{"Time":"2026-11-09T12:56:55.2635111+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestDuplicateContentWithoutKeyIsDeduplicated","Elapsed":0.24}
+{"Time":"2026-11-09T12:56:55.2635111+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestConcurrentDuplicatesCreateOneMessage"}
+{"Time":"2026-11-09T12:56:55.2635111+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestConcurrentDuplicatesCreateOneMessage","Output":"=== RUN   TestConcurrentDuplicatesCreateOneMessage\n"}
+{"Time":"2026-11-09T12:56:55.9233622+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestConcurrentDuplicatesCreateOneMessage","Output":"--- PASS: TestConcurrentDuplicatesCreateOneMessage (0.66s)\n"}
+{"Time":"2026-11-09T12:56:55.9233622+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestConcurrentDuplicatesCreateOneMessage","Elapsed":0.66}
+{"Time":"2026-11-09T12:56:55.9233622+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestSuppressionsAndIdentityChecks"}
+{"Time":"2026-11-09T12:56:55.9233622+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSuppressionsAndIdentityChecks","Output":"=== RUN   TestSuppressionsAndIdentityChecks\n"}
+{"Time":"2026-11-09T12:56:56.1685791+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSuppressionsAndIdentityChecks","Output":"--- PASS: TestSuppressionsAndIdentityChecks (0.25s)\n"}
+{"Time":"2026-11-09T12:56:56.1685791+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestSuppressionsAndIdentityChecks","Elapsed":0.25}
+{"Time":"2026-11-09T12:56:56.1685791+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestTrialQuotaEnforcedAtAccept"}
+{"Time":"2026-11-09T12:56:56.1685791+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestTrialQuotaEnforcedAtAccept","Output":"=== RUN   TestTrialQuotaEnforcedAtAccept\n"}
+{"Time":"2026-11-09T12:56:56.3894981+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestTrialQuotaEnforcedAtAccept","Output":"--- PASS: TestTrialQuotaEnforcedAtAccept (0.22s)\n"}
+{"Time":"2026-11-09T12:56:56.3900117+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestTrialQuotaEnforcedAtAccept","Elapsed":0.22}
+{"Time":"2026-11-09T12:56:56.3900117+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling"}
+{"Time":"2026-11-09T12:56:56.3900117+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"=== RUN   TestSendFailureHandling\n"}
+{"Time":"2026-11-09T12:56:56.5420159+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"2026/11/09 12:56:56 WARN transactional send failed message_id=67e76680-4924-4940-9802-dd2e35831ff0 reason=boom attempts=1\n"}
+{"Time":"2026-11-09T12:56:56.6966605+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"2026/11/09 12:56:56 WARN transactional send failed message_id=644126c8-3901-4d0f-b24f-bdd8ca2a41a0 reason=boom attempts=1\n"}
+{"Time":"2026-11-09T12:56:56.8608495+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"2026/11/09 12:56:56 WARN transactional send failed message_id=0cd38013-eff2-4390-8088-0f6383d7711f reason=boom attempts=1\n"}
+{"Time":"2026-11-09T12:56:57.0257945+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"2026/11/09 12:56:57 WARN transactional send failed message_id=f3931219-200b-4bae-bf83-f4d571d8ed3d reason=boom attempts=1\n"}
+{"Time":"2026-11-09T12:56:57.1791745+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"2026/11/09 12:56:57 WARN transactional send failed message_id=077ee8a7-cbb8-4019-8604-aa4d69682354 reason=boom attempts=1\n"}
+{"Time":"2026-11-09T12:56:57.5404168+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Output":"--- PASS: TestSendFailureHandling (1.15s)\n"}
+{"Time":"2026-11-09T12:56:57.5404168+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestSendFailureHandling","Elapsed":1.15}
+{"Time":"2026-11-09T12:56:57.5404168+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestRetriesGiveUpAndExpiredMessagesFail"}
+{"Time":"2026-11-09T12:56:57.5404168+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestRetriesGiveUpAndExpiredMessagesFail","Output":"=== RUN   TestRetriesGiveUpAndExpiredMessagesFail\n"}
+{"Time":"2026-11-09T12:56:57.6946378+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestRetriesGiveUpAndExpiredMessagesFail","Output":"2026/11/09 12:56:57 WARN transactional send failed message_id=b939b9fc-b94e-4a66-96e8-9f50db55aa76 reason=throttled attempts=5\n"}
+{"Time":"2026-11-09T12:56:57.7836279+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestRetriesGiveUpAndExpiredMessagesFail","Output":"--- PASS: TestRetriesGiveUpAndExpiredMessagesFail (0.24s)\n"}
+{"Time":"2026-11-09T12:56:57.7836279+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestRetriesGiveUpAndExpiredMessagesFail","Elapsed":0.24}
+{"Time":"2026-11-09T12:56:57.7836279+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestStuckSendingIsFailedNotResent"}
+{"Time":"2026-11-09T12:56:57.7836279+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestStuckSendingIsFailedNotResent","Output":"=== RUN   TestStuckSendingIsFailedNotResent\n"}
+{"Time":"2026-11-09T12:56:58.0164323+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestStuckSendingIsFailedNotResent","Output":"--- PASS: TestStuckSendingIsFailedNotResent (0.23s)\n"}
+{"Time":"2026-11-09T12:56:58.0164323+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestStuckSendingIsFailedNotResent","Elapsed":0.23}
+{"Time":"2026-11-09T12:56:58.0164323+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestLogSenderFeedbackReachesTransactionalMessages"}
+{"Time":"2026-11-09T12:56:58.0164323+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestLogSenderFeedbackReachesTransactionalMessages","Output":"=== RUN   TestLogSenderFeedbackReachesTransactionalMessages\n"}
+{"Time":"2026-11-09T12:56:58.2761232+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestLogSenderFeedbackReachesTransactionalMessages","Output":"--- PASS: TestLogSenderFeedbackReachesTransactionalMessages (0.26s)\n"}
+{"Time":"2026-11-09T12:56:58.2761232+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestLogSenderFeedbackReachesTransactionalMessages","Elapsed":0.26}
+{"Time":"2026-11-09T12:56:58.2767525+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestOpenAndClickTracking"}
+{"Time":"2026-11-09T12:56:58.2767525+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestOpenAndClickTracking","Output":"=== RUN   TestOpenAndClickTracking\n"}
+{"Time":"2026-11-09T12:56:58.5063898+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestOpenAndClickTracking","Output":"--- PASS: TestOpenAndClickTracking (0.23s)\n"}
+{"Time":"2026-11-09T12:56:58.5063898+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestOpenAndClickTracking","Elapsed":0.23}
+{"Time":"2026-11-09T12:56:58.5063898+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate"}
+{"Time":"2026-11-09T12:56:58.5063898+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate","Output":"=== RUN   TestEligibilityRecheckedAfterWaitingForSharedGate\n"}
+{"Time":"2026-11-09T12:56:58.5068981+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/identity"}
+{"Time":"2026-11-09T12:56:58.5068981+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/identity","Output":"=== RUN   TestEligibilityRecheckedAfterWaitingForSharedGate/identity\n"}
+{"Time":"2026-11-09T12:56:58.7332407+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/identity","Output":"--- PASS: TestEligibilityRecheckedAfterWaitingForSharedGate/identity (0.23s)\n"}
+{"Time":"2026-11-09T12:56:58.7332407+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/identity","Elapsed":0.23}
+{"Time":"2026-11-09T12:56:58.7332407+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/suppression"}
+{"Time":"2026-11-09T12:56:58.7332407+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/suppression","Output":"=== RUN   TestEligibilityRecheckedAfterWaitingForSharedGate/suppression\n"}
+{"Time":"2026-11-09T12:56:58.9569022+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/suppression","Output":"--- PASS: TestEligibilityRecheckedAfterWaitingForSharedGate/suppression (0.22s)\n"}
+{"Time":"2026-11-09T12:56:58.957422+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate/suppression","Elapsed":0.22}
+{"Time":"2026-11-09T12:56:58.957422+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate","Output":"--- PASS: TestEligibilityRecheckedAfterWaitingForSharedGate (0.45s)\n"}
+{"Time":"2026-11-09T12:56:58.957422+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestEligibilityRecheckedAfterWaitingForSharedGate","Elapsed":0.45}
+{"Time":"2026-11-09T12:56:58.957422+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestPollingRecoversDurableQueueWithoutNotification"}
+{"Time":"2026-11-09T12:56:58.957422+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestPollingRecoversDurableQueueWithoutNotification","Output":"=== RUN   TestPollingRecoversDurableQueueWithoutNotification\n"}
+{"Time":"2026-11-09T12:57:00.2958347+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestPollingRecoversDurableQueueWithoutNotification","Output":"--- PASS: TestPollingRecoversDurableQueueWithoutNotification (1.34s)\n"}
+{"Time":"2026-11-09T12:57:00.2964071+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestPollingRecoversDurableQueueWithoutNotification","Elapsed":1.34}
+{"Time":"2026-11-09T12:57:00.2964071+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestTransactionalMarketingOptOutDoesNotCreateContactsOrFooter"}
+{"Time":"2026-11-09T12:57:00.2964071+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestTransactionalMarketingOptOutDoesNotCreateContactsOrFooter","Output":"=== RUN   TestTransactionalMarketingOptOutDoesNotCreateContactsOrFooter\n"}
+{"Time":"2026-11-09T12:57:00.5234939+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestTransactionalMarketingOptOutDoesNotCreateContactsOrFooter","Output":"--- PASS: TestTransactionalMarketingOptOutDoesNotCreateContactsOrFooter (0.23s)\n"}
+{"Time":"2026-11-09T12:57:00.5234939+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestTransactionalMarketingOptOutDoesNotCreateContactsOrFooter","Elapsed":0.23}
+{"Time":"2026-11-09T12:57:00.5234939+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestInstrumentRewritesHTTPLinksAndAddsPixel"}
+{"Time":"2026-11-09T12:57:00.5234939+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestInstrumentRewritesHTTPLinksAndAddsPixel","Output":"=== RUN   TestInstrumentRewritesHTTPLinksAndAddsPixel\n"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestInstrumentRewritesHTTPLinksAndAddsPixel","Output":"--- PASS: TestInstrumentRewritesHTTPLinksAndAddsPixel (0.00s)\n"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestInstrumentRewritesHTTPLinksAndAddsPixel","Elapsed":0}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestTrackingTokensRejectTamperingAndCrossUse"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestTrackingTokensRejectTamperingAndCrossUse","Output":"=== RUN   TestTrackingTokensRejectTamperingAndCrossUse\n"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestTrackingTokensRejectTamperingAndCrossUse","Output":"--- PASS: TestTrackingTokensRejectTamperingAndCrossUse (0.00s)\n"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestTrackingTokensRejectTamperingAndCrossUse","Elapsed":0}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"run","Package":"forkemail/internal/transactional","Test":"TestAutomatedAgents"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestAutomatedAgents","Output":"=== RUN   TestAutomatedAgents\n"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"output","Package":"forkemail/internal/transactional","Test":"TestAutomatedAgents","Output":"--- PASS: TestAutomatedAgents (0.00s)\n"}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"pass","Package":"forkemail/internal/transactional","Test":"TestAutomatedAgents","Elapsed":0}
+{"Time":"2026-11-09T12:57:00.5241097+05:30","Action":"output","Package":"forkemail/internal/transactional","Output":"PASS\n"}
+{"Time":"2026-11-09T12:57:00.5365815+05:30","Action":"output","Package":"forkemail/internal/transactional","Output":"ok  \tforkemail/internal/transactional\t6.293s\n"}
+{"Time":"2026-11-09T12:57:00.5365815+05:30","Action":"pass","Package":"forkemail/internal/transactional","Elapsed":6.293}
+{"Time":"2026-11-09T12:57:01.8595449+05:30","Action":"start","Package":"forkemail/internal/unsub"}
+{"Time":"2026-11-09T12:57:03.6720227+05:30","Action":"run","Package":"forkemail/internal/unsub","Test":"TestTokenRoundTrip"}
+{"Time":"2026-11-09T12:57:03.6720227+05:30","Action":"output","Package":"forkemail/internal/unsub","Test":"TestTokenRoundTrip","Output":"=== RUN   TestTokenRoundTrip\n"}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"output","Package":"forkemail/internal/unsub","Test":"TestTokenRoundTrip","Output":"--- PASS: TestTokenRoundTrip (0.00s)\n"}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"pass","Package":"forkemail/internal/unsub","Test":"TestTokenRoundTrip","Elapsed":0}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"run","Package":"forkemail/internal/unsub","Test":"TestTokenTampering"}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"output","Package":"forkemail/internal/unsub","Test":"TestTokenTampering","Output":"=== RUN   TestTokenTampering\n"}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"output","Package":"forkemail/internal/unsub","Test":"TestTokenTampering","Output":"--- PASS: TestTokenTampering (0.00s)\n"}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"pass","Package":"forkemail/internal/unsub","Test":"TestTokenTampering","Elapsed":0}
+{"Time":"2026-11-09T12:57:03.6726248+05:30","Action":"output","Package":"forkemail/internal/unsub","Output":"PASS\n"}
+{"Time":"2026-11-09T12:57:03.6767252+05:30","Action":"output","Package":"forkemail/internal/unsub","Output":"ok  \tforkemail/internal/unsub\t1.817s\n"}
+{"Time":"2026-11-09T12:57:03.6767252+05:30","Action":"pass","Package":"forkemail/internal/unsub","Elapsed":1.817}
+{"Time":"2026-11-09T12:57:04.7117223+05:30","Action":"start","Package":"forkemail/internal/webhooks"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestSSRFProtection"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestSSRFProtection","Output":"=== RUN   TestSSRFProtection\n"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestSSRFProtection","Output":"--- PASS: TestSSRFProtection (0.00s)\n"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestSSRFProtection","Elapsed":0}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestDNSRebindingAtConnection"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestDNSRebindingAtConnection","Output":"=== RUN   TestDNSRebindingAtConnection\n"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestDNSRebindingAtConnection","Output":"--- PASS: TestDNSRebindingAtConnection (0.00s)\n"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestDNSRebindingAtConnection","Elapsed":0}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestSignatureAndReplayWindow"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestSignatureAndReplayWindow","Output":"=== RUN   TestSignatureAndReplayWindow\n"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestSignatureAndReplayWindow","Output":"--- PASS: TestSignatureAndReplayWindow (0.00s)\n"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestSignatureAndReplayWindow","Elapsed":0}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestDurableWebhookFlow"}
+{"Time":"2026-11-09T12:57:05.0071765+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestDurableWebhookFlow","Output":"=== RUN   TestDurableWebhookFlow\n"}
+{"Time":"2026-11-09T12:57:05.2753981+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestDurableWebhookFlow","Output":"--- PASS: TestDurableWebhookFlow (0.27s)\n"}
+{"Time":"2026-11-09T12:57:05.2759846+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestDurableWebhookFlow","Elapsed":0.27}
+{"Time":"2026-11-09T12:57:05.2759846+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestConcurrentDispatchDoesNotDoubleClaim"}
+{"Time":"2026-11-09T12:57:05.2759846+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestConcurrentDispatchDoesNotDoubleClaim","Output":"=== RUN   TestConcurrentDispatchDoesNotDoubleClaim\n"}
+{"Time":"2026-11-09T12:57:05.7254644+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestConcurrentDispatchDoesNotDoubleClaim","Output":"--- PASS: TestConcurrentDispatchDoesNotDoubleClaim (0.45s)\n"}
+{"Time":"2026-11-09T12:57:05.7260307+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestConcurrentDispatchDoesNotDoubleClaim","Elapsed":0.45}
+{"Time":"2026-11-09T12:57:05.7260307+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestSNSDeduplicationQueuesOneDelivery"}
+{"Time":"2026-11-09T12:57:05.7260307+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestSNSDeduplicationQueuesOneDelivery","Output":"=== RUN   TestSNSDeduplicationQueuesOneDelivery\n"}
+{"Time":"2026-11-09T12:57:05.9642026+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestSNSDeduplicationQueuesOneDelivery","Output":"--- PASS: TestSNSDeduplicationQueuesOneDelivery (0.24s)\n"}
+{"Time":"2026-11-09T12:57:05.9642026+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestSNSDeduplicationQueuesOneDelivery","Elapsed":0.24}
+{"Time":"2026-11-09T12:57:05.9642026+05:30","Action":"run","Package":"forkemail/internal/webhooks","Test":"TestRetryBoundAndLeaseRecovery"}
+{"Time":"2026-11-09T12:57:05.9642026+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestRetryBoundAndLeaseRecovery","Output":"=== RUN   TestRetryBoundAndLeaseRecovery\n"}
+{"Time":"2026-11-09T12:57:06.2013269+05:30","Action":"output","Package":"forkemail/internal/webhooks","Test":"TestRetryBoundAndLeaseRecovery","Output":"--- PASS: TestRetryBoundAndLeaseRecovery (0.24s)\n"}
+{"Time":"2026-11-09T12:57:06.2019094+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Test":"TestRetryBoundAndLeaseRecovery","Elapsed":0.24}
+{"Time":"2026-11-09T12:57:06.2019094+05:30","Action":"output","Package":"forkemail/internal/webhooks","Output":"PASS\n"}
+{"Time":"2026-11-09T12:57:06.2158785+05:30","Action":"output","Package":"forkemail/internal/webhooks","Output":"ok  \tforkemail/internal/webhooks\t1.504s\n"}
+{"Time":"2026-11-09T12:57:06.2164562+05:30","Action":"pass","Package":"forkemail/internal/webhooks","Elapsed":1.505}
+{"Time":"2026-11-09T12:57:07.2174096+05:30","Action":"start","Package":"forkemail/internal/workspaces"}
+{"Time":"2026-11-09T12:57:07.5083888+05:30","Action":"run","Package":"forkemail/internal/workspaces","Test":"TestTrialQuotaNeverExceededUnderConcurrency"}
+{"Time":"2026-11-09T12:57:07.5083888+05:30","Action":"output","Package":"forkemail/internal/workspaces","Test":"TestTrialQuotaNeverExceededUnderConcurrency","Output":"=== RUN   TestTrialQuotaNeverExceededUnderConcurrency\n"}
+{"Time":"2026-11-09T12:57:08.1641073+05:30","Action":"output","Package":"forkemail/internal/workspaces","Test":"TestTrialQuotaNeverExceededUnderConcurrency","Output":"--- PASS: TestTrialQuotaNeverExceededUnderConcurrency (0.66s)\n"}
+{"Time":"2026-11-09T12:57:08.1641073+05:30","Action":"pass","Package":"forkemail/internal/workspaces","Test":"TestTrialQuotaNeverExceededUnderConcurrency","Elapsed":0.66}
+{"Time":"2026-11-09T12:57:08.1641073+05:30","Action":"run","Package":"forkemail/internal/workspaces","Test":"TestReleaseReturnsQuota"}
+{"Time":"2026-11-09T12:57:08.1641073+05:30","Action":"output","Package":"forkemail/internal/workspaces","Test":"TestReleaseReturnsQuota","Output":"=== RUN   TestReleaseReturnsQuota\n"}
+{"Time":"2026-11-09T12:57:08.3829228+05:30","Action":"output","Package":"forkemail/internal/workspaces","Test":"TestReleaseReturnsQuota","Output":"--- PASS: TestReleaseReturnsQuota (0.22s)\n"}
+{"Time":"2026-11-09T12:57:08.3829228+05:30","Action":"pass","Package":"forkemail/internal/workspaces","Test":"TestReleaseReturnsQuota","Elapsed":0.22}
+{"Time":"2026-11-09T12:57:08.3829228+05:30","Action":"run","Package":"forkemail/internal/workspaces","Test":"TestPaidDailyLimit"}
+{"Time":"2026-11-09T12:57:08.3829228+05:30","Action":"output","Package":"forkemail/internal/workspaces","Test":"TestPaidDailyLimit","Output":"=== RUN   TestPaidDailyLimit\n"}
+{"Time":"2026-11-09T12:57:08.6000307+05:30","Action":"output","Package":"forkemail/internal/workspaces","Test":"TestPaidDailyLimit","Output":"--- PASS: TestPaidDailyLimit (0.22s)\n"}
+{"Time":"2026-11-09T12:57:08.6000307+05:30","Action":"pass","Package":"forkemail/internal/workspaces","Test":"TestPaidDailyLimit","Elapsed":0.22}
+{"Time":"2026-11-09T12:57:08.6000307+05:30","Action":"output","Package":"forkemail/internal/workspaces","Output":"PASS\n"}
+{"Time":"2026-11-09T12:57:08.6126468+05:30","Action":"output","Package":"forkemail/internal/workspaces","Output":"ok  \tforkemail/internal/workspaces\t1.395s\n"}
+{"Time":"2026-11-09T12:57:08.6126468+05:30","Action":"pass","Package":"forkemail/internal/workspaces","Elapsed":1.395}
+{"Time":"2026-11-09T12:57:08.6212747+05:30","Action":"start","Package":"forkemail/migrations"}
+{"Time":"2026-11-09T12:57:08.6212747+05:30","Action":"output","Package":"forkemail/migrations","Output":"?   \tforkemail/migrations\t[no test files]\n"}
+{"Time":"2026-11-09T12:57:08.6212747+05:30","Action":"skip","Package":"forkemail/migrations","Elapsed":0}

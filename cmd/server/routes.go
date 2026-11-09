@@ -37,13 +37,13 @@ type limiters struct {
 }
 
 type services struct {
+	dispatcher  *transactional.Dispatcher
 	developer   *developerServices
 	identities  domains.Identities
 	feedback    *feedback.Processor
 	verifier    *sns.Verifier
 	sendingMode func() string
 	sendRate    func() float64
-	dispatcher  *transactional.Dispatcher
 	admins      *forke.Directory
 }
 
@@ -133,11 +133,6 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/emails/{id}/messages", emailH.Messages)
 		api.Get("/api/emails/{id}/recipients", emailH.Recipients)
 
-		api.Post("/api/transactional", transactionalH.Send)
-		api.Get("/api/transactional", transactionalH.List)
-		api.Get("/api/transactional/stats", transactionalH.Stats)
-		api.Get("/api/transactional/{id}", transactionalH.Get)
-
 		api.Get("/api/domains", domainH.List)
 		api.Post("/api/domains", domainH.Create)
 		api.Post("/api/domains/{id}/verify", domainH.Verify)
@@ -148,7 +143,11 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Post("/api/suppressions", contactH.CreateSuppression)
 		api.Post("/api/suppressions/import", contactH.ImportSuppressions)
 		api.Delete("/api/suppressions/{id}", contactH.DeleteSuppression)
-		registerDeveloperRoutes(api, pool, svc.developer)
+		registerDeveloperRoutes(api, pool, svc.developer, svc.dispatcher)
+		api.Post("/api/transactional", transactionalH.Send)
+		api.Get("/api/transactional", transactionalH.List)
+		api.Get("/api/transactional/stats", transactionalH.Stats)
+		api.Get("/api/transactional/{id}", transactionalH.Get)
 
 		api.Post("/api/resend/emails", resendH.SendEmail)
 		api.Get("/api/resend/emails/{id}", resendH.GetEmail)
@@ -160,6 +159,8 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	})
 
 	r.Get("/healthz", db.Health(pool))
+	r.Get("/_next/static/*", frontend.Handler().ServeHTTP)
+	r.Head("/_next/static/*", frontend.Handler().ServeHTTP)
 
 	if svc.verifier != nil {
 		r.Method(http.MethodPost, "/webhooks/ses", &feedback.Webhook{Verifier: svc.verifier, Processor: svc.feedback})

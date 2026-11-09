@@ -12,12 +12,14 @@ import (
 	"forkemail/internal/auth"
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/ratelimit"
+	"forkemail/internal/sender"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type apiFixture struct {
+	worker *sender.Worker
 	pool   *pgxpool.Pool
 	ws     string
 	cookie *http.Cookie

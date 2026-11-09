@@ -1,0 +1,12 @@
+=== RUN   TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate
+--- PASS: TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate (1.43s)
+=== RUN   TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate
+--- PASS: TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate (1.42s)
+=== RUN   TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate
+--- PASS: TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate (1.43s)
+=== RUN   TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate
+--- PASS: TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate (1.43s)
+=== RUN   TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate
+--- PASS: TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate (1.43s)
+PASS
+ok  	forkemail/internal/sender	7.305s

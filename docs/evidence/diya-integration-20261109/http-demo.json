@@ -1,0 +1,406 @@
+{
+  "environment": "local (log driver)",
+  "liveSES": false,
+  "capturedAt": "2026-11-09T07:35:27.147Z",
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/auth/signup",
+      "status": 201,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/keys",
+      "status": 201,
+      "body": {
+        "id": "29081aad-5385-4836-9913-5207aff5056a",
+        "name": "Local evidence sending key",
+        "scope": "sending_access",
+        "prefix": "fm_live_b0fb",
+        "created_at": "2026-11-09T13:03:37.148925+05:30",
+        "last_used_at": null,
+        "revoked_at": null,
+        "key": "[REDACTED]"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domains",
+      "status": 201,
+      "body": {
+        "id": "3aff7ca4-80f0-4d30-830d-27b33c1279dd",
+        "name": "local-1794209616124.test",
+        "kind": "domain",
+        "status": "verified",
+        "ses_status": "SUCCESS",
+        "created_at": "2026-11-09T13:03:37.170721+05:30",
+        "verified_at": "2026-11-09T13:03:37.170721+05:30",
+        "last_checked_at": "2026-11-09T13:03:37.170721+05:30",
+        "records": [
+          {
+            "type": "CNAME",
+            "name": "66da1f505318dd41d4abcc6922bd63fe._domainkey.local-1794209616124.test",
+            "value": "66da1f505318dd41d4abcc6922bd63fe.dkim.amazonses.com"
+          },
+          {
+            "type": "CNAME",
+            "name": "5979df618309c0fe8b86fd7a58a44091._domainkey.local-1794209616124.test",
+            "value": "5979df618309c0fe8b86fd7a58a44091.dkim.amazonses.com"
+          },
+          {
+            "type": "CNAME",
+            "name": "1d6bc15db0ed89ed4b9a9d514229b7c0._domainkey.local-1794209616124.test",
+            "value": "1d6bc15db0ed89ed4b9a9d514229b7c0.dkim.amazonses.com"
+          },
+          {
+            "type": "TXT",
+            "name": "_dmarc.local-1794209616124.test",
+            "value": "v=DMARC1; p=none;"
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domains/3aff7ca4-80f0-4d30-830d-27b33c1279dd/verify",
+      "status": 200,
+      "body": {
+        "id": "3aff7ca4-80f0-4d30-830d-27b33c1279dd",
+        "name": "local-1794209616124.test",
+        "kind": "domain",
+        "status": "verified",
+        "ses_status": "SUCCESS",
+        "created_at": "2026-11-09T13:03:37.170721+05:30",
+        "verified_at": "2026-11-09T13:03:37.170721+05:30",
+        "last_checked_at": "2026-11-09T13:03:37.189062+05:30",
+        "records": [
+          {
+            "type": "CNAME",
+            "name": "66da1f505318dd41d4abcc6922bd63fe._domainkey.local-1794209616124.test",
+            "value": "66da1f505318dd41d4abcc6922bd63fe.dkim.amazonses.com"
+          },
+          {
+            "type": "CNAME",
+            "name": "5979df618309c0fe8b86fd7a58a44091._domainkey.local-1794209616124.test",
+            "value": "5979df618309c0fe8b86fd7a58a44091.dkim.amazonses.com"
+          },
+          {
+            "type": "CNAME",
+            "name": "1d6bc15db0ed89ed4b9a9d514229b7c0._domainkey.local-1794209616124.test",
+            "value": "1d6bc15db0ed89ed4b9a9d514229b7c0.dkim.amazonses.com"
+          },
+          {
+            "type": "TXT",
+            "name": "_dmarc.local-1794209616124.test",
+            "value": "v=DMARC1; p=none;"
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/emails",
+      "status": 202,
+      "body": {
+        "id": "17cdae3a-e41b-4df7-bd38-0a6749308194",
+        "status": "queued",
+        "mode": "engine"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/transactional",
+      "status": 200,
+      "body": {
+        "id": "17cdae3a-e41b-4df7-bd38-0a6749308194",
+        "to": "transactional@example.com",
+        "from_name": "",
+        "from_address": "hello@local-1794209616124.test",
+        "reply_to": null,
+        "subject": "Local (log driver): password reset",
+        "tags": {},
+        "track_opens": false,
+        "track_clicks": false,
+        "status": "sent",
+        "attempts": 1,
+        "last_error": null,
+        "created_at": "2026-11-09T13:03:58.104712+05:30",
+        "sent_at": "2026-11-09T13:03:58.149915+05:30",
+        "dispatch_ms": 45.203,
+        "delivered_at": "2026-11-09T13:03:58.152091+05:30",
+        "bounced_at": null,
+        "bounce_type": null,
+        "complained_at": null,
+        "opened_at": null,
+        "open_count": 0,
+        "clicked_at": null,
+        "click_count": 0,
+        "replayed": "idempotency_key"
+      },
+      "replayed": "true"
+    },
+    {
+      "method": "POST",
+      "path": "/api/transactional",
+      "status": 202,
+      "body": {
+        "id": "8b78fa15-bf9f-4cb0-b077-0cef2e03e5ef",
+        "to": "tracking@example.com",
+        "from_name": "",
+        "from_address": "hello@local-1794209616124.test",
+        "reply_to": null,
+        "subject": "Local (log driver): tracked message",
+        "tags": {},
+        "track_opens": true,
+        "track_clicks": true,
+        "status": "queued",
+        "attempts": 0,
+        "last_error": null,
+        "created_at": "2026-11-09T13:03:58.167581+05:30",
+        "sent_at": null,
+        "dispatch_ms": null,
+        "delivered_at": null,
+        "bounced_at": null,
+        "bounce_type": null,
+        "complained_at": null,
+        "opened_at": null,
+        "open_count": 0,
+        "clicked_at": null,
+        "click_count": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/suppressions",
+      "status": 400,
+      "body": {
+        "error": "invalid_json"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/suppressions",
+      "status": 201,
+      "body": {
+        "created": true,
+        "email": "blocked@example.com"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/contacts/import",
+      "status": 200,
+      "body": {
+        "added": 1,
+        "updated": 0,
+        "skipped": 1,
+        "invalid": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "status": 201,
+      "body": {
+        "id": "d4102741-a202-43c8-b149-114025302522",
+        "name": "Local (log driver) broadcast",
+        "description": "",
+        "created_at": "2026-11-09T13:04:13.373918+05:30",
+        "emails": 0,
+        "sent": 0,
+        "last_email_at": null
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/campaigns/d4102741-a202-43c8-b149-114025302522/emails",
+      "status": 201,
+      "body": {
+        "id": "1598ffef-7c7b-440f-b2ce-9fe8a712e492",
+        "campaign_id": "d4102741-a202-43c8-b149-114025302522",
+        "campaign_name": "Local (log driver) broadcast",
+        "subject": "Local (log driver): product update",
+        "from_name": "",
+        "from_address": "hello@local-1794209616124.test",
+        "html": "",
+        "text": "Local simulated broadcast.",
+        "status": "draft",
+        "pause_reason": null,
+        "scheduled_at": null,
+        "started_at": null,
+        "finished_at": null,
+        "created_at": "2026-11-09T13:04:13.388049+05:30",
+        "recipients": 0,
+        "processed": 0,
+        "audience": {
+          "all": true,
+          "tag_ids": [],
+          "contact_ids": [],
+          "size": 1
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/send",
+      "status": 200,
+      "body": {
+        "id": "1598ffef-7c7b-440f-b2ce-9fe8a712e492",
+        "recipients": 1,
+        "status": "sending"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/transactional/8b78fa15-bf9f-4cb0-b077-0cef2e03e5ef",
+      "status": 200,
+      "body": {
+        "id": "8b78fa15-bf9f-4cb0-b077-0cef2e03e5ef",
+        "to": "tracking@example.com",
+        "from_name": "",
+        "from_address": "hello@local-1794209616124.test",
+        "reply_to": null,
+        "subject": "Local (log driver): tracked message",
+        "tags": {},
+        "track_opens": true,
+        "track_clicks": true,
+        "status": "sent",
+        "attempts": 1,
+        "last_error": null,
+        "created_at": "2026-11-09T13:03:58.167581+05:30",
+        "sent_at": "2026-11-09T13:03:58.193328+05:30",
+        "dispatch_ms": 25.747,
+        "delivered_at": "2026-11-09T13:03:58.196119+05:30",
+        "bounced_at": null,
+        "bounce_type": null,
+        "complained_at": null,
+        "opened_at": null,
+        "open_count": 0,
+        "clicked_at": null,
+        "click_count": 0,
+        "html": "<p>Local demo only</p><a href=\"https://example.com/reset\">Reset</a>",
+        "text": "",
+        "events": [
+          {
+            "type": "queued",
+            "detail": {},
+            "created_at": "2026-11-09T13:03:58.167581+05:30"
+          },
+          {
+            "type": "sent",
+            "detail": {
+              "send_ms": 1.289,
+              "attempts": 1,
+              "message_id": "log-25a96079490649023d50a7d319636969",
+              "dispatch_ms": 25.747
+            },
+            "created_at": "2026-11-09T13:03:58.193328+05:30"
+          },
+          {
+            "type": "delivered",
+            "detail": {
+              "smtp_response": "250 2.6.0 Message received"
+            },
+            "created_at": "2026-11-09T13:03:58.196866+05:30"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/report",
+      "status": 200,
+      "body": {
+        "id": "1598ffef-7c7b-440f-b2ce-9fe8a712e492",
+        "status": "sending",
+        "pause_reason": null,
+        "total": 1,
+        "counts": {
+          "pending": 1,
+          "sent": 0,
+          "delivered": 0,
+          "bounced": 0,
+          "complained": 0,
+          "unsubscribed": 0,
+          "failed": 0,
+          "skipped": 0
+        },
+        "progress": 0
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/report",
+      "status": 200,
+      "body": {
+        "id": "1598ffef-7c7b-440f-b2ce-9fe8a712e492",
+        "status": "done",
+        "pause_reason": null,
+        "total": 1,
+        "counts": {
+          "pending": 0,
+          "sent": 1,
+          "delivered": 1,
+          "bounced": 0,
+          "complained": 0,
+          "unsubscribed": 0,
+          "failed": 0,
+          "skipped": 0
+        },
+        "progress": 100
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/recipients",
+      "status": 200,
+      "body": {
+        "recipients": [
+          {
+            "id": "c7080221-97e5-4c98-a606-24081485cb4a",
+            "email": "broadcast@example.com",
+            "status": "sent",
+            "attempts": 1,
+            "last_error": null,
+            "ses_message_id": "log-09d7d90b2e9683c7c5051b9f475abbca",
+            "sent_at": "2026-11-09T13:04:14.09543+05:30",
+            "delivered_at": "2026-11-09T13:04:14.097411+05:30",
+            "bounced_at": null,
+            "bounce_type": null,
+            "complained_at": null,
+            "unsubscribed_at": null
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/transactional/stats",
+      "status": 200,
+      "body": {
+        "window_hours": 24,
+        "total": 2,
+        "queued": 0,
+        "sending": 0,
+        "sent": 2,
+        "failed": 0,
+        "delivered": 2,
+        "bounced": 0,
+        "complained": 0,
+        "opened": 0,
+        "clicked": 0,
+        "tracked_opens": 1,
+        "tracked_clicks": 1,
+        "dispatch": {
+          "p50_ms": 35.475,
+          "p95_ms": 44.2302,
+          "p99_ms": 45.00844000000001,
+          "max_ms": 45.203
+        }
+      }
+    }
+  ]
+}

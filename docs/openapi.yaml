@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Forke Mail Developer API
-  version: 1.0.0
-  description: Webhooks, DNS diagnostics and transactional sending. See developer-quickstart.md for the complete signing and failure contract.
+  version: 1.1.0
+  description: Shared developer platform and real transactional engine. Both send APIs share acceptance, quota, idempotency and dispatch. See developer-quickstart.md for signatures, migrations and failure policy. Local log-driver delivery is simulated.
 servers:
   - url: http://localhost:8080
 security:
@@ -189,15 +189,15 @@ paths:
       responses:
         '200': {description: Delivery IDs, event IDs, status, attempts, next attempt, response code and timestamps; no receiver response bodies}
         default: {$ref: '#/components/responses/Error'}
-  /api/transactional:
+  /api/emails:
     post:
-      operationId: sendTransactionalEmail
-      description: Queues one transactional message for the priority dispatcher.
+      operationId: enqueueTransactionalEmail
+      description: Compatibility adapter over the canonical transactional service. Required key up to 128 characters. One real message ID and quota reservation across both send APIs. Legacy stub keys conflict. Sending keys allowed.
       parameters:
         - name: Idempotency-Key
           in: header
-          required: false
-          schema: {type: string, minLength: 1, maxLength: 256}
+          required: true
+          schema: {type: string, minLength: 1, maxLength: 128, pattern: '^[!-~]+$'}
       requestBody:
         required: true
         content:
@@ -205,31 +205,110 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [from_address, to, subject]
+              required: [from, to, subject]
               anyOf: [{required: [html]}, {required: [text]}]
               properties:
+                from: {type: string, format: email}
                 to: {type: string, format: email}
-                from_name: {type: string, maxLength: 100}
-                from_address: {type: string, format: email}
-                reply_to: {type: string, format: email}
-                subject: {type: string, minLength: 1, maxLength: 300}
-                html: {type: string}
-                text: {type: string}
-                tags: {type: object, additionalProperties: {type: string}}
-                track_opens: {type: boolean}
-                track_clicks: {type: boolean}
+                subject: {type: string, minLength: 1, maxLength: 256}
+                html: {type: string, minLength: 1}
+                text: {type: string, minLength: 1}
       responses:
         '202':
-          description: Queued message. A replay returns 200 with Idempotent-Replayed true.
+          description: Stable message ID; repeats within 24 hours carry Idempotency-Replayed true.
           content:
             application/json:
               schema:
                 type: object
-                required: [id, status]
+                required: [id, status, mode]
                 properties:
                   id: {type: string, format: uuid}
-                  status: {type: string, enum: [queued, sending, sent, failed]}
+                  status: {const: queued}
+                  mode: {const: engine}
         default: {$ref: '#/components/responses/Error'}
+  /api/transactional:
+    post:
+      operationId: sendTransactional
+      description: Native canonical enqueue. Session, full_access or sending_access. Keyless matching content deduplicates for 60 seconds; keyed requests for 24 hours. Different payload with same key returns idempotency_key_reused. Legacy stub keys return legacy_stub_key_requires_new_key. Tracking requires HTML.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema: {type: string, minLength: 1, maxLength: 256, pattern: '^[!-~]+$'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransactionalRequest'}
+      responses:
+        '202':
+          description: New durable message; status may advance before the response is loaded.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionalMessage'}
+        '200':
+          description: Replay of the same ID. Idempotent-Replayed header true; replayed is idempotency_key or duplicate_content.
+          headers:
+            Idempotent-Replayed: {schema: {const: 'true'}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionalMessage'}
+        default: {$ref: '#/components/responses/Error'}
+    get:
+      operationId: listTransactional
+      description: Workspace-scoped list. Session or full_access required.
+      parameters:
+        - {name: status, in: query, schema: {type: string, enum: [queued, sending, sent, failed]}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+        - {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}
+      responses:
+        '200':
+          description: Message metadata only, no raw body.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages: {type: array, items: {$ref: '#/components/schemas/TransactionalMessage'}}
+        default: {$ref: '#/components/responses/Error'}
+  /api/transactional/stats:
+    get:
+      operationId: transactionalStats
+      description: Workspace-only 24-hour counts and dispatch latency percentiles. Session or full_access required.
+      responses:
+        '200': {description: Totals, queued, sending, sent, failed, delivered, bounced, complained, opened, clicked, tracking totals and dispatch p50/p95/p99/max milliseconds}
+        default: {$ref: '#/components/responses/Error'}
+  /api/transactional/{id}:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    get:
+      operationId: getTransactional
+      description: Session, full_access or sending_access. Foreign IDs return 404. Includes html/text and timeline events.
+      responses:
+        '200':
+          description: Message detail and timeline.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionalMessage'}
+        default: {$ref: '#/components/responses/Error'}
+  /t/o/{token}:
+    parameters:
+      - {name: token, in: path, required: true, schema: {type: string}}
+    get:
+      operationId: trackOpen
+      security: []
+      description: HMAC-signed transactional pixel. Invalid tokens and known automated agents create no event. First eligible open creates email.opened; all eligible loads increment count.
+      responses:
+        '200': {description: Non-cacheable transparent GIF, including for invalid tokens}
+  /t/c/{token}:
+    parameters:
+      - {name: token, in: path, required: true, schema: {type: string}}
+    get:
+      operationId: trackClick
+      security: []
+      description: HMAC-signed transactional click. Eligible sent/tracked messages create email.clicked. Known automated agents are excluded.
+      responses:
+        '302': {description: Redirect to signed HTTP/HTTPS target}
+        '404': {description: Invalid token, no event}
 components:
   securitySchemes:
     BearerKey: {type: http, scheme: bearer, bearerFormat: fm_live_ API key}
@@ -238,7 +317,7 @@ components:
     ID: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
   responses:
     Error:
-      description: JSON error. See quickstart for 400/401/403/404/409/413/422/429/500/502/503 conditions.
+      description: JSON error. See quickstart for 400/401/402/403/404/409/413/422/429/500/502/503 conditions.
       content:
         application/json:
           schema:
@@ -247,6 +326,58 @@ components:
             properties:
               error: {type: string}
   schemas:
+    TransactionalRequest:
+      type: object
+      additionalProperties: false
+      required: [to, from_address, subject]
+      anyOf: [{required: [html]}, {required: [text]}]
+      properties:
+        to: {type: string, format: email}
+        from_address: {type: string, format: email}
+        from_name: {type: string, maxLength: 100}
+        reply_to: {type: string, format: email}
+        subject: {type: string, minLength: 1, maxLength: 300}
+        html: {type: string, description: At most 256 KiB UTF-8}
+        text: {type: string, description: At most 256 KiB UTF-8}
+        track_opens: {type: boolean, default: false}
+        track_clicks: {type: boolean, default: false}
+        tags:
+          type: object
+          maxProperties: 10
+          propertyNames: {pattern: '^[A-Za-z0-9_-]+$', maxLength: 64}
+          additionalProperties: {type: string, pattern: '^[A-Za-z0-9_-]+$', maxLength: 64}
+    TransactionalMessage:
+      type: object
+      required: [id, status, to, from_address, subject]
+      properties:
+        id: {type: string, format: uuid}
+        status: {type: string, enum: [queued, sending, sent, failed]}
+        to: {type: string, format: email}
+        from_address: {type: string, format: email}
+        subject: {type: string}
+        replayed: {type: string, enum: [idempotency_key, duplicate_content]}
+        attempts: {type: integer}
+        created_at: {type: string, format: date-time}
+        dispatch_ms: {type: [number, 'null']}
+        track_opens: {type: boolean}
+        track_clicks: {type: boolean}
+        open_count: {type: integer}
+        click_count: {type: integer}
+    CustomerWebhookEvent:
+      type: object
+      description: Migration 10 extends new payloads only. Historical pending deliveries can omit message_id/message_type. Headers and immutable payload bytes are signed as documented in quickstart.
+      properties:
+        id: {type: string, description: Stable event bigint serialized as string; Webhook-Id header is delivery UUID}
+        version: {const: '1'}
+        type: {type: string}
+        created_at: {type: string, format: date-time}
+        data:
+          type: object
+          properties:
+            message_id: {type: [string, 'null'], format: uuid}
+            message_type: {type: string, enum: [transactional, broadcast, workspace]}
+            email_id: {type: [string, 'null'], format: uuid}
+            recipient_id: {type: [string, 'null'], format: uuid}
     WebhookCreate:
       type: object
       additionalProperties: false
@@ -257,8 +388,8 @@ components:
     Events:
       type: array
       minItems: 1
-      maxItems: 11
+      maxItems: 13
       uniqueItems: true
       items:
         type: string
-        enum: [email.queued, email.sent, email.delivered, email.bounced, email.soft_bounced, email.complained, email.unsubscribed, email.failed, email.rejected, email.delayed, workspace.sending_paused]
+        enum: [email.queued, email.sent, email.delivered, email.bounced, email.soft_bounced, email.complained, email.unsubscribed, email.failed, email.rejected, email.delayed, email.opened, email.clicked, workspace.sending_paused]

@@ -1,0 +1,16 @@
+{"Time":"2026-11-09T15:49:01.736062+05:30","Action":"start","Package":"forkemail/internal/db"}
+{"Time":"2026-11-09T15:49:01.9163142+05:30","Action":"run","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply"}
+{"Time":"2026-11-09T15:49:01.9168907+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply","Output":"=== RUN   TestDeveloperMigrationsRollbackReapply\n"}
+{"Time":"2026-11-09T15:49:04.6496617+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply","Output":"--- PASS: TestDeveloperMigrationsRollbackReapply (2.73s)\n"}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"pass","Package":"forkemail/internal/db","Test":"TestDeveloperMigrationsRollbackReapply","Elapsed":2.73}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"run","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique"}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique","Output":"=== RUN   TestMigrationVersionsUnique\n"}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique","Output":"--- PASS: TestMigrationVersionsUnique (0.00s)\n"}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"pass","Package":"forkemail/internal/db","Test":"TestMigrationVersionsUnique","Elapsed":0}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"run","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData"}
+{"Time":"2026-11-09T15:49:04.6502561+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData","Output":"=== RUN   TestUpgradeFromKrishnaV8PreservesData\n"}
+{"Time":"2026-11-09T15:49:07.3116659+05:30","Action":"output","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData","Output":"--- PASS: TestUpgradeFromKrishnaV8PreservesData (2.66s)\n"}
+{"Time":"2026-11-09T15:49:07.3116659+05:30","Action":"pass","Package":"forkemail/internal/db","Test":"TestUpgradeFromKrishnaV8PreservesData","Elapsed":2.66}
+{"Time":"2026-11-09T15:49:07.3116659+05:30","Action":"output","Package":"forkemail/internal/db","Output":"PASS\n"}
+{"Time":"2026-11-09T15:49:07.3334212+05:30","Action":"output","Package":"forkemail/internal/db","Output":"ok  \tforkemail/internal/db\t5.595s\n"}
+{"Time":"2026-11-09T15:49:07.3334212+05:30","Action":"pass","Package":"forkemail/internal/db","Elapsed":5.5969999999999995}
