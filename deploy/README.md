@@ -1,6 +1,6 @@
 # Deploying on the Forke OCI VM
 
-Forke Mail runs on the Always Free Ampere VM as the `forke-mail` systemd service on `127.0.0.1:8085`, next to the PM2 apps, behind nginx at `https://mail.forke.space`. It uses its own `forkemail` database and reads Forke's `admins` table through the read-only role `forkemail_admins_reader`.
+Forke Mail runs on the Always Free Ampere VM as the `forke-mail` systemd service on `127.0.0.1:8085`, next to the PM2 apps, behind nginx at `https://mail.forke.space`. It uses its own `forkemail` database and reads Forke's `admins` table through the read-only role `forkemail_admins_reader`. `admins` has row-level security enabled, so that role also needs the `forke_mail_admin_lookup` SELECT policy, or it sees no rows and every login fails with `invalid_credentials`.
 
 ## Release a new version
 

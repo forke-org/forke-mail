@@ -66,6 +66,12 @@ func (d Directory) Role(ctx context.Context, adminID string) (string, error) {
 	return r.Role, err
 }
 
+func (d Directory) VisibleAdmins(ctx context.Context) (int, error) {
+	var n int
+	err := d.Pool.QueryRow(ctx, `SELECT count(*) FROM admins`).Scan(&n)
+	return n, err
+}
+
 func (d Directory) find(ctx context.Context, where string, arg any) (record, error) {
 	var r record
 	err := d.Pool.QueryRow(ctx, `

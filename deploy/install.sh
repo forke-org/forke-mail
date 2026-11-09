@@ -15,6 +15,7 @@ if [ ! -f $APP/.env.production ]; then
   psqlq -c "GRANT CONNECT ON DATABASE forkedb TO forkemail_admins_reader"
   psqlq -d forkedb -c "GRANT USAGE ON SCHEMA public TO forkemail_admins_reader"
   psqlq -d forkedb -c "GRANT SELECT (id, email, username, name, password_hash, role, is_disabled) ON public.admins TO forkemail_admins_reader"
+  psqlq -d forkedb -c "CREATE POLICY forke_mail_admin_lookup ON public.admins FOR SELECT TO forkemail_admins_reader USING (true)"
   umask 077
   cat > /tmp/forke-mail.env <<ENV
 APP_ENV=production

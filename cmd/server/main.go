@@ -63,6 +63,14 @@ func run() error {
 		}
 		defer forkePool.Close()
 		admins = &forke.Directory{Pool: forkePool}
+		visible, err := admins.VisibleAdmins(ctx)
+		if err != nil {
+			return fmt.Errorf("forke admins table: %w", err)
+		}
+		if visible == 0 {
+			slog.Warn("forke admins table returns no rows for this database user; check row-level security policies, every login will fail")
+		}
+		slog.Info("forke admins", "visible", visible)
 	}
 
 	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
