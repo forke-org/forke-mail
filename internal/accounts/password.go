@@ -5,16 +5,13 @@ import (
 	"errors"
 
 	"forkemail/internal/db"
+	"forkemail/internal/forke"
 
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const (
-	minPasswordLength = 8
-	maxPasswordBytes  = 72
-	bcryptCost        = 12
-)
+const bcryptCost = 12
 
 var dummyHash, _ = bcrypt.GenerateFromPassword([]byte("forkemail-timing-equalizer"), bcryptCost)
 
@@ -23,18 +20,25 @@ func hashPassword(password string) (string, error) {
 	return string(h), err
 }
 
-func validPassword(password string) bool {
-	return len(password) >= minPasswordLength && len(password) <= maxPasswordBytes
+type Passwords struct {
+	Pool   db.Querier
+	Admins *forke.Directory
 }
 
-func VerifyPassword(ctx context.Context, q db.Querier, userID, password string) (bool, error) {
-	var hash string
-	err := q.QueryRow(ctx, `SELECT password_hash FROM users WHERE id = $1`, userID).Scan(&hash)
+func (p Passwords) Verify(ctx context.Context, userID, password string) (bool, error) {
+	var hash, adminID *string
+	err := p.Pool.QueryRow(ctx, `SELECT password_hash, forke_admin_id::text FROM users WHERE id = $1`, userID).Scan(&hash, &adminID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return false, nil
 	}
 	if err != nil {
 		return false, err
 	}
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil, nil
+	if adminID != nil {
+		if p.Admins == nil {
+			return false, nil
+		}
+		return p.Admins.CheckPassword(ctx, *adminID, password)
+	}
+	return hash != nil && bcrypt.CompareHashAndPassword([]byte(*hash), []byte(password)) == nil, nil
 }

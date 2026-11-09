@@ -7,7 +7,11 @@ func TestScopeTable(t *testing.T) {
 		scope, route string
 		want         bool
 	}{
-		{Session, "POST /api/keys", true},
+		{SuperAdmin, "POST /api/keys", true},
+		{Admin, "POST /api/keys", false},
+		{Admin, "GET /api/keys", false},
+		{Admin, "POST /api/auth/logout", true},
+		{FullAccess, "POST /api/auth/logout", false},
 		{FullAccess, "POST /api/keys", false},
 		{SendingAccess, "GET /api/keys", false},
 		{SendingAccess, "POST /api/contacts/import", true},
@@ -20,7 +24,13 @@ func TestScopeTable(t *testing.T) {
 		{FullAccess, "PUT /api/me", false},
 		{"", "GET /api/me", false},
 		{FullAccess, "POST /api/domains", true},
-		{Session, "POST /api/domains", true},
+		{SuperAdmin, "POST /api/domains", true},
+		{Admin, "POST /api/domains", false},
+		{Admin, "GET /api/domains", true},
+		{Admin, "DELETE /api/suppressions/{id}", false},
+		{Admin, "POST /api/suppressions", true},
+		{Admin, "POST /api/emails/{id}/send", true},
+		{Admin, "POST /api/transactional", true},
 		{SendingAccess, "POST /api/domains", false},
 		{SendingAccess, "GET /api/domains", false},
 		{FullAccess, "DELETE /api/suppressions/{id}", true},

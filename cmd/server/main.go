@@ -16,6 +16,7 @@ import (
 	"forkemail/internal/db"
 	"forkemail/internal/domains"
 	"forkemail/internal/feedback"
+	"forkemail/internal/forke"
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/relay"
 	"forkemail/internal/sender"
@@ -54,11 +55,21 @@ func run() error {
 		return err
 	}
 
+	var admins *forke.Directory
+	if cfg.ForkeDatabaseURL != "" {
+		forkePool, err := db.Connect(ctx, cfg.ForkeDatabaseURL)
+		if err != nil {
+			return fmt.Errorf("forke database: %w", err)
+		}
+		defer forkePool.Close()
+		admins = &forke.Directory{Pool: forkePool}
+	}
+
 	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
 	processor := &feedback.Processor{Pool: pool, Reputation: feedback.Thresholds{
 		MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate, MinSample: cfg.ReputationMinSample,
 	}}
-	svc := services{identities: domains.Local{}, feedback: processor, sendingMode: func() string { return "log" }}
+	svc := services{identities: domains.Local{}, feedback: processor, sendingMode: func() string { return "log" }, admins: admins}
 	var tasks []func(context.Context)
 	developer, err := newDeveloperServices(pool, cfg.Development())
 	if err != nil {

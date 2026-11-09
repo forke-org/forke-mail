@@ -39,6 +39,7 @@ type meWorkspace struct {
 type meUser struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+	Role  string `json:"role"`
 }
 
 type meKey struct {
@@ -63,7 +64,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	id := auth.FromContext(r.Context())
 	resp := meResponse{}
 	if id.UserID != "" {
-		resp.User = &meUser{}
+		resp.User = &meUser{Role: id.Role}
 		if err := h.Pool.QueryRow(r.Context(), `SELECT name, email FROM users WHERE id = $1`, id.UserID).Scan(&resp.User.Name, &resp.User.Email); err != nil {
 			httpx.Internal(w, r, err)
 			return

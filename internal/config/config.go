@@ -18,6 +18,8 @@ type Config struct {
 	Env                 string
 	Addr                string
 	DatabaseURL         string
+	ForkeDatabaseURL    string
+	ForkeWorkspace      string
 	PublicBaseURL       string
 	UnsubscribeSecret   string
 	SeedToken           string
@@ -59,6 +61,8 @@ func Load() (Config, error) {
 		Env:               get("APP_ENV", "production"),
 		Addr:              get("HTTP_ADDR", ":8080"),
 		DatabaseURL:       os.Getenv("DATABASE_URL"),
+		ForkeDatabaseURL:  os.Getenv("FORKE_DATABASE_URL"),
+		ForkeWorkspace:    strings.TrimSpace(get("FORKE_WORKSPACE_NAME", "Forke")),
 		PublicBaseURL:     os.Getenv("PUBLIC_BASE_URL"),
 		UnsubscribeSecret: os.Getenv("UNSUBSCRIBE_SECRET"),
 		SeedToken:         os.Getenv("SEED_TOKEN"),
@@ -81,6 +85,9 @@ func Load() (Config, error) {
 
 	if c.DatabaseURL == "" {
 		errs = append(errs, errors.New("DATABASE_URL is required"))
+	}
+	if c.ForkeDatabaseURL == "" && !c.Development() {
+		errs = append(errs, errors.New("FORKE_DATABASE_URL is required: Forke admins sign in with their Forke accounts"))
 	}
 	if len(c.UnsubscribeSecret) < minSecretLength {
 		errs = append(errs, fmt.Errorf("UNSUBSCRIBE_SECRET must be at least %d characters", minSecretLength))

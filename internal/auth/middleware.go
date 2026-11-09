@@ -16,8 +16,13 @@ import (
 
 var errUnauthorized = errors.New("unauthorized")
 
+type AdminRoles interface {
+	Role(ctx context.Context, adminID string) (string, error)
+}
+
 type Authenticator struct {
 	Pool     *pgxpool.Pool
+	Admins   AdminRoles
 	Failures ratelimit.FailureGuard
 }
 
@@ -38,7 +43,7 @@ func (a *Authenticator) Middleware(next http.Handler) http.Handler {
 			httpx.Internal(w, r, err)
 			return
 		}
-		if id.Scope == Session && !httpx.SameOrigin(r) {
+		if id.Session() && !httpx.SameOrigin(r) {
 			httpx.Error(w, http.StatusForbidden, "cross_origin_request")
 			return
 		}

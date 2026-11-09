@@ -1,13 +1,13 @@
 package accounts
 
 import (
+	"context"
 	"errors"
 	"net/http"
-	"strings"
-	"unicode/utf8"
 
 	"forkemail/internal/auth"
 	"forkemail/internal/contacts"
+	"forkemail/internal/forke"
 	"forkemail/internal/httpx"
 	"forkemail/internal/ratelimit"
 
@@ -16,74 +16,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var errEmailTaken = errors.New("email_taken")
-
 type Handler struct {
-	Pool           *pgxpool.Pool
-	SecureCookies  bool
-	SandboxDomains bool
-	Failures       ratelimit.FailureGuard
-}
-
-func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
-	if !httpx.SameOrigin(r) {
-		httpx.Error(w, http.StatusForbidden, "cross_origin_request")
-		return
-	}
-	var body struct {
-		Name      string `json:"name"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		Workspace string `json:"workspace"`
-	}
-	if !httpx.Decode(w, r, &body) {
-		return
-	}
-	body.Name = strings.TrimSpace(body.Name)
-	body.Email = contacts.NormalizeEmail(body.Email)
-	body.Workspace = strings.TrimSpace(body.Workspace)
-	if body.Workspace == "" {
-		body.Workspace = body.Name
-	}
-	switch {
-	case body.Name == "" || utf8.RuneCountInString(body.Name) > 100:
-		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_name")
-		return
-	case !contacts.ValidEmail(body.Email):
-		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_email")
-		return
-	case !validPassword(body.Password):
-		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_password")
-		return
-	case utf8.RuneCountInString(body.Workspace) > 200:
-		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_workspace")
-		return
-	}
-	err := pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
-		wsID, err := CreateWorkspace(r.Context(), tx, NewWorkspace{Name: body.Workspace, Plan: "trial", RatePerSec: 1, TrialSendLimit: 100})
-		if err != nil {
-			return err
-		}
-		if h.SandboxDomains {
-			if err := AddVerifiedIdentity(r.Context(), tx, wsID, "domain", SandboxDomain(wsID)); err != nil {
-				return err
-			}
-		}
-		userID, err := CreateUser(r.Context(), tx, wsID, body.Name, body.Email, body.Password)
-		if err != nil {
-			return err
-		}
-		return auth.StartSession(r.Context(), tx, w, userID, h.SecureCookies)
-	})
-	if errors.Is(err, errEmailTaken) {
-		httpx.Error(w, http.StatusConflict, "email_taken")
-		return
-	}
-	if err != nil {
-		httpx.Internal(w, r, err)
-		return
-	}
-	httpx.JSON(w, http.StatusCreated, map[string]bool{"ok": true})
+	Pool          *pgxpool.Pool
+	Admins        *forke.Directory
+	WorkspaceName string
+	SecureCookies bool
+	Failures      ratelimit.FailureGuard
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -101,20 +39,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if !httpx.Decode(w, r, &body) {
 		return
 	}
-	var userID, hash, status string
-	err := h.Pool.QueryRow(r.Context(), `
-		SELECT u.id, u.password_hash, w.status FROM users u JOIN workspaces w ON w.id = u.workspace_id
-		WHERE lower(u.email) = $1`, contacts.NormalizeEmail(body.Email)).Scan(&userID, &hash, &status)
-	if errors.Is(err, pgx.ErrNoRows) {
-		hash = string(dummyHash)
-	} else if err != nil {
-		httpx.Internal(w, r, err)
-		return
-	}
-	match := bcrypt.CompareHashAndPassword([]byte(hash), []byte(body.Password)) == nil
-	if !match || userID == "" || status != "active" {
+	userID, err := h.authenticate(r.Context(), body.Email, body.Password)
+	if errors.Is(err, forke.ErrInvalidCredentials) {
 		h.Failures.Fail(r)
 		httpx.Error(w, http.StatusUnauthorized, "invalid_credentials")
+		return
+	}
+	if err != nil {
+		httpx.Internal(w, r, err)
 		return
 	}
 	if _, err := h.Pool.Exec(r.Context(), `DELETE FROM sessions WHERE expires_at < now()`); err != nil {
@@ -126,6 +58,45 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func (h *Handler) authenticate(ctx context.Context, login, password string) (string, error) {
+	if h.Admins == nil {
+		return localLogin(ctx, h.Pool, login, password)
+	}
+	admin, err := h.Admins.Authenticate(ctx, login, password)
+	if err != nil {
+		return "", err
+	}
+	var userID string
+	err = pgx.BeginFunc(ctx, h.Pool, func(tx pgx.Tx) error {
+		wsID, err := ForkeWorkspace(ctx, tx, h.WorkspaceName)
+		if err != nil {
+			return err
+		}
+		userID, err = UpsertAdmin(ctx, tx, wsID, admin)
+		return err
+	})
+	return userID, err
+}
+
+func localLogin(ctx context.Context, pool *pgxpool.Pool, login, password string) (string, error) {
+	var userID, status string
+	var hash *string
+	err := pool.QueryRow(ctx, `
+		SELECT u.id, u.password_hash, w.status FROM users u JOIN workspaces w ON w.id = u.workspace_id
+		WHERE lower(u.email) = $1`, contacts.NormalizeEmail(login)).Scan(&userID, &hash, &status)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return "", err
+	}
+	compare := dummyHash
+	if hash != nil {
+		compare = []byte(*hash)
+	}
+	if bcrypt.CompareHashAndPassword(compare, []byte(password)) != nil || hash == nil || status != "active" {
+		return "", forke.ErrInvalidCredentials
+	}
+	return userID, nil
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {

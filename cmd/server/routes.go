@@ -15,6 +15,7 @@ import (
 	"forkemail/internal/emails"
 	"forkemail/internal/events"
 	"forkemail/internal/feedback"
+	"forkemail/internal/forke"
 	"forkemail/internal/httpx"
 	"forkemail/internal/keys"
 	"forkemail/internal/ratelimit"
@@ -42,6 +43,7 @@ type services struct {
 	sendingMode func() string
 	sendRate    func() float64
 	dispatcher  *transactional.Dispatcher
+	admins      *forke.Directory
 }
 
 func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services) http.Handler {
@@ -54,9 +56,6 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	}
 	publicLimit := ratelimit.Middleware(lim.public, func(r *http.Request) (string, ratelimit.Rule) {
 		return "ip:" + ip.ClientIP(r), ratelimit.Rule{PerSecond: cfg.PublicRatePerSec, Burst: cfg.PublicBurst}
-	})
-	signupLimit := ratelimit.Middleware(lim.public, func(r *http.Request) (string, ratelimit.Rule) {
-		return "signup:" + ip.ClientIP(r), ratelimit.Rule{PerSecond: 10.0 / 3600, Burst: 10}
 	})
 	keyLimit := ratelimit.Middleware(lim.keys, func(r *http.Request) (string, ratelimit.Rule) {
 		id := auth.FromContext(r.Context())
@@ -73,9 +72,12 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	secureCookies := strings.HasPrefix(cfg.PublicBaseURL, "https://")
 
 	authn := &auth.Authenticator{Pool: pool, Failures: failures}
-	account := &accounts.Handler{Pool: pool, SecureCookies: secureCookies, SandboxDomains: !cfg.SES(), Failures: failures}
+	if svc.admins != nil {
+		authn.Admins = svc.admins
+	}
+	account := &accounts.Handler{Pool: pool, Admins: svc.admins, WorkspaceName: cfg.ForkeWorkspace, SecureCookies: secureCookies, Failures: failures}
 	me := &workspaces.Handler{Pool: pool, APILimit: apiRule, GlobalSendRate: svc.sendRate, TrialSendRate: cfg.TrialSendRatePerSec}
-	keyH := &keys.Handler{Pool: pool}
+	keyH := &keys.Handler{Pool: pool, Passwords: accounts.Passwords{Pool: pool, Admins: svc.admins}}
 	contactH := &contacts.Handler{Pool: pool}
 	campaignH := &campaigns.Handler{Pool: pool}
 	emailH := &emails.Handler{Pool: pool}
@@ -155,7 +157,6 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 
 	r.Group(func(public chi.Router) {
 		public.Use(publicLimit)
-		public.With(signupLimit).Post("/api/auth/signup", account.Signup)
 		public.Post("/api/auth/login", account.Login)
 		public.Get("/unsubscribe/{token}", unsubH.Confirm)
 		public.Post("/unsubscribe/{token}", unsubH.Unsubscribe)

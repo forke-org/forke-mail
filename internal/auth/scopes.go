@@ -10,24 +10,27 @@ import (
 )
 
 const (
-	Session       = "session"
+	SuperAdmin    = "super_admin"
+	Admin         = "admin"
 	FullAccess    = "full_access"
 	SendingAccess = "sending_access"
 )
 
 var (
-	anyone      = []string{Session, FullAccess, SendingAccess}
-	workspace   = []string{Session, FullAccess}
-	sessionOnly = []string{Session}
+	anyone         = []string{SuperAdmin, Admin, FullAccess, SendingAccess}
+	workspace      = []string{SuperAdmin, Admin, FullAccess}
+	manage         = []string{SuperAdmin, FullAccess}
+	sessions       = []string{SuperAdmin, Admin}
+	superAdminOnly = []string{SuperAdmin}
 )
 
 var routeScopes = map[string][]string{
 	"GET /api/me":                       anyone,
-	"POST /api/auth/logout":             sessionOnly,
-	"GET /api/keys":                     sessionOnly,
-	"POST /api/keys":                    sessionOnly,
-	"DELETE /api/keys/{id}":             sessionOnly,
-	"POST /api/keys/{id}/rotate":        sessionOnly,
+	"POST /api/auth/logout":             sessions,
+	"GET /api/keys":                     superAdminOnly,
+	"POST /api/keys":                    superAdminOnly,
+	"DELETE /api/keys/{id}":             superAdminOnly,
+	"POST /api/keys/{id}/rotate":        superAdminOnly,
 	"GET /api/dashboard":                workspace,
 	"GET /api/events":                   workspace,
 	"GET /api/contacts":                 workspace,
@@ -51,20 +54,20 @@ var routeScopes = map[string][]string{
 	"GET /api/emails/{id}/messages":     workspace,
 	"GET /api/emails/{id}/recipients":   workspace,
 	"GET /api/domains":                  workspace,
-	"POST /api/domains":                 workspace,
+	"POST /api/domains":                 manage,
 	"POST /api/domains/{id}/verify":     workspace,
 	"GET /api/domains/{id}/dns":         workspace,
-	"POST /api/webhooks":                workspace,
+	"POST /api/webhooks":                manage,
 	"GET /api/webhooks":                 workspace,
-	"PATCH /api/webhooks/{id}":          workspace,
-	"DELETE /api/webhooks/{id}":         workspace,
-	"POST /api/webhooks/{id}/rotate":    workspace,
+	"PATCH /api/webhooks/{id}":          manage,
+	"DELETE /api/webhooks/{id}":         manage,
+	"POST /api/webhooks/{id}/rotate":    manage,
 	"GET /api/webhooks/{id}/deliveries": workspace,
-	"DELETE /api/domains/{id}":          workspace,
+	"DELETE /api/domains/{id}":          manage,
 	"GET /api/suppressions":             workspace,
 	"POST /api/suppressions":            workspace,
 	"POST /api/suppressions/import":     workspace,
-	"DELETE /api/suppressions/{id}":     workspace,
+	"DELETE /api/suppressions/{id}":     manage,
 	"POST /api/transactional":           anyone,
 	"GET /api/transactional":            workspace,
 	"GET /api/transactional/stats":      workspace,

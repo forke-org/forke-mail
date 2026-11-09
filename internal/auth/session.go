@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"forkemail/internal/db"
+	"forkemail/internal/forke"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -51,17 +52,49 @@ func (a *Authenticator) identifySession(ctx context.Context, token string) (Iden
 	if len(token) != 64 {
 		return Identity{}, errUnauthorized
 	}
-	id := Identity{Scope: Session}
+	var id Identity
 	var status string
+	var adminID *string
 	err := a.Pool.QueryRow(ctx, `
-		SELECT u.id, u.workspace_id, w.plan, w.status
+		SELECT u.id, u.workspace_id, u.role, u.forke_admin_id::text, w.plan, w.status
 		FROM sessions s
 		JOIN users u ON u.id = s.user_id
 		JOIN workspaces w ON w.id = u.workspace_id
 		WHERE s.token_hash = $1 AND s.expires_at > now()`, HashKey(token),
-	).Scan(&id.UserID, &id.WorkspaceID, &id.Plan, &status)
+	).Scan(&id.UserID, &id.WorkspaceID, &id.Role, &adminID, &id.Plan, &status)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && status != "active") {
 		return Identity{}, errUnauthorized
 	}
-	return id, err
+	if err != nil {
+		return Identity{}, err
+	}
+	if adminID != nil {
+		if id.Role, err = a.syncAdminRole(ctx, id, *adminID); err != nil {
+			return Identity{}, err
+		}
+	}
+	id.Scope = id.Role
+	return id, nil
+}
+
+func (a *Authenticator) syncAdminRole(ctx context.Context, id Identity, adminID string) (string, error) {
+	if a.Admins == nil {
+		return "", errUnauthorized
+	}
+	role, err := a.Admins.Role(ctx, adminID)
+	if errors.Is(err, forke.ErrInactive) {
+		if _, err := a.Pool.Exec(ctx, `DELETE FROM sessions WHERE user_id = $1`, id.UserID); err != nil {
+			return "", err
+		}
+		return "", errUnauthorized
+	}
+	if err != nil {
+		return "", err
+	}
+	if role != id.Role {
+		if _, err := a.Pool.Exec(ctx, `UPDATE users SET role = $2 WHERE id = $1`, id.UserID, role); err != nil {
+			return "", err
+		}
+	}
+	return role, nil
 }

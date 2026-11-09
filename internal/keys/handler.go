@@ -22,7 +22,8 @@ var (
 )
 
 type Handler struct {
-	Pool *pgxpool.Pool
+	Pool      *pgxpool.Pool
+	Passwords accounts.Passwords
 }
 
 type keyView struct {
@@ -96,7 +97,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) confirmPassword(w http.ResponseWriter, r *http.Request, password string) bool {
-	ok, err := accounts.VerifyPassword(r.Context(), h.Pool, auth.FromContext(r.Context()).UserID, password)
+	ok, err := h.Passwords.Verify(r.Context(), auth.FromContext(r.Context()).UserID, password)
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return false

@@ -7,8 +7,13 @@ type Identity struct {
 	KeyID       string
 	KeyPrefix   string
 	Scope       string
+	Role        string
 	WorkspaceID string
 	Plan        string
+}
+
+func (i Identity) Session() bool {
+	return i.KeyID == "" && i.UserID != ""
 }
 
 type identityKey struct{}

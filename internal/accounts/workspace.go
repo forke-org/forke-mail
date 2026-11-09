@@ -4,9 +4,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 )
+
+var errEmailTaken = errors.New("email_taken")
 
 type NewWorkspace struct {
 	Name           string
@@ -23,10 +26,6 @@ func CreateWorkspace(ctx context.Context, tx pgx.Tx, ws NewWorkspace) (string, e
 		VALUES ($1, $2, $3, $4, $5) RETURNING id`,
 		ws.Name, ws.Plan, ws.DailyLimit, ws.RatePerSec, ws.TrialSendLimit).Scan(&id)
 	return id, err
-}
-
-func SandboxDomain(workspaceID string) string {
-	return workspaceID[:8] + ".sandbox.forke.space"
 }
 
 func AddVerifiedIdentity(ctx context.Context, tx pgx.Tx, workspaceID, kind, name string) error {
