@@ -63,8 +63,8 @@ func withHTMLFooter(body, unsubscribeURL string) string {
 	if hasUnsubscribeLink(body) {
 		return fillUnsubscribeLink(body, html.EscapeString(unsubscribeURL))
 	}
-	footer := `<p style="margin-top:32px;font-size:12px;color:#6b7280">Don't want these emails? <a href="` +
-		html.EscapeString(unsubscribeURL) + `">Unsubscribe</a></p>`
+	footer := `<p style="margin-top:32px;font-size:12px;color:#6b7280"><a href="` +
+		html.EscapeString(unsubscribeURL) + `">Manage email preferences or unsubscribe</a></p>`
 	if i := strings.LastIndex(strings.ToLower(body), "</body>"); i >= 0 {
 		return body[:i] + footer + body[i:]
 	}
@@ -96,5 +96,5 @@ func withTextFooter(body, unsubscribeURL string) string {
 	if hasUnsubscribeLink(body) {
 		return fillUnsubscribeLink(body, unsubscribeURL)
 	}
-	return strings.TrimRight(body, "\n") + "\n\nUnsubscribe: " + unsubscribeURL + "\n"
+	return strings.TrimRight(body, "\n") + "\n\nManage preferences or unsubscribe: " + unsubscribeURL + "\n"
 }

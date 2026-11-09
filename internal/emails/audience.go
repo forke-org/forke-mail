@@ -22,6 +22,8 @@ type Audience struct {
 
 const audienceMatch = `c.workspace_id = $1 AND c.status = 'active'
 	AND NOT EXISTS (SELECT 1 FROM suppressions s WHERE s.workspace_id = $1 AND lower(s.email) = lower(c.email))
+	AND (c.paused_until IS NULL OR c.paused_until <= now())
+	AND NOT EXISTS (SELECT 1 FROM emails te WHERE te.id = $2 AND te.topic = ANY(c.topics_opted_out))
 	AND (
 		EXISTS (SELECT 1 FROM emails e WHERE e.id = $2 AND e.audience_all)
 		OR EXISTS (SELECT 1 FROM email_contacts ec WHERE ec.email_id = $2 AND ec.contact_id = c.id)

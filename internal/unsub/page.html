@@ -3,24 +3,62 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Unsubscribe</title>
+<title>Email preferences</title>
 <link rel="stylesheet" href="/app.css">
 <script src="/theme.js"></script>
 </head>
 <body class="public">
-<main class="public-card">
-{{if eq .State "confirm"}}
-<h1>Unsubscribe</h1>
-<p class="muted">You will stop receiving these emails. This takes effect immediately.</p>
-<form method="post">
-<button class="btn btn-primary btn-block" type="submit">Unsubscribe</button>
+<main class="public-card stack">
+{{if eq .State "preferences"}}
+<div class="stack-xs">
+<h1>Email preferences</h1>
+<p class="muted">For {{.Email}}</p>
+</div>
+{{if eq .Notice "saved"}}<p class="callout">Your topics are saved.</p>{{end}}
+{{if eq .Notice "paused"}}<p class="callout">Paused. We won't email you until {{date .Prefs.PausedUntil}}.</p>{{end}}
+{{if eq .Notice "resumed"}}<p class="callout">Welcome back. Emails are on again.</p>{{end}}
+{{if eq .Notice "resubscribed"}}<p class="callout">You're subscribed again.</p>{{end}}
+{{if eq .Notice "unsubscribed"}}<p class="callout">You're unsubscribed and won't get these emails any more.</p>{{end}}
+{{if .Prefs.Unsubscribed}}
+<p class="muted">You're not receiving these emails.</p>
+{{if .Prefs.CanResubscribe}}
+<form method="post" action="/preferences/{{.Token}}">
+<input type="hidden" name="action" value="resubscribe">
+<button class="btn btn-primary btn-block" type="submit">Subscribe again</button>
 </form>
-{{else if eq .State "done"}}
-<h1>You're unsubscribed</h1>
-<p class="muted">You will no longer receive these emails.</p>
+<p class="small muted">You can undo your unsubscribe for 30 days.</p>
+{{end}}
+{{else}}
+{{if .Prefs.Topics}}
+<form method="post" action="/preferences/{{.Token}}" class="stack-sm">
+<input type="hidden" name="action" value="topics">
+<p class="label">Send me</p>
+{{range .Prefs.Topics}}
+<label class="check-row"><input class="checkbox" type="checkbox" name="topic" value="{{.Key}}"{{if .Subscribed}} checked{{end}}> {{.Label}}</label>
+{{end}}
+<button class="btn btn-primary btn-block" type="submit">Save topics</button>
+</form>
+{{end}}
+{{if .Prefs.PausedUntil}}
+<form method="post" action="/preferences/{{.Token}}" class="stack-xs">
+<input type="hidden" name="action" value="resume">
+<p class="muted">Paused until {{date .Prefs.PausedUntil}}.</p>
+<button class="btn btn-ghost btn-block" type="submit">Resume emails now</button>
+</form>
+{{else}}
+<form method="post" action="/preferences/{{.Token}}">
+<input type="hidden" name="action" value="pause">
+<button class="btn btn-ghost btn-block" type="submit">Pause all emails for 30 days</button>
+</form>
+{{end}}
+<form method="post" action="/unsubscribe/{{.Token}}">
+<input type="hidden" name="from" value="preferences">
+<button class="btn btn-danger btn-block" type="submit">Unsubscribe from everything</button>
+</form>
+{{end}}
 {{else}}
 <h1>Link not found</h1>
-<p class="muted">This unsubscribe link is invalid or has expired.</p>
+<p class="muted">This link is invalid or has expired.</p>
 {{end}}
 </main>
 </body>

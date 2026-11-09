@@ -12,10 +12,10 @@ func TestRenderEscapesMergeFieldsInHTML(t *testing.T) {
 	if strings.Contains(m.HTML, "<script>") || !strings.Contains(m.HTML, "&lt;script&gt;") {
 		t.Fatalf("html not escaped: %s", m.HTML)
 	}
-	if !strings.Contains(m.HTML, `href="https://mail.forke.space/unsubscribe/tok">Unsubscribe</a></p></body>`) {
+	if !strings.Contains(m.HTML, `href="https://mail.forke.space/unsubscribe/tok">Manage email preferences or unsubscribe</a></p></body>`) {
 		t.Fatalf("footer not before </body>: %s", m.HTML)
 	}
-	if m.Text != "Hi <script>\n\nUnsubscribe: https://mail.forke.space/unsubscribe/tok\n" {
+	if m.Text != "Hi <script>\n\nManage preferences or unsubscribe: https://mail.forke.space/unsubscribe/tok\n" {
 		t.Fatalf("text = %q", m.Text)
 	}
 	if m.Headers["List-Unsubscribe"] != "<https://mail.forke.space/unsubscribe/tok>" || m.Headers["List-Unsubscribe-Post"] != "List-Unsubscribe=One-Click" {

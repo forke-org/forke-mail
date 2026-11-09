@@ -21,6 +21,7 @@ type broadcastRequest struct {
 	HTML        string      `json:"html"`
 	Text        string      `json:"text"`
 	Name        string      `json:"name"`
+	Topic       string      `json:"topic"`
 	ScheduledAt string      `json:"scheduled_at"`
 }
 
@@ -29,6 +30,7 @@ type emailFields struct {
 	FromName    string        `json:"from_name"`
 	FromAddress string        `json:"from_address"`
 	ReplyTo     string        `json:"reply_to"`
+	Topic       string        `json:"topic,omitempty"`
 	HTML        string        `json:"html"`
 	Text        string        `json:"text"`
 	Audience    audienceRules `json:"audience"`
@@ -82,7 +84,7 @@ func (req broadcastRequest) translate() (emailFields, string) {
 	case len(req.ReplyTo) > 1:
 		return emailFields{}, "only_one_reply_to_supported"
 	}
-	out := emailFields{Subject: req.Subject, FromName: name, FromAddress: from, HTML: req.HTML, Text: req.Text,
+	out := emailFields{Subject: req.Subject, FromName: name, FromAddress: from, Topic: req.Topic, HTML: req.HTML, Text: req.Text,
 		Audience: audienceRules{TagIDs: []string{audienceID}}}
 	if len(req.ReplyTo) == 1 {
 		if out.ReplyTo, ok = req.ReplyTo.single(); !ok {

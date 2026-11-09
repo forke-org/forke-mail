@@ -116,6 +116,8 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Delete("/api/contacts/{id}", contactH.Delete)
 		api.Get("/api/tags", contactH.ListTags)
 		api.Post("/api/tags", contactH.CreateTag)
+		api.Get("/api/topics", contactH.Topics)
+		api.Put("/api/topics/{key}", contactH.PutTopic)
 
 		api.Get("/api/campaigns", campaignH.List)
 		api.Post("/api/campaigns", campaignH.Create)
@@ -171,6 +173,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Post("/api/auth/login", account.Login)
 		public.Get("/unsubscribe/{token}", unsubH.Confirm)
 		public.Post("/unsubscribe/{token}", unsubH.Unsubscribe)
+		public.Post("/preferences/{token}", unsubH.Update)
 		public.Get("/t/o/{token}", trackH.Open)
 		public.Get("/t/c/{token}", trackH.Click)
 		if cfg.Development() {

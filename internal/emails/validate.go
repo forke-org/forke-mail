@@ -22,6 +22,8 @@ func validate(e Email) string {
 		return "invalid_from_address"
 	case e.ReplyTo != "" && (e.ReplyTo != contacts.NormalizeEmail(e.ReplyTo) || !contacts.ValidEmail(e.ReplyTo)):
 		return "invalid_reply_to"
+	case e.Topic != nil && !contacts.ValidTopicKey(*e.Topic):
+		return "invalid_topic"
 	case strings.TrimSpace(e.HTML) == "" && strings.TrimSpace(e.Text) == "":
 		return "missing_body"
 	case len(e.HTML) > maxBodyBytes || len(e.Text) > maxBodyBytes:
