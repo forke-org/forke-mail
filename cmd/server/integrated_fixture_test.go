@@ -25,6 +25,7 @@ func newIntegratedFixture(t *testing.T) (apiFixture, *webhooks.Vault) {
 	mailer := sender.LogSender{Pool: f.pool, Feedback: p}
 	signer := unsub.Signer{Secret: []byte("local-test-signing-secret-32-characters")}
 	w := sender.NewWorker(f.pool, mailer, signer, "http://localhost:8080", 100, 10)
+	f.worker = w
 	d := transactional.NewDispatcher(f.pool, mailer, w, transactional.NewTracker([]byte("local-test-signing-secret-32-characters"), "http://localhost:8080"))
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup

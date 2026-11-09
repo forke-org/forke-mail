@@ -30,6 +30,9 @@ func (f *fakeSender) Send(ctx context.Context, m Message) (string, error) {
 func sendOne(t *testing.T, pool *pgxpool.Pool, s Sender, ws, address string) (string, string, bool) {
 	t.Helper()
 	email := dbtest.DraftEmail(t, pool, ws)
+	domain := ws + ".sender.test"
+	dbtest.Exec(t, pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified') ON CONFLICT DO NOTHING`, ws, domain)
+	dbtest.Exec(t, pool, `UPDATE emails SET from_address=$2 WHERE id=$1`, email, "sender@"+domain)
 	dbtest.Exec(t, pool, `UPDATE emails SET status = 'sending', started_at = now() WHERE id = $1`, email)
 	contact := dbtest.QueryString(t, pool, `INSERT INTO contacts (workspace_id, email) VALUES ($1, $2) RETURNING id::text`, ws, address)
 	dbtest.Exec(t, pool, `INSERT INTO email_recipients (email_id, workspace_id, contact_id, email) VALUES ($1, $2, $3, $4)`, email, ws, contact, address)

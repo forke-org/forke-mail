@@ -31,6 +31,9 @@ type Worker struct {
 	quotaLogged    time.Time
 	wg             sync.WaitGroup
 	urgentWaiting  atomic.Int64
+	bulkWaiting    atomic.Int64
+	urgentStreak   int
+	inFlight       int
 }
 
 type lane struct {

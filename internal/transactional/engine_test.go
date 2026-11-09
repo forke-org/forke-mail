@@ -38,6 +38,7 @@ func (f *fakeSender) Send(ctx context.Context, m sender.Message) (string, error)
 type openGate struct{ held []string }
 
 func (g *openGate) AcquireUrgent(ctx context.Context) error { return nil }
+func (g *openGate) ReleaseSend()                            {}
 func (g *openGate) CountSent()                              {}
 func (g *openGate) HoldSending(reason string)               { g.held = append(g.held, reason) }
 

@@ -20,6 +20,7 @@ const (
 
 type Gate interface {
 	AcquireUrgent(ctx context.Context) error
+	ReleaseSend()
 	CountSent()
 	HoldSending(reason string)
 }

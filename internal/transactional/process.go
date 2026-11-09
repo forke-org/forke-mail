@@ -7,6 +7,7 @@ import (
 	"net/mail"
 	"time"
 
+	"forkemail/internal/domains"
 	"forkemail/internal/events"
 	"forkemail/internal/sender"
 	"forkemail/internal/workspaces"
@@ -43,6 +44,15 @@ func (d *Dispatcher) process(ctx context.Context, j job) {
 		d.requeue(writeCtx, j, gateBackoff, reason)
 		return
 	}
+	defer d.gate.ReleaseSend()
+	if reason, err := d.blocked(ctx, j); err != nil || reason != "" {
+		if err != nil {
+			d.requeue(writeCtx, j, gateBackoff, "")
+		} else {
+			d.fail(writeCtx, j, reason, true)
+		}
+		return
+	}
 	msg := d.render(j)
 	start := time.Now()
 	sendCtx, cancel := context.WithTimeout(writeCtx, sendTimeout)
@@ -58,6 +68,9 @@ func (d *Dispatcher) process(ctx context.Context, j job) {
 		return
 	}
 	f := sender.Classify(sendErr)
+	if f.Action == sender.UnknownOutcome {
+		d.gate.CountSent()
+	}
 	slog.Warn("transactional send failed", "message_id", j.id, "reason", f.Reason, "attempts", j.attempts)
 	switch {
 	case f.Action == sender.PauseSending:
@@ -90,6 +103,13 @@ func (d *Dispatcher) blocked(ctx context.Context, j job) (string, error) {
 		return errSendingPaused.Error(), nil
 	case suppressed:
 		return errSuppressed.Error(), nil
+	}
+	verified, verifyErr := domains.Verified(ctx, d.pool, j.workspaceID, j.fromAddress)
+	if verifyErr != nil {
+		return "", verifyErr
+	}
+	if !verified {
+		return errDomainUnverified.Error(), nil
 	}
 	return "", nil
 }

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"forkemail/internal/domains"
 	"forkemail/internal/events"
 	"forkemail/internal/unsub"
 	"forkemail/internal/workspaces"
@@ -29,7 +30,11 @@ type state struct {
 }
 
 func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipient) bool {
-	if limiter.Wait(ctx) != nil || w.waitBulk(ctx) != nil || w.idle() {
+	if limiter.Wait(ctx) != nil || w.waitBulk(ctx) != nil {
+		return false
+	}
+	defer w.ReleaseSend()
+	if w.idle() {
 		return false
 	}
 	st, err := w.loadState(ctx, &rec)
@@ -46,6 +51,15 @@ func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipie
 	if st.contactStatus != "active" || st.suppressed {
 		w.complete(writeCtx, rec, "skipped", "", "recipient_blocked")
 		return true
+	}
+	verified, verifyErr := domains.Verified(ctx, w.pool, rec.WorkspaceID, st.content.FromAddress)
+	if verifyErr != nil {
+		return false
+	}
+	if !verified {
+		w.complete(writeCtx, rec, "failed", "", "identity_not_verified")
+		w.pause(writeCtx, rec, "identity_not_verified")
+		return false
 	}
 	res, err := workspaces.Reserve(ctx, w.pool, rec.WorkspaceID)
 	if errors.Is(err, workspaces.ErrTrialQuotaExhausted) || errors.Is(err, workspaces.ErrDailyLimitReached) {
@@ -72,6 +86,9 @@ func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipie
 		return true
 	}
 	failure := Classify(sendErr)
+	if failure.Action == UnknownOutcome {
+		w.CountSent()
+	}
 	if failure.Action != UnknownOutcome {
 		if err := workspaces.Release(writeCtx, w.pool, res); err != nil {
 			slog.Error("release quota failed", "workspace_id", rec.WorkspaceID, "err", err)
