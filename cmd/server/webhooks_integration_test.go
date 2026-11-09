@@ -89,7 +89,7 @@ func TestCustomerWebhookManagement(t *testing.T) {
 	if code := f.request("DELETE", "/api/webhooks/"+out.ID, "", "").Code; code != http.StatusNoContent {
 		t.Fatalf("delete %d", code)
 	}
-	if code := f.request("POST", "/api/webhooks", `{"url":"https://hooks.example.com","events":["email.opened"]}`, "").Code; code != 422 {
+	if code := f.request("POST", "/api/webhooks", `{"url":"https://hooks.example.com","events":["email.unsupported"]}`, "").Code; code != 422 {
 		t.Fatal("unsupported event accepted")
 	}
 }

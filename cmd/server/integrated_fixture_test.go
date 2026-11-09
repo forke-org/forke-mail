@@ -35,6 +35,7 @@ func newIntegratedFixture(t *testing.T) (apiFixture, *webhooks.Vault) {
 	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
 	cfg := testConfig("development")
 	cfg.PublicBaseURL = "http://localhost:8080"
+	cfg.UnsubscribeSecret = "local-test-signing-secret-32-characters"
 	f.router = newRouter(cfg, f.pool, lim, services{dispatcher: d, developer: &developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}}, feedback: p, identities: domains.Local{}, sendRate: w.GlobalRate})
 	return f, v
 }

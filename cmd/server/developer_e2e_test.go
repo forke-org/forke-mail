@@ -73,9 +73,18 @@ func TestDeveloperContractEndToEndWithRealLogEngine(t *testing.T) {
 		if !webhooks.Verify(endpoint.Secret, r.Header.Get("Webhook-Id"), r.Header.Get("Webhook-Timestamp"), r.Header.Get("Webhook-Signature"), body, time.Now()) {
 			t.Error("invalid outgoing signature")
 		}
-		var payload struct{ ID, Type string }
+		var payload struct {
+			ID, Type string
+			Data     struct {
+				MessageID string `json:"message_id"`
+				Kind      string `json:"message_type"`
+			}
+		}
 		if err := json.Unmarshal(body, &payload); err != nil {
 			t.Error(err)
+		}
+		if payload.Data.MessageID != receipt.ID || payload.Data.Kind != "transactional" {
+			t.Error("customer payload lost canonical message identity")
 		}
 		if payload.Type != "email.delivered" {
 			t.Error("wrong event")
