@@ -13,33 +13,20 @@ import (
 
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/feedback"
-	"forkemail/internal/transactional"
 	"forkemail/internal/webhooks"
-	"github.com/jackc/pgx/v5"
 )
-
-type fixtureEngine struct{}
-
-func (fixtureEngine) Enqueue(ctx context.Context, tx pgx.Tx, j transactional.Job) error {
-	var campaign string
-	if err := tx.QueryRow(ctx, `INSERT INTO campaigns(workspace_id,name) VALUES($1,$2) RETURNING id`, j.WorkspaceID, j.ID).Scan(&campaign); err != nil {
-		return err
-	}
-	_, err := tx.Exec(ctx, `INSERT INTO emails(id,workspace_id,campaign_id,subject,from_address,text) VALUES($1,$2,$3,$4,$5,$6)`, j.ID, j.WorkspaceID, campaign, j.Message.Subject, j.Message.From, j.Message.Text)
-	return err
-}
 
 type receiverTransport func(*http.Request) (*http.Response, error)
 
 func (f receiverTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
-func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
+func TestDeveloperContractEndToEnd(t *testing.T) {
 	f := newAPIFixture(t)
 	v, err := webhooks.NewVault(base64.StdEncoding.EncodeToString([]byte(strings.Repeat("v", 32))))
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}, transaction: &transactional.Handler{Pool: f.pool, Enqueuer: fixtureEngine{}}})
+	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}})
 	w := f.request("POST", "/api/keys", `{"name":"e2e","scope":"sending_access","password":"test-password"}`, "")
 	var key struct{ Key string }
 	if err := json.Unmarshal(w.Body.Bytes(), &key); err != nil {
@@ -68,12 +55,12 @@ func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
 	if w.Code != 201 {
 		t.Fatalf("webhook %d", w.Code)
 	}
-	r := httptest.NewRequest("POST", "/api/emails", strings.NewReader(`{"from":"sender@`+domain+`","to":"person@example.com","subject":"Receipt","text":"Hello"}`))
+	r := httptest.NewRequest("POST", "/api/transactional", strings.NewReader(`{"from_address":"sender@`+domain+`","to":"person@example.com","subject":"Receipt","text":"Hello"}`))
 	r.Header.Set("Authorization", "Bearer "+key.Key)
 	r.Header.Set("Idempotency-Key", "e2e-1")
 	w = httptest.NewRecorder()
 	f.router.ServeHTTP(w, r)
-	var receipt transactional.Receipt
+	var receipt struct{ ID string }
 	if err := json.Unmarshal(w.Body.Bytes(), &receipt); err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +68,7 @@ func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
 		t.Fatalf("send %d", w.Code)
 	}
 	message := "fixture-ses-" + f.ws
-	dbtest.SentRecipient(t, f.pool, f.ws, receipt.ID, "person@example.com", message)
+	dbtest.Exec(t, f.pool, `UPDATE transactional_messages SET status='sent', sent_at=now(), ses_message_id=$2 WHERE id=$1`, receipt.ID, message)
 	p := feedback.Processor{Pool: f.pool}
 	if _, err := p.Handle(context.Background(), "fixture-sns-"+f.ws, []byte(`{"eventType":"Delivery","mail":{"messageId":"`+message+`"}}`)); err != nil {
 		t.Fatal(err)
@@ -95,13 +82,13 @@ func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
 		var payload struct {
 			Type string
 			Data struct {
-				EmailID string `json:"email_id"`
+				MessageID string `json:"message_id"`
 			}
 		}
 		if err := json.Unmarshal(body, &payload); err != nil {
 			t.Error(err)
 		}
-		if payload.Type != "email.delivered" || payload.Data.EmailID != receipt.ID {
+		if payload.Type != "email.delivered" || payload.Data.MessageID != receipt.ID {
 			t.Error("message identity lost")
 		}
 		verified = true

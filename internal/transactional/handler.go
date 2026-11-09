@@ -1,136 +1,153 @@
 package transactional
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
+	"context"
 	"errors"
 	"net/http"
-	"strings"
-	"unicode/utf8"
+	"slices"
 
 	"forkemail/internal/auth"
-	"forkemail/internal/contacts"
+	"forkemail/internal/db"
 	"forkemail/internal/httpx"
+	"forkemail/internal/workspaces"
+
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Handler struct {
-	Pool        *pgxpool.Pool
-	Enqueuer    EmailEnqueuer
-	Development bool
-}
-type Receipt struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-	Mode   string `json:"mode"`
-}
+var statuses = []string{"queued", "sending", "sent", "failed"}
 
-var errConflict = errors.New("idempotency_conflict")
-var errSender = errors.New("sender_not_verified")
-var errBlocked = errors.New("recipient_suppressed")
-var errPaused = errors.New("workspace_sending_paused")
-var errCapacity = errors.New("transactional_queue_full")
+type sendResponse struct {
+	Message
+	Replayed string `json:"replayed,omitempty"`
+}
 
 func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
-	if h.Enqueuer == nil {
-		httpx.Error(w, 503, "transactional_engine_unavailable")
+	who := auth.FromContext(r.Context())
+	key := r.Header.Get(idempotencyHeader)
+	if key != "" && !validIdempotencyKey(key) {
+		httpx.Error(w, http.StatusBadRequest, "invalid_idempotency_key")
 		return
 	}
-	key := r.Header.Get("Idempotency-Key")
-	if len(key) == 0 || len(key) > 128 || strings.TrimSpace(key) != key || strings.IndexFunc(key, func(c rune) bool { return c < 33 || c > 126 }) >= 0 {
-		httpx.Error(w, 400, "invalid_idempotency_key")
+	var req request
+	if !httpx.Decode(w, r, &req) {
 		return
 	}
-	var body Request
-	if !httpx.Decode(w, r, &body) {
+	req.normalize()
+	if code := req.validate(); code != "" {
+		httpx.Error(w, http.StatusUnprocessableEntity, code)
 		return
 	}
-	body.From = contacts.NormalizeEmail(body.From)
-	body.To = contacts.NormalizeEmail(body.To)
-	if !contacts.ValidEmail(body.From) || !contacts.ValidEmail(body.To) || utf8.RuneCountInString(body.Subject) == 0 || utf8.RuneCountInString(body.Subject) > 256 || strings.ContainsAny(body.Subject, "\r\n") || (strings.TrimSpace(body.HTML) == "" && strings.TrimSpace(body.Text) == "") {
-		httpx.Error(w, 422, "invalid_email_request")
-		return
-	}
-	data, _ := json.Marshal(body)
-	hash := sha256.Sum256(data)
-	fingerprint := hex.EncodeToString(hash[:])
-	ws := auth.FromContext(r.Context()).WorkspaceID
-	mode := "engine"
-	if h.Development {
-		mode = "development_stub"
-	}
-	out := Receipt{Status: "queued", Mode: mode}
-	replayed := false
+	var res accepted
 	err := pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
-		var paused bool
-		if err := tx.QueryRow(r.Context(), `SELECT sending_paused FROM workspaces WHERE id=$1 FOR UPDATE`, ws).Scan(&paused); err != nil {
-			return err
-		}
-		if _, err := tx.Exec(r.Context(), `DELETE FROM transactional_requests WHERE workspace_id=$1 AND expires_at<now()`, ws); err != nil {
-			return err
-		}
-		var previousHash, previousMode string
-		err := tx.QueryRow(r.Context(), `SELECT id,request_hash,mode FROM transactional_requests WHERE workspace_id=$1 AND idempotency_key=$2`, ws, key).Scan(&out.ID, &previousHash, &previousMode)
-		if err == nil {
-			if previousHash != fingerprint {
-				return errConflict
-			}
-			out.Mode = previousMode
-			replayed = true
-			return nil
-		}
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return err
-		}
-		if paused {
-			return errPaused
-		}
-		var verified, blocked bool
-		domain := strings.Split(body.From, "@")[1]
-		if err := tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM domains WHERE workspace_id=$1 AND status='verified' AND ((kind='domain' AND lower(name)=$2) OR (kind='email' AND lower(name)=$3)))`, ws, domain, body.From).Scan(&verified); err != nil {
-			return err
-		}
-		if !verified {
-			return errSender
-		}
-		if err := tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM suppressions WHERE workspace_id=$1 AND lower(email)=$2) OR EXISTS(SELECT 1 FROM contacts WHERE workspace_id=$1 AND lower(email)=$2 AND status<>'active')`, ws, body.To).Scan(&blocked); err != nil {
-			return err
-		}
-		if blocked {
-			return errBlocked
-		}
-		var count int
-		if err := tx.QueryRow(r.Context(), `SELECT count(*) FROM transactional_requests WHERE workspace_id=$1`, ws).Scan(&count); err != nil {
-			return err
-		}
-		if count >= 1000 {
-			return errCapacity
-		}
-		if err := tx.QueryRow(r.Context(), `INSERT INTO transactional_requests(workspace_id,idempotency_key,request_hash,mode) VALUES($1,$2,$3,$4) RETURNING id`, ws, key, fingerprint, mode).Scan(&out.ID); err != nil {
-			return err
-		}
-		return h.Enqueuer.Enqueue(r.Context(), tx, Job{ID: out.ID, WorkspaceID: ws, IdempotencyKey: key, Message: body})
+		var err error
+		res, err = accept(r.Context(), tx, who, key, req)
+		return err
 	})
-	switch {
-	case errors.Is(err, errConflict):
-		httpx.Error(w, 409, "idempotency_conflict")
-	case errors.Is(err, errSender):
-		httpx.Error(w, 422, "sender_not_verified")
-	case errors.Is(err, errBlocked):
-		httpx.Error(w, 422, "recipient_suppressed")
-	case errors.Is(err, errPaused):
-		httpx.Error(w, 409, "workspace_sending_paused")
-	case errors.Is(err, errCapacity):
-		httpx.Error(w, 429, "transactional_queue_full")
-	case err != nil:
-		httpx.Internal(w, r, err)
-	default:
-		w.Header().Set("Cache-Control", "no-store")
-		if replayed {
-			w.Header().Set("Idempotency-Replayed", "true")
-		}
-		httpx.JSON(w, 202, out)
+	if writeError(w, r, err) {
+		return
 	}
+	status := http.StatusOK
+	if res.replayed == "" {
+		h.Dispatcher.Notify(res.id)
+		status = http.StatusAccepted
+	} else {
+		w.Header().Set("Idempotent-Replayed", "true")
+	}
+	m, err := load(r.Context(), h.Pool, who.WorkspaceID, res.id)
+	if writeError(w, r, err) {
+		return
+	}
+	httpx.JSON(w, status, sendResponse{Message: m, Replayed: res.replayed})
+}
+
+func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+	ws := auth.FromContext(r.Context()).WorkspaceID
+	id, ok := httpx.PathID(w, r)
+	if !ok {
+		return
+	}
+	d := Detail{}
+	var err error
+	d.Message, err = load(r.Context(), h.Pool, ws, id)
+	if writeError(w, r, err) {
+		return
+	}
+	if err := h.Pool.QueryRow(r.Context(), `
+		SELECT html, text FROM transactional_messages WHERE id = $1 AND workspace_id = $2`, id, ws).Scan(&d.HTML, &d.Text); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	rows, err := h.Pool.Query(r.Context(), `
+		SELECT type, detail, created_at FROM email_events
+		WHERE workspace_id = $1 AND message_id = $2 ORDER BY id`, ws, id)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	d.Events, err = pgx.CollectRows(rows, func(row pgx.CollectableRow) (event, error) {
+		var e event
+		return e, row.Scan(&e.Type, &e.Detail, &e.CreatedAt)
+	})
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, d)
+}
+
+func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
+	ws := auth.FromContext(r.Context()).WorkspaceID
+	status := r.URL.Query().Get("status")
+	if status != "" && !slices.Contains(statuses, status) {
+		httpx.Error(w, http.StatusBadRequest, "invalid_status")
+		return
+	}
+	limit, offset := httpx.Page(r)
+	rows, err := h.Pool.Query(r.Context(), selectMessage+`
+		WHERE workspace_id = $1 AND ($2 = '' OR status = $2)
+		ORDER BY created_at DESC LIMIT $3 OFFSET $4`, ws, status, limit, offset)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	list, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (Message, error) {
+		var m Message
+		return m, row.Scan(scanTargets(&m)...)
+	})
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, map[string]any{"messages": list})
+}
+
+func load(ctx context.Context, q db.Querier, ws, id string) (Message, error) {
+	var m Message
+	err := q.QueryRow(ctx, selectMessage+` WHERE id = $1 AND workspace_id = $2`, id, ws).Scan(scanTargets(&m)...)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return m, errNotFound
+	}
+	return m, err
+}
+
+func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
+	switch {
+	case err == nil:
+		return false
+	case errors.Is(err, errNotFound):
+		httpx.Error(w, http.StatusNotFound, "not_found")
+	case errors.Is(err, errKeyReused):
+		httpx.Error(w, http.StatusConflict, "idempotency_key_reused")
+	case errors.Is(err, errSendingPaused), errors.Is(err, errWorkspaceInactive):
+		httpx.Error(w, http.StatusConflict, err.Error())
+	case errors.Is(err, errDomainUnverified), errors.Is(err, errSuppressed):
+		httpx.Error(w, http.StatusUnprocessableEntity, err.Error())
+	case errors.Is(err, workspaces.ErrTrialQuotaExhausted):
+		httpx.JSON(w, http.StatusPaymentRequired, map[string]any{"error": "trial_quota_exceeded", "remaining": 0, "required": 1})
+	case errors.Is(err, workspaces.ErrDailyLimitReached):
+		httpx.Error(w, http.StatusTooManyRequests, "daily_limit_reached")
+	default:
+		httpx.Internal(w, r, err)
+	}
+	return true
 }

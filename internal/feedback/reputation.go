@@ -37,9 +37,13 @@ func (t Thresholds) Evaluate(s Stats) string {
 func (p *Processor) checkReputation(ctx context.Context, tx pgx.Tx, workspaceID string) error {
 	var s Stats
 	if err := tx.QueryRow(ctx, `
-		SELECT COUNT(*), COUNT(bounced_at), COUNT(complained_at)
-		FROM email_recipients
-		WHERE workspace_id = $1 AND sent_at > now() - interval '30 days'`, workspaceID).Scan(&s.Sent, &s.Bounced, &s.Complained); err != nil {
+		SELECT COUNT(*), COUNT(bounced_at), COUNT(complained_at) FROM (
+			SELECT bounced_at, complained_at FROM email_recipients
+			WHERE workspace_id = $1 AND sent_at > now() - interval '30 days'
+			UNION ALL
+			SELECT bounced_at, complained_at FROM transactional_messages
+			WHERE workspace_id = $1 AND sent_at > now() - interval '30 days'
+		) sent`, workspaceID).Scan(&s.Sent, &s.Bounced, &s.Complained); err != nil {
 		return err
 	}
 	reason := p.Reputation.Evaluate(s)

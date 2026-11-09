@@ -1,6 +1,6 @@
 # Forke Mail
 
-Forke Mail is a multi-tenant broadcast email service, similar to Resend or Loops. Each workspace imports contacts, groups emails into campaigns and sends them through **Amazon SES**. Delivery, bounce and complaint feedback comes back over **Amazon SNS**.
+Forke Mail is a multi-tenant email service, similar to Resend or Loops. Each workspace imports contacts, groups broadcast emails into campaigns, sends one-to-one transactional email (sign-in codes, password resets, receipts) over the API, and delivers everything through **Amazon SES**. Delivery, bounce and complaint feedback comes back over **Amazon SNS**.
 
 It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for all state. It needs no Redis, message broker or ORM.
 
@@ -13,6 +13,7 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
 - [Configuration](#configuration)
 - [Using the dashboard](#using-the-dashboard)
 - [REST API](#rest-api)
+- [Transactional email](#transactional-email)
 - [Sending real email with Amazon SES](#sending-real-email-with-amazon-ses)
 - [Testing SES events without AWS](#testing-ses-events-without-aws)
 - [Running the tests](#running-the-tests)
@@ -193,6 +194,7 @@ All configuration comes from environment variables, and `.env.example` lists eve
 | **Overview** | get-started checklist, key numbers, recent emails, and whether you are on the log sender, SES sandbox or SES production |
 | **Campaigns** | create a campaign, then write emails inside it. The editor has sender, audience, HTML and text content, and a live preview. `{{first_name}}` and `{{email}}` are merge fields; the unsubscribe footer is added automatically |
 | **Email report** | live progress and per-recipient status. Delivered, bounced, complained and unsubscribed counts come from real SES events. Pause and resume are here |
+| **Transactional** | one-to-one API messages: dispatch latency (p50/p95/p99), delivery and bounce counts, opt-in open and click rates, a per-message event timeline, and a **Send test** button with a password-reset template |
 | **Contacts** | import CSV or pasted rows with tags, search, filter by status or tag, bulk tag, delete |
 | **Suppressions** | every address that is never emailed, with reason and source. Add one, paste a list or upload a CSV. Removing a hard bounce or complaint shows a warning first |
 | **Activity** | the workspace event log (queued, sent, delivered, bounced, complained, rejected, …) |
@@ -249,6 +251,83 @@ Other routes:
 | `GET /api/events` | workspace event log |
 | `/api/domains`, `/api/suppressions` | dashboard and `full_access` keys only |
 | `GET /healthz` | database health for load balancers |
+
+## Transactional email
+
+Transactional messages are one-to-one emails triggered by something a user did: sign-in codes, password resets, receipts and security alerts. They use their own table, queue and dispatcher. That keeps them separate from campaigns, but they share the SES account, the feedback webhook, suppressions and the reputation guard.
+
+### Sending one
+
+```sh
+curl -X POST $B/api/transactional \
+  -H "Authorization: Bearer fm_live_..." \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: password-reset-user-42-1730000000" \
+  -d '{
+    "to": "user@example.com",
+    "from_name": "Forke",
+    "from_address": "no-reply@your-verified-domain.com",
+    "reply_to": "support@your-verified-domain.com",
+    "subject": "Your password reset code",
+    "html": "<p>Your code is <b>482913</b></p>",
+    "text": "Your code is 482913",
+    "tags": {"category": "password_reset"},
+    "track_opens": false,
+    "track_clicks": false
+  }'
+```
+
+| Field | Notes |
+|---|---|
+| `to` | exactly one recipient |
+| `from_address` | must be on a verified identity, as for campaigns |
+| `from_name`, `reply_to` | optional |
+| `subject` | required, up to 300 characters |
+| `html`, `text` | at least one is required, each up to 256 KB. Nothing is added to them: no unsubscribe footer and no `List-Unsubscribe` header |
+| `tags` | optional, up to 10 `key: value` pairs of letters, digits, `-` and `_` |
+| `track_opens`, `track_clicks` | off by default. Both need an HTML body |
+
+Responses:
+
+| Status | Meaning |
+|---|---|
+| `202` | accepted and queued; the body is the message, with `status: "queued"` |
+| `200` + `Idempotent-Replayed: true` | a repeat of an earlier request. The body is the **original** message, and `replayed` is `idempotency_key` or `duplicate_content` |
+| `409 idempotency_key_reused` | that key was already used in the last 24 hours with a different request body |
+| `422 recipient_suppressed` | the address hard bounced, complained or was suppressed manually |
+| `422 from_domain_not_verified`, `409 workspace_sending_paused`, `402 trial_quota_exceeded`, `429 daily_limit_reached` | as for campaigns |
+
+Read it back with `GET /api/transactional/{id}`. That works with any key scope and includes the event timeline. `GET /api/transactional` (filter with `?status=`) and `GET /api/transactional/stats` need a dashboard session or a `full_access` key.
+
+### Fast dispatch and priority
+
+- **Instant send.** Once the request's transaction commits, the handler passes the message ID straight to an in-process dispatcher with 8 workers, so it is normally handed to SES within milliseconds. A 1-second poller picks up anything the in-process hand-off missed: retries, a full hand-off buffer, or rows left by a restart.
+- **Priority over broadcasts.** Both paths share one global SES rate limiter. Transactional sends reserve a token and wait for it. Broadcast lanes only take a token when one is free *and* no transactional send is waiting, so a busy campaign never delays a password reset by more than one token interval.
+- **Quota headroom.** Broadcasts stop at 90% of the SES 24-hour quota. Transactional sends may use the last 10%, so a big campaign cannot leave users unable to sign in.
+- **Latency measurement.** `dispatch_ms` is the time from acceptance to SES returning a message ID. Each `sent` event also records `send_ms`, the SES API call alone. `/api/transactional/stats` reports p50, p95, p99 and max over the last 24 hours, and the dashboard shows them.
+
+### Idempotency and deduplication
+
+- **`Idempotency-Key` header (recommended).** A repeat within 24 hours with the same body returns the original message and sends nothing. A different body returns `409`. The key is per workspace, up to 256 printable ASCII characters. Concurrent requests with the same key are serialized with a Postgres advisory lock, so exactly one message is created.
+- **Content dedupe (no key).** Without a key, an identical message (same recipient, sender, reply-to, subject and bodies) accepted in the last 60 seconds and not failed is returned instead of being sent again. This catches double-clicked "resend code" buttons and client retries. To send identical content twice on purpose, give each request its own key.
+- **Never a duplicate send.** As with campaigns, an SES call with no answer (a timeout or network error) is marked `failed` with `unknown_outcome` and never retried. A message stuck in `sending` for 5 minutes, for example after a crash, is also failed rather than resent.
+- **Expiry.** A message still waiting after an hour (for example while SES sending is paused) fails with `expired` instead of delivering a stale code.
+
+### Suppressions and feedback
+
+Hard bounces, complaints and manual suppressions block transactional sends. **Unsubscribes do not**: unsubscribing from marketing must not stop password resets. SES events reach transactional messages through the same `/webhooks/ses` endpoint (they are matched by SES message ID and checked against the `workspace_id`/`message_id` tags). They set `delivered_at`, `bounced_at` and `complained_at`, suppress bounced and complaining addresses, and count towards the 30-day reputation guard.
+
+### Open and click tracking, and its limits
+
+Tracking is opt-in per message. Leave it off for codes and security alerts.
+
+- **Opens.** A 1×1 image is added before `</body>` at send time. The stored HTML is never modified. Treat open counts as estimates:
+  - Apple Mail Privacy Protection preloads images, so it produces opens nobody made.
+  - Many clients block images, so real opens go missing.
+  - Known image proxies, link scanners and requests with no user agent are ignored and not counted.
+- **Clicks.** Every `http(s)` link in the HTML is rewritten to `/t/c/{token}`, which records the click and redirects with `302`. The token is HMAC-signed over the message ID and the exact URL, so it cannot be used as an open redirect.
+- **Privacy.** No IP addresses or user agents are stored, only counts, first-seen times and the clicked URL.
+- **Secret.** Tracking tokens use a key derived from `UNSUBSCRIBE_SECRET`. Changing that secret breaks tracking links in mail already sent.
 
 ## Sending real email with Amazon SES
 
@@ -545,7 +624,7 @@ docker run --rm --env-file .env.production --entrypoint /app/sesbootstrap forkem
 
 ### Running more than one instance
 
-Claiming uses `FOR UPDATE SKIP LOCKED`, so several instances never send to the same recipient twice. However, the send rate limiter and the API rate limiters are held in each instance's memory. With N instances, SES could see up to N × `MaxSendRate`, and API limits apply per instance. Run a single instance for sending, or lower the SES-derived rate accordingly.
+Claiming uses `FOR UPDATE SKIP LOCKED`, so several instances never send to the same recipient or transactional message twice. Transactional priority over broadcasts holds only within one instance. However, the send rate limiter and the API rate limiters are held in each instance's memory. With N instances, SES could see up to N × `MaxSendRate`, and API limits apply per instance. Run a single instance for sending, or lower the SES-derived rate accordingly.
 
 ## Project layout
 
@@ -572,6 +651,7 @@ internal/
   sender/          worker, claiming, rendering, log sender, limits, sweeper
   ses/             SESv2 sender, error classification, account monitor, identities
   sns/             SNS message signature verification and subscription confirmation
+  transactional/   one-to-one API sends: idempotency, dedupe, priority dispatcher, open/click tracking
   unsub/           signed unsubscribe tokens and pages
   workspaces/      /api/me, quota reservation, send rates
 migrations/        goose SQL migrations (embedded)

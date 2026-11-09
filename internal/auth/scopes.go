@@ -23,7 +23,6 @@ var (
 
 var routeScopes = map[string][]string{
 	"GET /api/me":                       anyone,
-	"POST /api/emails":                  anyone,
 	"POST /api/auth/logout":             sessionOnly,
 	"GET /api/keys":                     sessionOnly,
 	"POST /api/keys":                    sessionOnly,
@@ -66,6 +65,10 @@ var routeScopes = map[string][]string{
 	"POST /api/suppressions":            workspace,
 	"POST /api/suppressions/import":     workspace,
 	"DELETE /api/suppressions/{id}":     workspace,
+	"POST /api/transactional":           anyone,
+	"GET /api/transactional":            workspace,
+	"GET /api/transactional/stats":      workspace,
+	"GET /api/transactional/{id}":       anyone,
 }
 
 func Allowed(scope, route string) bool {

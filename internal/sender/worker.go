@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"forkemail/internal/unsub"
@@ -29,6 +30,7 @@ type Worker struct {
 	holdUntil      time.Time
 	quotaLogged    time.Time
 	wg             sync.WaitGroup
+	urgentWaiting  atomic.Int64
 }
 
 type lane struct {

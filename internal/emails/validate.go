@@ -7,6 +7,7 @@ import (
 
 	"forkemail/internal/contacts"
 	"forkemail/internal/db"
+	"forkemail/internal/domains"
 )
 
 const maxBodyBytes = 256 << 10
@@ -28,12 +29,8 @@ func validate(e Email) string {
 }
 
 func checkDomain(ctx context.Context, q db.Querier, ws, fromAddress string) error {
-	domain := fromAddress[strings.LastIndex(fromAddress, "@")+1:]
-	var verified bool
-	if err := q.QueryRow(ctx, `
-		SELECT EXISTS (SELECT 1 FROM domains WHERE workspace_id = $1 AND status = 'verified'
-			AND ((kind = 'domain' AND lower(name) = lower($2)) OR (kind = 'email' AND lower(name) = lower($3))))`,
-		ws, domain, fromAddress).Scan(&verified); err != nil {
+	verified, err := domains.Verified(ctx, q, ws, fromAddress)
+	if err != nil {
 		return err
 	}
 	if !verified {

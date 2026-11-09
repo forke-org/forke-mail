@@ -7,6 +7,7 @@ import ThemeToggle from './ThemeToggle';
 const navItems = [
   { href: '/', label: 'Overview', icon: 'home' },
   { href: '/campaigns/', label: 'Campaigns', icon: 'campaigns', match: ['/campaigns', '/emails'] },
+  { href: '/transactional/', label: 'Transactional', icon: 'transactional' },
   { href: '/contacts/', label: 'Contacts', icon: 'contacts' },
   { href: '/suppressions/', label: 'Suppressions', icon: 'suppressions' },
   { href: '/activity/', label: 'Activity', icon: 'activity' },

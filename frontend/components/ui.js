@@ -5,7 +5,7 @@ const badgeTones = {
   sending: 'blue', queued: 'blue', scheduled: 'blue', trial: 'amber', pending: 'amber', delayed: 'amber', soft_bounced: 'amber',
   paused: 'amber', skipped: 'amber', unsubscribed: 'amber',
   bounced: 'red', complained: 'red', failed: 'red', invalid: 'red', revoked: 'red', rejected: 'red', sending_paused: 'red',
-  full_access: 'accent', sending_access: 'blue',
+  full_access: 'accent', sending_access: 'blue', opened: 'accent', clicked: 'accent',
 };
 
 const badgeLabels = { done: 'sent', full_access: 'full access', sending_access: 'sending access', soft_bounced: 'soft bounce' };

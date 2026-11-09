@@ -24,8 +24,8 @@ func (s LogSender) Send(ctx context.Context, m Message) (string, error) {
 	_, _ = rand.Read(b)
 	messageID := "log-" + hex.EncodeToString(b)
 	if _, err := s.Pool.Exec(ctx, `
-		INSERT INTO message_logs (workspace_id, email_id, recipient_id, payload)
-		VALUES ($1, $2, $3, $4)`, m.WorkspaceID, m.EmailID, m.RecipientID,
+		INSERT INTO message_logs (workspace_id, email_id, recipient_id, message_id, payload)
+		VALUES ($1, NULLIF($2, '')::uuid, NULLIF($3, '')::uuid, NULLIF($4, '')::uuid, $5)`, m.WorkspaceID, m.EmailID, m.RecipientID, m.MessageID,
 		map[string]any{"message_id": messageID, "message": m}); err != nil {
 		return "", &SendError{Action: Retry, Reason: "log_write_failed", Err: err}
 	}
@@ -39,16 +39,17 @@ func (s LogSender) Simulate(ctx context.Context, m Message, messageID string) {
 			_, err = s.Feedback.Handle(ctx, "", raw)
 		}
 		if err != nil {
-			slog.Error("simulated ses event failed", "recipient_id", m.RecipientID, "err", err)
+			slog.Error("simulated ses event failed", "recipient_id", m.RecipientID, "message_id", m.MessageID, "err", err)
 		}
 	}
 }
 
 func simulatedEvents(m Message, messageID string, now time.Time) []feedback.Event {
-	mail := feedback.Mail{
-		Timestamp: now, MessageID: messageID, Source: m.From, Destination: []string{m.To},
-		Tags: map[string][]string{"workspace_id": {m.WorkspaceID}, "email_id": {m.EmailID}, "recipient_id": {m.RecipientID}},
+	tags := map[string][]string{}
+	for name, value := range m.Tags() {
+		tags[name] = []string{value}
 	}
+	mail := feedback.Mail{Timestamp: now, MessageID: messageID, Source: m.From, Destination: []string{m.To}, Tags: tags}
 	delivery := feedback.Event{EventType: "Delivery", Mail: mail, Delivery: &feedback.Delivery{
 		Timestamp: now, Recipients: []string{m.To}, SMTPResponse: "250 2.6.0 Message received",
 	}}

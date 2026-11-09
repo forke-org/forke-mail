@@ -55,6 +55,15 @@ const messages = {
   too_many_rows: 'That file has more than 50,000 rows.',
   body_too_large: 'That file is larger than 5 MB.',
   not_found: 'Not found.',
+  invalid_to: 'Enter a valid recipient address.',
+  invalid_reply_to: 'Enter a valid reply-to address.',
+  invalid_tags: 'Tags must be letters, numbers, dashes or underscores (up to 10).',
+  tracking_requires_html: 'Open and click tracking need an HTML body.',
+  recipient_suppressed: 'That address hard bounced, complained or was suppressed manually, so it cannot be emailed.',
+  idempotency_key_reused: 'That idempotency key was already used with a different message.',
+  invalid_idempotency_key: 'The idempotency key must be 1 to 256 printable characters.',
+  daily_limit_reached: 'The daily send limit for this workspace has been reached.',
+  workspace_inactive: 'This workspace is not active.',
 };
 
 export function describeError(err) {

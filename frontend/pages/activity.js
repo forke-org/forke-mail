@@ -6,7 +6,7 @@ import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
 import { useLoad } from '../lib/useLoad';
 
-const types = ['sent', 'delivered', 'bounced', 'soft_bounced', 'complained', 'unsubscribed', 'rejected', 'delayed', 'failed', 'queued', 'sending_paused'];
+const types = ['sent', 'delivered', 'opened', 'clicked', 'bounced', 'soft_bounced', 'complained', 'unsubscribed', 'rejected', 'delayed', 'failed', 'queued', 'sending_paused'];
 
 export default function Activity() {
   const [type, setType] = useState('');
@@ -21,9 +21,12 @@ export default function Activity() {
     { accessorKey: 'recipient', header: 'Recipient', cell: ({ getValue }) => getValue() || '—' },
     {
       accessorKey: 'subject', header: 'Email',
-      cell: ({ row }) => (row.original.email_id
-        ? <Link href={`/emails/view/?id=${row.original.email_id}`} onClick={(e) => e.stopPropagation()}><div className="cell-strong">{row.original.subject}</div><div className="small muted">{row.original.campaign_name}</div></Link>
-        : '—'),
+      cell: ({ row }) => {
+        const ev = row.original;
+        if (ev.email_id) return <Link href={`/emails/view/?id=${ev.email_id}`} onClick={(e) => e.stopPropagation()}><div className="cell-strong">{ev.subject}</div><div className="small muted">{ev.campaign_name}</div></Link>;
+        if (ev.message_id) return <Link href={`/transactional/view/?id=${ev.message_id}`} onClick={(e) => e.stopPropagation()}><div className="cell-strong">{ev.subject}</div><div className="small muted">Transactional</div></Link>;
+        return '—';
+      },
     },
     { accessorKey: 'created_at', header: 'Time', cell: ({ getValue }) => formatDate(getValue()) },
   ], []);

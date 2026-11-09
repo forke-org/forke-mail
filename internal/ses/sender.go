@@ -3,6 +3,7 @@ package ses
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"forkemail/internal/sender"
@@ -51,20 +52,31 @@ func (s Sender) input(m sender.Message) *sesv2.SendEmailInput {
 			headers = append(headers, types.MessageHeader{Name: aws.String(name), Value: aws.String(v)})
 		}
 	}
+	names := make([]string, 0, 3)
+	tags := m.Tags()
+	for name := range tags {
+		names = append(names, name)
+	}
+	slices.Sort(names)
+	emailTags := make([]types.MessageTag, len(names))
+	for i, name := range names {
+		emailTags[i] = types.MessageTag{Name: aws.String(name), Value: aws.String(tags[name])}
+	}
+	var replyTo []string
+	if m.ReplyTo != "" {
+		replyTo = []string{m.ReplyTo}
+	}
 	return &sesv2.SendEmailInput{
 		FromEmailAddress:     aws.String(m.From),
 		Destination:          &types.Destination{ToAddresses: []string{m.To}},
+		ReplyToAddresses:     replyTo,
 		ConfigurationSetName: aws.String(s.ConfigurationSet),
 		Content: &types.EmailContent{Simple: &types.Message{
 			Subject: &types.Content{Data: aws.String(m.Subject), Charset: utf8},
 			Body:    body,
 			Headers: headers,
 		}},
-		EmailTags: []types.MessageTag{
-			{Name: aws.String("workspace_id"), Value: aws.String(m.WorkspaceID)},
-			{Name: aws.String("email_id"), Value: aws.String(m.EmailID)},
-			{Name: aws.String("recipient_id"), Value: aws.String(m.RecipientID)},
-		},
+		EmailTags: emailTags,
 	}
 }
 

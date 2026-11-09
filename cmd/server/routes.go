@@ -20,6 +20,7 @@ import (
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/seed"
 	"forkemail/internal/sns"
+	"forkemail/internal/transactional"
 	"forkemail/internal/unsub"
 	"forkemail/internal/workspaces"
 
@@ -40,6 +41,7 @@ type services struct {
 	verifier    *sns.Verifier
 	sendingMode func() string
 	sendRate    func() float64
+	dispatcher  *transactional.Dispatcher
 }
 
 func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services) http.Handler {
@@ -80,6 +82,8 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	eventH := &events.Handler{Pool: pool, SendingMode: svc.sendingMode}
 	domainH := &domains.Handler{Pool: pool, Identities: svc.identities}
 	dnsH := &domains.DNSHandler{Pool: pool, Region: cfg.AWS.Region}
+	transactionalH := &transactional.Handler{Pool: pool, Dispatcher: svc.dispatcher}
+	trackH := &transactional.TrackHandler{Pool: pool, Tracker: transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)}
 	unsubH := &unsub.Handler{Pool: pool, Signer: unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)}}
 
 	r := chi.NewRouter()
@@ -125,6 +129,11 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/emails/{id}/messages", emailH.Messages)
 		api.Get("/api/emails/{id}/recipients", emailH.Recipients)
 
+		api.Post("/api/transactional", transactionalH.Send)
+		api.Get("/api/transactional", transactionalH.List)
+		api.Get("/api/transactional/stats", transactionalH.Stats)
+		api.Get("/api/transactional/{id}", transactionalH.Get)
+
 		api.Get("/api/domains", domainH.List)
 		api.Post("/api/domains", domainH.Create)
 		api.Post("/api/domains/{id}/verify", domainH.Verify)
@@ -150,6 +159,8 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Post("/api/auth/login", account.Login)
 		public.Get("/unsubscribe/{token}", unsubH.Confirm)
 		public.Post("/unsubscribe/{token}", unsubH.Unsubscribe)
+		public.Get("/t/o/{token}", trackH.Open)
+		public.Get("/t/c/{token}", trackH.Click)
 		if cfg.Development() {
 			seedH := &seed.Handler{Pool: pool, Token: cfg.SeedToken, Failures: failures, SES: cfg.SES(), SESTestEmail: cfg.SESTestEmail}
 			public.Post("/dev/seed", seedH.Seed)
