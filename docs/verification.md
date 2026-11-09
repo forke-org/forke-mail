@@ -1,5 +1,7 @@
 # Intern 3 verification and handoff
 
+Historical verification from before Diya integration. Current engine contracts, final tests and migration proof are in [integration-handoff.md](integration-handoff.md). The former missing-adapter boundary described below has been replaced by the real shared acceptance service.
+
 ## Branch safety
 
 Work is on krishna. Advik was imported only with fetch and merge origin/advik into krishna. No checkout edit, commit, reset, rebase, deletion or push targeted advik.

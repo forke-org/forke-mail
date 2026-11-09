@@ -1,0 +1,50 @@
+{
+  "environment": "local (log driver)",
+  "checks": [
+    {
+      "path": "/transactional/",
+      "screenshot": "local-log-01-transactional-list.png",
+      "status": "PASS"
+    },
+    {
+      "path": "/transactional/view/?id=8b78fa15-bf9f-4cb0-b077-0cef2e03e5ef",
+      "screenshot": "local-log-02-transactional-detail.png",
+      "status": "PASS"
+    },
+    {
+      "path": "/activity/",
+      "screenshot": "local-log-03-activity.png",
+      "status": "PASS"
+    },
+    {
+      "path": "/emails/view/?id=1598ffef-7c7b-440f-b2ce-9fe8a712e492",
+      "screenshot": "local-log-04-broadcast-report.png",
+      "status": "PASS"
+    }
+  ],
+  "repeatedNavigationChecks": [
+    {
+      "path": "/activity/",
+      "title": "Activity",
+      "status": "PASS"
+    },
+    {
+      "path": "/transactional/",
+      "title": "Transactional",
+      "status": "PASS"
+    },
+    {
+      "path": "/transactional/view/?id=8b78fa15-bf9f-4cb0-b077-0cef2e03e5ef",
+      "title": "Local (log driver): tracked message",
+      "status": "PASS"
+    },
+    {
+      "path": "/activity/",
+      "title": "Activity",
+      "status": "PASS"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "failedResponses": []
+}

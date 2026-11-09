@@ -1,0 +1,278 @@
+=== RUN   TestBroadcastAPIToSignedWebhook
+2026/11/09 13:10:52 INFO request method=POST path=/api/keys status=201 duration_ms=454 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=""
+2026/11/09 13:10:52 INFO request method=POST path=/api/keys status=201 duration_ms=457 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=""
+2026/11/09 13:10:52 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=90 max_24h=100
+2026/11/09 13:10:53 INFO request method=POST path=/api/contacts/import status=200 duration_ms=155 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=POST path=/api/campaigns status=403 duration_ms=2 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_89bf
+2026/11/09 13:10:53 INFO request method=POST path=/api/campaigns status=201 duration_ms=9 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=GET path=/api/campaigns/{id} status=200 duration_ms=4 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=POST path=/api/campaigns/{id}/emails status=201 duration_ms=36 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=PATCH path=/api/emails/{id} status=200 duration_ms=8 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=POST path=/api/webhooks status=201 duration_ms=9 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=15 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_89bf
+2026/11/09 13:10:53 INFO request method=POST path=/api/emails/{id}/pause status=200 duration_ms=4 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:53 INFO request method=POST path=/api/emails/{id}/resume status=200 duration_ms=4 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:54 INFO request method=GET path=/api/emails/{id}/report status=200 duration_ms=7 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+2026/11/09 13:10:54 INFO request method=GET path=/api/emails/{id}/recipients status=200 duration_ms=2 workspace_id=73f61289-faf3-414d-a799-ba74977ce113 key_prefix=fm_live_b110
+--- PASS: TestBroadcastAPIToSignedWebhook (2.79s)
+=== RUN   TestDeveloperContractEndToEndWithRealLogEngine
+2026/11/09 13:10:55 INFO request method=POST path=/api/keys status=201 duration_ms=447 workspace_id=1d207b51-3e2b-491d-9740-f7e0db713e15 key_prefix=""
+2026/11/09 13:10:55 INFO request method=POST path=/api/domains status=201 duration_ms=31 workspace_id=1d207b51-3e2b-491d-9740-f7e0db713e15 key_prefix=""
+2026/11/09 13:10:55 INFO request method=POST path=/api/domains/{id}/verify status=200 duration_ms=2 workspace_id=1d207b51-3e2b-491d-9740-f7e0db713e15 key_prefix=""
+2026/11/09 13:10:55 INFO request method=POST path=/api/webhooks status=201 duration_ms=8 workspace_id=1d207b51-3e2b-491d-9740-f7e0db713e15 key_prefix=""
+2026/11/09 13:10:55 INFO request method=POST path=/api/emails status=202 duration_ms=42 workspace_id=1d207b51-3e2b-491d-9740-f7e0db713e15 key_prefix=fm_live_62a6
+--- PASS: TestDeveloperContractEndToEndWithRealLogEngine (1.24s)
+=== RUN   TestTransactionalSignedSNSAndReceiverFailureIsolation
+2026/11/09 13:10:55 INFO request method=POST path=/api/webhooks status=201 duration_ms=14 workspace_id=5f4c741e-bb89-4757-8c3e-4cd43aa6ee44 key_prefix=""
+2026/11/09 13:10:56 INFO request method=POST path=/api/transactional status=202 duration_ms=46 workspace_id=5f4c741e-bb89-4757-8c3e-4cd43aa6ee44 key_prefix=""
+2026/11/09 13:10:56 WARN ses event tags do not match recipient event=Bounce recipient_id=17dec9c8-798c-4f44-98d5-fc9a80534358
+2026/11/09 13:10:56 INFO ses event sns_message_id=mismatch-17dec9c8-798c-4f44-98d5-fc9a80534358 result=tag_mismatch
+2026/11/09 13:10:56 INFO ses event sns_message_id=bounce-17dec9c8-798c-4f44-98d5-fc9a80534358 result=processed
+2026/11/09 13:10:56 INFO ses event sns_message_id=bounce-17dec9c8-798c-4f44-98d5-fc9a80534358 result=duplicate
+2026/11/09 13:10:56 WARN rejected sns message type=Notification err="invalid sns message: crypto/rsa: verification error"
+2026/11/09 13:10:56 INFO request method=POST path=/api/transactional status=202 duration_ms=20 workspace_id=5f4c741e-bb89-4757-8c3e-4cd43aa6ee44 key_prefix=""
+2026/11/09 13:10:56 INFO ses event sns_message_id=another-bounce-17dec9c8-798c-4f44-98d5-fc9a80534358 result=processed
+--- PASS: TestTransactionalSignedSNSAndReceiverFailureIsolation (1.07s)
+=== RUN   TestStaticChunksDoNotConsumePublicEndpointBudget
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:56 INFO request method=GET path=/t/o/{token} status=429 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestStaticChunksDoNotConsumePublicEndpointBudget (0.00s)
+=== RUN   TestBothWorkersShareTrialQuota
+2026/11/09 13:10:57 INFO request method=POST path=/api/transactional status=202 duration_ms=59 workspace_id=3cf6fad1-a24c-474b-9480-fbb1b94aa7f7 key_prefix=""
+2026/11/09 13:10:57 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=40 workspace_id=3cf6fad1-a24c-474b-9480-fbb1b94aa7f7 key_prefix=""
+2026/11/09 13:10:58 INFO request method=POST path=/api/transactional status=402 duration_ms=3 workspace_id=3cf6fad1-a24c-474b-9480-fbb1b94aa7f7 key_prefix=""
+--- PASS: TestBothWorkersShareTrialQuota (1.65s)
+=== RUN   TestTrackingEventsReachSignedCustomerWebhook
+2026/11/09 13:10:58 INFO request method=POST path=/api/webhooks status=201 duration_ms=15 workspace_id=b39dd611-b405-420a-9c6d-cae3fa6692d2 key_prefix=""
+2026/11/09 13:10:58 INFO request method=POST path=/api/transactional status=202 duration_ms=48 workspace_id=b39dd611-b405-420a-9c6d-cae3fa6692d2 key_prefix=""
+2026/11/09 13:10:58 INFO request method=GET path=/t/o/{token} status=200 duration_ms=16 workspace_id="" key_prefix=""
+2026/11/09 13:10:58 INFO request method=GET path=/t/c/{token} status=302 duration_ms=2 workspace_id="" key_prefix=""
+2026/11/09 13:10:58 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:10:58 INFO request method=GET path=/t/c/{token} status=404 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestTrackingEventsReachSignedCustomerWebhook (0.89s)
+=== RUN   TestBroadcastAPIToSignedWebhook
+2026/11/09 13:11:00 INFO request method=POST path=/api/keys status=201 duration_ms=470 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=""
+2026/11/09 13:11:00 INFO request method=POST path=/api/keys status=201 duration_ms=456 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=""
+2026/11/09 13:11:00 INFO request method=POST path=/api/contacts/import status=200 duration_ms=35 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 INFO request method=POST path=/api/campaigns status=403 duration_ms=1 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_6297
+2026/11/09 13:11:00 INFO request method=POST path=/api/campaigns status=201 duration_ms=8 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 INFO request method=GET path=/api/campaigns/{id} status=200 duration_ms=6 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=90 max_24h=100
+2026/11/09 13:11:00 INFO request method=POST path=/api/campaigns/{id}/emails status=201 duration_ms=39 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 INFO request method=PATCH path=/api/emails/{id} status=200 duration_ms=8 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 INFO request method=POST path=/api/webhooks status=201 duration_ms=8 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=16 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_6297
+2026/11/09 13:11:00 INFO request method=POST path=/api/emails/{id}/pause status=200 duration_ms=4 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:00 INFO request method=POST path=/api/emails/{id}/resume status=200 duration_ms=3 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:01 INFO request method=GET path=/api/emails/{id}/report status=200 duration_ms=17 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+2026/11/09 13:11:01 INFO request method=GET path=/api/emails/{id}/recipients status=200 duration_ms=2 workspace_id=12039ef4-b0ad-422d-b03b-5c2542921152 key_prefix=fm_live_8b26
+--- PASS: TestBroadcastAPIToSignedWebhook (2.83s)
+=== RUN   TestDeveloperContractEndToEndWithRealLogEngine
+2026/11/09 13:11:02 INFO request method=POST path=/api/keys status=201 duration_ms=448 workspace_id=d26b6e4d-8de0-4a54-b87f-c1586e28464a key_prefix=""
+2026/11/09 13:11:02 INFO request method=POST path=/api/domains status=201 duration_ms=29 workspace_id=d26b6e4d-8de0-4a54-b87f-c1586e28464a key_prefix=""
+2026/11/09 13:11:02 INFO request method=POST path=/api/domains/{id}/verify status=200 duration_ms=3 workspace_id=d26b6e4d-8de0-4a54-b87f-c1586e28464a key_prefix=""
+2026/11/09 13:11:02 INFO request method=POST path=/api/webhooks status=201 duration_ms=9 workspace_id=d26b6e4d-8de0-4a54-b87f-c1586e28464a key_prefix=""
+2026/11/09 13:11:02 INFO request method=POST path=/api/emails status=202 duration_ms=48 workspace_id=d26b6e4d-8de0-4a54-b87f-c1586e28464a key_prefix=fm_live_ca0d
+--- PASS: TestDeveloperContractEndToEndWithRealLogEngine (1.25s)
+=== RUN   TestTransactionalSignedSNSAndReceiverFailureIsolation
+2026/11/09 13:11:03 INFO request method=POST path=/api/webhooks status=201 duration_ms=15 workspace_id=886b0437-8547-45ef-8664-b0970a0514df key_prefix=""
+2026/11/09 13:11:03 INFO request method=POST path=/api/transactional status=202 duration_ms=47 workspace_id=886b0437-8547-45ef-8664-b0970a0514df key_prefix=""
+2026/11/09 13:11:04 WARN ses event tags do not match recipient event=Bounce recipient_id=d5471761-2f11-4083-986d-a37ceeab5954
+2026/11/09 13:11:04 INFO ses event sns_message_id=mismatch-d5471761-2f11-4083-986d-a37ceeab5954 result=tag_mismatch
+2026/11/09 13:11:04 INFO ses event sns_message_id=bounce-d5471761-2f11-4083-986d-a37ceeab5954 result=processed
+2026/11/09 13:11:04 INFO ses event sns_message_id=bounce-d5471761-2f11-4083-986d-a37ceeab5954 result=duplicate
+2026/11/09 13:11:04 WARN rejected sns message type=Notification err="invalid sns message: crypto/rsa: verification error"
+2026/11/09 13:11:04 INFO request method=POST path=/api/transactional status=202 duration_ms=19 workspace_id=886b0437-8547-45ef-8664-b0970a0514df key_prefix=""
+2026/11/09 13:11:04 INFO ses event sns_message_id=another-bounce-d5471761-2f11-4083-986d-a37ceeab5954 result=processed
+--- PASS: TestTransactionalSignedSNSAndReceiverFailureIsolation (1.13s)
+=== RUN   TestStaticChunksDoNotConsumePublicEndpointBudget
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:04 INFO request method=GET path=/t/o/{token} status=429 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestStaticChunksDoNotConsumePublicEndpointBudget (0.00s)
+=== RUN   TestBothWorkersShareTrialQuota
+2026/11/09 13:11:04 INFO request method=POST path=/api/transactional status=202 duration_ms=57 workspace_id=85806874-186a-4932-8719-413db35e3667 key_prefix=""
+2026/11/09 13:11:04 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=38 workspace_id=85806874-186a-4932-8719-413db35e3667 key_prefix=""
+2026/11/09 13:11:05 INFO request method=POST path=/api/transactional status=402 duration_ms=16 workspace_id=85806874-186a-4932-8719-413db35e3667 key_prefix=""
+--- PASS: TestBothWorkersShareTrialQuota (1.68s)
+=== RUN   TestTrackingEventsReachSignedCustomerWebhook
+2026/11/09 13:11:06 INFO request method=POST path=/api/webhooks status=201 duration_ms=13 workspace_id=43689e65-0020-44c0-866f-01dd9d8774de key_prefix=""
+2026/11/09 13:11:06 INFO request method=POST path=/api/transactional status=202 duration_ms=43 workspace_id=43689e65-0020-44c0-866f-01dd9d8774de key_prefix=""
+2026/11/09 13:11:06 INFO request method=GET path=/t/o/{token} status=200 duration_ms=18 workspace_id="" key_prefix=""
+2026/11/09 13:11:06 INFO request method=GET path=/t/c/{token} status=302 duration_ms=3 workspace_id="" key_prefix=""
+2026/11/09 13:11:06 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:06 INFO request method=GET path=/t/c/{token} status=404 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestTrackingEventsReachSignedCustomerWebhook (0.87s)
+=== RUN   TestBroadcastAPIToSignedWebhook
+2026/11/09 13:11:07 INFO request method=POST path=/api/keys status=201 duration_ms=454 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=""
+2026/11/09 13:11:08 INFO request method=POST path=/api/keys status=201 duration_ms=455 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=""
+2026/11/09 13:11:08 INFO request method=POST path=/api/contacts/import status=200 duration_ms=34 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 INFO request method=POST path=/api/campaigns status=403 duration_ms=2 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_80c9
+2026/11/09 13:11:08 INFO request method=POST path=/api/campaigns status=201 duration_ms=10 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 INFO request method=GET path=/api/campaigns/{id} status=200 duration_ms=4 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=90 max_24h=100
+2026/11/09 13:11:08 INFO request method=POST path=/api/campaigns/{id}/emails status=201 duration_ms=36 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 INFO request method=PATCH path=/api/emails/{id} status=200 duration_ms=8 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 INFO request method=POST path=/api/webhooks status=201 duration_ms=7 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=14 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_80c9
+2026/11/09 13:11:08 INFO request method=POST path=/api/emails/{id}/pause status=200 duration_ms=2 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:08 INFO request method=POST path=/api/emails/{id}/resume status=200 duration_ms=4 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:09 INFO request method=GET path=/api/emails/{id}/report status=200 duration_ms=7 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+2026/11/09 13:11:09 INFO request method=GET path=/api/emails/{id}/recipients status=200 duration_ms=3 workspace_id=a18255f4-732f-4f4b-94da-a6e0baf684ad key_prefix=fm_live_2087
+--- PASS: TestBroadcastAPIToSignedWebhook (2.72s)
+=== RUN   TestDeveloperContractEndToEndWithRealLogEngine
+2026/11/09 13:11:10 INFO request method=POST path=/api/keys status=201 duration_ms=454 workspace_id=7244f9c0-8dba-42c3-9f88-171a81538bc9 key_prefix=""
+2026/11/09 13:11:10 INFO request method=POST path=/api/domains status=201 duration_ms=33 workspace_id=7244f9c0-8dba-42c3-9f88-171a81538bc9 key_prefix=""
+2026/11/09 13:11:10 INFO request method=POST path=/api/domains/{id}/verify status=200 duration_ms=4 workspace_id=7244f9c0-8dba-42c3-9f88-171a81538bc9 key_prefix=""
+2026/11/09 13:11:10 INFO request method=POST path=/api/webhooks status=201 duration_ms=11 workspace_id=7244f9c0-8dba-42c3-9f88-171a81538bc9 key_prefix=""
+2026/11/09 13:11:10 INFO request method=POST path=/api/emails status=202 duration_ms=49 workspace_id=7244f9c0-8dba-42c3-9f88-171a81538bc9 key_prefix=fm_live_3c33
+--- PASS: TestDeveloperContractEndToEndWithRealLogEngine (1.27s)
+=== RUN   TestTransactionalSignedSNSAndReceiverFailureIsolation
+2026/11/09 13:11:11 INFO request method=POST path=/api/webhooks status=201 duration_ms=13 workspace_id=5399a596-c0d9-480e-81a4-5d385ceb5cc8 key_prefix=""
+2026/11/09 13:11:11 INFO request method=POST path=/api/transactional status=202 duration_ms=46 workspace_id=5399a596-c0d9-480e-81a4-5d385ceb5cc8 key_prefix=""
+2026/11/09 13:11:11 WARN ses event tags do not match recipient event=Bounce recipient_id=e56fee6f-2779-4fe2-b102-8518f68697b2
+2026/11/09 13:11:11 INFO ses event sns_message_id=mismatch-e56fee6f-2779-4fe2-b102-8518f68697b2 result=tag_mismatch
+2026/11/09 13:11:11 INFO ses event sns_message_id=bounce-e56fee6f-2779-4fe2-b102-8518f68697b2 result=processed
+2026/11/09 13:11:11 INFO ses event sns_message_id=bounce-e56fee6f-2779-4fe2-b102-8518f68697b2 result=duplicate
+2026/11/09 13:11:11 WARN rejected sns message type=Notification err="invalid sns message: crypto/rsa: verification error"
+2026/11/09 13:11:11 INFO request method=POST path=/api/transactional status=202 duration_ms=19 workspace_id=5399a596-c0d9-480e-81a4-5d385ceb5cc8 key_prefix=""
+2026/11/09 13:11:11 INFO ses event sns_message_id=another-bounce-e56fee6f-2779-4fe2-b102-8518f68697b2 result=processed
+--- PASS: TestTransactionalSignedSNSAndReceiverFailureIsolation (0.98s)
+=== RUN   TestStaticChunksDoNotConsumePublicEndpointBudget
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/_next/static/* status=404 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:11 INFO request method=GET path=/t/o/{token} status=429 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestStaticChunksDoNotConsumePublicEndpointBudget (0.00s)
+=== RUN   TestBothWorkersShareTrialQuota
+2026/11/09 13:11:12 INFO request method=POST path=/api/transactional status=202 duration_ms=57 workspace_id=019c4088-29af-4078-a1b0-98e5baf6513f key_prefix=""
+2026/11/09 13:11:12 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=41 workspace_id=019c4088-29af-4078-a1b0-98e5baf6513f key_prefix=""
+2026/11/09 13:11:13 INFO request method=POST path=/api/transactional status=402 duration_ms=15 workspace_id=019c4088-29af-4078-a1b0-98e5baf6513f key_prefix=""
+--- PASS: TestBothWorkersShareTrialQuota (1.67s)
+=== RUN   TestTrackingEventsReachSignedCustomerWebhook
+2026/11/09 13:11:14 INFO request method=POST path=/api/webhooks status=201 duration_ms=14 workspace_id=1835c451-efe1-4c76-affc-c9f128bef3eb key_prefix=""
+2026/11/09 13:11:14 INFO request method=POST path=/api/transactional status=202 duration_ms=47 workspace_id=1835c451-efe1-4c76-affc-c9f128bef3eb key_prefix=""
+2026/11/09 13:11:14 INFO request method=GET path=/t/o/{token} status=200 duration_ms=15 workspace_id="" key_prefix=""
+2026/11/09 13:11:14 INFO request method=GET path=/t/c/{token} status=302 duration_ms=2 workspace_id="" key_prefix=""
+2026/11/09 13:11:14 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:11:14 INFO request method=GET path=/t/c/{token} status=404 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestTrackingEventsReachSignedCustomerWebhook (0.87s)
+PASS
+ok  	forkemail/cmd/server	23.641s

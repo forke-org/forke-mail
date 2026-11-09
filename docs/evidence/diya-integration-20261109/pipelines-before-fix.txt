@@ -1,0 +1,50 @@
+=== RUN   TestBroadcastAPIToSignedWebhook
+2026/11/09 13:06:34 INFO request method=POST path=/api/keys status=201 duration_ms=450 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=""
+2026/11/09 13:06:34 INFO request method=POST path=/api/keys status=201 duration_ms=454 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=""
+2026/11/09 13:06:34 INFO request method=POST path=/api/contacts/import status=200 duration_ms=35 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 INFO request method=POST path=/api/campaigns status=403 duration_ms=2 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_390e
+2026/11/09 13:06:34 INFO request method=POST path=/api/campaigns status=201 duration_ms=10 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 INFO request method=GET path=/api/campaigns/{id} status=200 duration_ms=5 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=90 max_24h=100
+2026/11/09 13:06:34 INFO request method=POST path=/api/campaigns/{id}/emails status=201 duration_ms=35 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 INFO request method=PATCH path=/api/emails/{id} status=200 duration_ms=8 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 INFO request method=POST path=/api/webhooks status=201 duration_ms=7 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=14 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_390e
+2026/11/09 13:06:34 INFO request method=POST path=/api/emails/{id}/pause status=200 duration_ms=4 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:34 INFO request method=POST path=/api/emails/{id}/resume status=200 duration_ms=5 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:35 INFO request method=GET path=/api/emails/{id}/report status=200 duration_ms=3 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+2026/11/09 13:06:35 INFO request method=GET path=/api/emails/{id}/recipients status=200 duration_ms=2 workspace_id=cb62915f-c5b0-4c20-85ee-4f871f825afb key_prefix=fm_live_075e
+--- PASS: TestBroadcastAPIToSignedWebhook (1.99s)
+=== RUN   TestDeveloperContractEndToEndWithRealLogEngine
+2026/11/09 13:06:36 INFO request method=POST path=/api/keys status=201 duration_ms=451 workspace_id=b95ee5ac-ab5d-4ed8-83e4-87d0e7e44fd2 key_prefix=""
+2026/11/09 13:06:36 INFO request method=POST path=/api/domains status=201 duration_ms=24 workspace_id=b95ee5ac-ab5d-4ed8-83e4-87d0e7e44fd2 key_prefix=""
+2026/11/09 13:06:36 INFO request method=POST path=/api/domains/{id}/verify status=200 duration_ms=3 workspace_id=b95ee5ac-ab5d-4ed8-83e4-87d0e7e44fd2 key_prefix=""
+2026/11/09 13:06:36 INFO request method=POST path=/api/webhooks status=201 duration_ms=8 workspace_id=b95ee5ac-ab5d-4ed8-83e4-87d0e7e44fd2 key_prefix=""
+2026/11/09 13:06:36 INFO request method=POST path=/api/emails status=202 duration_ms=52 workspace_id=b95ee5ac-ab5d-4ed8-83e4-87d0e7e44fd2 key_prefix=fm_live_a765
+--- PASS: TestDeveloperContractEndToEndWithRealLogEngine (1.27s)
+=== RUN   TestTransactionalSignedSNSAndReceiverFailureIsolation
+2026/11/09 13:06:37 INFO request method=POST path=/api/webhooks status=201 duration_ms=17 workspace_id=f9646d04-75e4-478a-9cf6-32a83ad85629 key_prefix=""
+2026/11/09 13:06:37 INFO request method=POST path=/api/transactional status=202 duration_ms=54 workspace_id=f9646d04-75e4-478a-9cf6-32a83ad85629 key_prefix=""
+2026/11/09 13:06:37 WARN ses event tags do not match recipient event=Bounce recipient_id=fd15074d-b44f-41bd-a709-16ae074eca43
+2026/11/09 13:06:37 INFO ses event sns_message_id=mismatch-fd15074d-b44f-41bd-a709-16ae074eca43 result=tag_mismatch
+2026/11/09 13:06:37 INFO ses event sns_message_id=bounce-fd15074d-b44f-41bd-a709-16ae074eca43 result=processed
+2026/11/09 13:06:37 INFO ses event sns_message_id=bounce-fd15074d-b44f-41bd-a709-16ae074eca43 result=duplicate
+2026/11/09 13:06:37 WARN rejected sns message type=Notification err="invalid sns message: crypto/rsa: verification error"
+    feedback_integration_test.go:85: failed receiver was not isolated <nil>
+--- FAIL: TestTransactionalSignedSNSAndReceiverFailureIsolation (0.96s)
+=== RUN   TestBothWorkersShareTrialQuota
+2026/11/09 13:06:38 INFO request method=POST path=/api/transactional status=202 duration_ms=69 workspace_id=82fb093a-ac13-4fd7-8335-25069b60885a key_prefix=""
+2026/11/09 13:06:38 INFO request method=POST path=/api/emails/{id}/send status=200 duration_ms=47 workspace_id=82fb093a-ac13-4fd7-8335-25069b60885a key_prefix=""
+    shared_quota_integration_test.go:39: broadcast worker failed
+--- FAIL: TestBothWorkersShareTrialQuota (1.69s)
+=== RUN   TestTrackingEventsReachSignedCustomerWebhook
+2026/11/09 13:06:39 INFO request method=POST path=/api/webhooks status=201 duration_ms=14 workspace_id=57bbb314-98b3-4f86-8469-4e1afd1a5205 key_prefix=""
+2026/11/09 13:06:39 INFO request method=POST path=/api/transactional status=202 duration_ms=46 workspace_id=57bbb314-98b3-4f86-8469-4e1afd1a5205 key_prefix=""
+2026/11/09 13:06:39 INFO request method=GET path=/t/o/{token} status=200 duration_ms=17 workspace_id="" key_prefix=""
+2026/11/09 13:06:39 INFO request method=GET path=/t/c/{token} status=302 duration_ms=2 workspace_id="" key_prefix=""
+2026/11/09 13:06:39 INFO request method=GET path=/t/o/{token} status=200 duration_ms=0 workspace_id="" key_prefix=""
+2026/11/09 13:06:39 INFO request method=GET path=/t/c/{token} status=404 duration_ms=0 workspace_id="" key_prefix=""
+--- PASS: TestTrackingEventsReachSignedCustomerWebhook (0.89s)
+FAIL
+FAIL	forkemail/cmd/server	7.486s
+FAIL

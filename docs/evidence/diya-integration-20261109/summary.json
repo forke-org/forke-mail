@@ -1,0 +1,21 @@
+{
+  "environment": "local (log driver/fake network/provider), disposable PostgreSQL 18",
+  "test_command": "go test -json -count=1 ./...",
+  "tests": {
+    "pass": 103,
+    "fail": 0,
+    "skip": 0
+  },
+  "packages_without_test_files": 12,
+  "build": "PASS",
+  "vet": "PASS",
+  "gofmt": "PASS (empty output)",
+  "deadcode": "PASS (empty output)",
+  "race": "NOT RUN: race build failed; installed GCC lacks 64-bit mode",
+  "frontend": "npm ci and npx next build --webpack PASS; zero audit vulnerabilities",
+  "assets_and_migrations_unchanged": 20,
+  "repeated_pipeline_runs": 3,
+  "browser": "4 dashboard screenshots + 4 repeated navigation checks PASS, zero final page/console/network errors; API evidence screenshot saved",
+  "source_commit": "5b7d78044fd64c63ad062f88f3d7abd53641b192",
+  "sustained_concurrent_load_runs": 5
+}

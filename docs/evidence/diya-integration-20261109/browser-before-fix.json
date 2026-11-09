@@ -1,0 +1,36 @@
+{
+  "failedResponses": [
+    {
+      "url": "http://127.0.0.1:18089/_next/static/chunks/pages/_app-97c08e28368dd4b2.js",
+      "status": 429
+    },
+    {
+      "url": "http://127.0.0.1:18089/_next/static/chunks/pages/transactional-1a41a5a5c56f9399.js",
+      "status": 429
+    },
+    {
+      "url": "http://127.0.0.1:18089/_next/static/chunks/459-45596c4f164f2a18.js",
+      "status": 429
+    },
+    {
+      "url": "http://127.0.0.1:18089/_next/static/HdyAN5-kyEFAEmJECryT-/_buildManifest.js",
+      "status": 429
+    },
+    {
+      "url": "http://127.0.0.1:18089/_next/static/HdyAN5-kyEFAEmJECryT-/_ssgManifest.js",
+      "status": 429
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Refused to execute script from 'http://127.0.0.1:18089/_next/static/chunks/pages/_app-97c08e28368dd4b2.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Refused to execute script from 'http://127.0.0.1:18089/_next/static/chunks/pages/transactional-1a41a5a5c56f9399.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Refused to execute script from 'http://127.0.0.1:18089/_next/static/chunks/459-45596c4f164f2a18.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Refused to execute script from 'http://127.0.0.1:18089/_next/static/HdyAN5-kyEFAEmJECryT-/_buildManifest.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Refused to execute script from 'http://127.0.0.1:18089/_next/static/HdyAN5-kyEFAEmJECryT-/_ssgManifest.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled."
+  ]
+}

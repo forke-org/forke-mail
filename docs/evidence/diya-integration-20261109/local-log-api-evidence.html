@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Local API evidence</title><style>body{background:#0b121a;color:#e8f0f8;font:16px system-ui;margin:40px}h1{font-size:28px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:12px;border-bottom:1px solid #304050}td:last-child{color:#91e9ba}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#152330;padding:18px;border-radius:8px}small{color:#aac0d4}</style></head><body><h1>Local (log driver): API integration evidence</h1><p>Real local HTTP responses · simulated delivery feedback · no live SES</p><table><tr><th>Method</th><th>Endpoint</th><th>Status</th></tr><tr><td>POST</td><td>/api/auth/signup</td><td>201</td></tr><tr><td>POST</td><td>/api/keys</td><td>201</td></tr><tr><td>POST</td><td>/api/domains</td><td>201</td></tr><tr><td>POST</td><td>/api/domains/3aff7ca4-80f0-4d30-830d-27b33c1279dd/verify</td><td>200</td></tr><tr><td>POST</td><td>/api/emails</td><td>202</td></tr><tr><td>POST</td><td>/api/transactional</td><td>200</td></tr><tr><td>POST</td><td>/api/transactional</td><td>202</td></tr><tr><td>POST</td><td>/api/suppressions</td><td>400</td></tr><tr><td>POST</td><td>/api/suppressions</td><td>201</td></tr><tr><td>POST</td><td>/api/contacts/import</td><td>200</td></tr><tr><td>POST</td><td>/api/campaigns</td><td>201</td></tr><tr><td>POST</td><td>/api/campaigns/d4102741-a202-43c8-b149-114025302522/emails</td><td>201</td></tr><tr><td>POST</td><td>/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/send</td><td>200</td></tr><tr><td>GET</td><td>/api/transactional/8b78fa15-bf9f-4cb0-b077-0cef2e03e5ef</td><td>200</td></tr><tr><td>GET</td><td>/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/report</td><td>200</td></tr><tr><td>GET</td><td>/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/report</td><td>200</td></tr><tr><td>GET</td><td>/api/emails/1598ffef-7c7b-440f-b2ce-9fe8a712e492/recipients</td><td>200</td></tr><tr><td>GET</td><td>/api/transactional/stats</td><td>200</td></tr></table><h2>Cross-route message identity</h2><pre>{
+  &quot;compatibility&quot;: {
+    &quot;id&quot;: &quot;17cdae3a-e41b-4df7-bd38-0a6749308194&quot;,
+    &quot;status&quot;: &quot;queued&quot;,
+    &quot;mode&quot;: &quot;engine&quot;
+  },
+  &quot;nativeReplay&quot;: {
+    &quot;id&quot;: &quot;17cdae3a-e41b-4df7-bd38-0a6749308194&quot;,
+    &quot;replayed&quot;: &quot;idempotency_key&quot;
+  },
+  &quot;broadcastReport&quot;: {
+    &quot;id&quot;: &quot;1598ffef-7c7b-440f-b2ce-9fe8a712e492&quot;,
+    &quot;status&quot;: &quot;done&quot;,
+    &quot;pause_reason&quot;: null,
+    &quot;total&quot;: 1,
+    &quot;counts&quot;: {
+      &quot;pending&quot;: 0,
+      &quot;sent&quot;: 1,
+      &quot;delivered&quot;: 1,
+      &quot;bounced&quot;: 0,
+      &quot;complained&quot;: 0,
+      &quot;unsubscribed&quot;: 0,
+      &quot;failed&quot;: 0,
+      &quot;skipped&quot;: 0
+    },
+    &quot;progress&quot;: 100
+  }
+}</pre><small>API keys and session cookies excluded. Signed customer webhook checks are in pipelines.txt.</small></body></html>

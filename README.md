@@ -1,6 +1,6 @@
 # Forke Mail
 
-Forke Mail is a multi-tenant broadcast email service, similar to Resend or Loops. Each workspace imports contacts, groups emails into campaigns and sends them through **Amazon SES**. Delivery, bounce and complaint feedback comes back over **Amazon SNS**.
+Forke Mail is a multi-tenant broadcast and transactional email service. Each workspace imports contacts for campaigns or sends individual transactional messages through a shared **Amazon SES** sender. Delivery, bounce and complaint feedback comes back over **Amazon SNS**. The local log driver stores mail and simulates feedback without internet email delivery.
 
 It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for all state. It needs no Redis, message broker or ORM.
 
@@ -39,8 +39,10 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
   - A Postgres-backed worker claims recipients with `FOR UPDATE SKIP LOCKED`.
   - Each workspace gets its own rate limit, under one global SES rate limit.
   - Failed sends are retried with backoff.
-  - A sweeper recovers recipients stuck mid-send after a crash.
-  - Every email gets a per-recipient unsubscribe link and the `List-Unsubscribe` / one-click headers.
+  - Stale sending claims fail as unknown_outcome without automatic resend after a crash.
+  - Broadcast emails get per-recipient unsubscribe links and List-Unsubscribe / one-click headers.
+- **Transactional APIs.** Native POST /api/transactional and compatibility POST /api/emails use one durable acceptance/idempotency service and return the same real ID across keyed retries. Optional signed open/click tracking is transactional only. The dashboard includes list, detail and activity pages.
+- **Customer webhooks.** One PostgreSQL outbox for both pipelines, HMAC-signed deliveries, encrypted secrets, SSRF protection, bounded retries and receiver deduplication. New payloads identify transactional message_id separately from broadcast email_id/recipient_id.
 - **Amazon SES integration.**
   - Sends through SESv2 using a configuration set and message tags.
   - Classifies SES errors without SDK retries; ambiguous outcomes are never retried, so no one gets a duplicate.
@@ -602,9 +604,17 @@ docker/            PostgreSQL init script
 - **Tenant isolation.** Every query is scoped by `workspace_id`; cross-tenant IDs return 404.
 - **Passwords.** Stored with bcrypt (cost 12). Login timing is equalized for unknown emails.
 - **Sessions.** `HttpOnly`, `SameSite=Lax`, `Secure` over https, 14-day lifetime, stored hashed. Mutating session requests must be same-origin (`Sec-Fetch-Site` or `Origin`).
-- **API keys.** Shown once, stored as SHA-256 hashes with a 12-character display prefix. Creating, rotating and revoking keys requires the account password.
+- **API keys.** Shown once, stored as SHA-256 hashes with a 12-character display prefix. Creating and rotating require a session and password; revoking requires a session. Sending-only keys cannot manage campaigns, domains, webhooks or keys.
 - **Unsubscribe links.** HMAC-SHA256 signed tokens, with one-click `List-Unsubscribe-Post` support.
 - **SNS webhook.** Authenticated only by AWS's signature, with a certificate host allowlist, a topic check and dedupe.
 - **Strict CSP.** No inline scripts, `frame-ancestors 'none'`, `nosniff`, and `no-store` on API responses.
 - **Request limits.** Request body limits, server timeouts, per-IP and per-key rate limits, and lockout on failed authentication.
-- **Logging.** Secrets are never logged or returned. Logs carry the route pattern, workspace ID and key prefix only, never authorization headers, keys, passwords or request bodies.
+- **Logging.** Logs carry route pattern, workspace ID and key prefix, never authorization headers, raw keys, passwords or request bodies. Intentional one-time key/webhook-secret responses use no-store.
+
+## Integrated API setup and migration path
+
+See [developer quickstart](docs/developer-quickstart.md), [OpenAPI](docs/openapi.yaml) and [integration handoff](docs/integration-handoff.md) for copyable requests, signatures, scope differences and local verification. Both send APIs use Diya's real engine; the former runtime stub is removed. Leave TRANSACTIONAL_STUB_ENABLED unset or false; true is rejected to prevent silently changing old stub-only workflows into real sends.
+
+Krishna migrations 6–8 remain byte-for-byte unchanged. Transactional schema is migration 9 and new shared customer webhook payloads are migration 10. Startup upgrades empty or Krishna-history databases; legacy receipts and historical queued webhook bytes stay intact. Do not apply this migration history to a Diya-origin database where version 6 means something else. Use a separately reviewed migration path for those databases.
+
+Run one sending instance: global rate/quota scheduling is in-process. Transactional waiting work gets priority with bounded broadcast turns; in-flight calls are not preempted. Both pipelines share quotas, sender identity checks and provider feedback. Transactional messages allow marketing opt-outs but block hard-bounce, complaint and manual suppressions; broadcasts exclude every opt-out. No shared DB, live SES call or push was used for the integration evidence.

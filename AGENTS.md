@@ -4,7 +4,7 @@ This file gives AI coding agents and new contributors the context they need with
 
 ## What this is
 
-Forke Mail is a multi-tenant broadcast email service.
+Forke Mail is a multi-tenant broadcast and transactional email service.
 
 - **Tenancy.** A workspace (tenant) has users, API keys, contacts, tags, suppressions, sending identities, campaigns, and emails inside campaigns.
 - **Launch.** Launching an email snapshots its audience into per-recipient rows.
@@ -32,7 +32,7 @@ curl -X POST "localhost:8080/dev/seed?reset=true" -H "X-Seed-Token: $SEED_TOKEN"
 curl -X POST localhost:8080/dev/ses-event -H "X-Seed-Token: $SEED_TOKEN" -d '<SES event JSON>'  # dev only
 ```
 
-DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own workspaces via `dbtest.Workspace` and clean up after themselves, so they are safe to run against a shared test DB.
+DB-backed tests skip when TEST_DATABASE_URL is unset. Integration verification must use disposable local PostgreSQL, not shared, production or Diya-origin databases. Tests create workspaces and isolated migration schemas and clean them up.
 
 ## Hard rules (project conventions)
 
@@ -40,7 +40,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 2. **Keep it simple.** Do not add an ORM, Redis, message brokers or new frameworks. Use plain SQL through pgx v5, chi for routing, `x/time/rate` for limiters, and goose for migrations.
 3. **Never edit existing migrations.** Every schema change goes in a new `migrations/0000N_name.sql` with both Up and Down. Postgres auto-names constraints `<table>_<column>_check`; drop and re-add them by those names.
 4. **Fix root causes.** No dead code, no speculative abstractions, small files, one concept per file. `deadcode -test ./...` must stay clean.
-5. **Secrets never leave the process.** Never log, return or render AWS credentials, API keys, passwords, session tokens, seed tokens or request bodies. The request logger only records the method, route pattern, status, duration, `workspace_id` and `key_prefix`.
+5. **Secrets stay private.** Never log credentials, authorization headers, session tokens or message bodies. API keys and customer webhook secrets have intentional one-time create/rotate responses with no-store; list endpoints never expose them. Keep development seed credentials private. The request logger records method, route pattern, status, duration, workspace_id and key_prefix only.
 6. **Every query is tenant scoped.** Filter by `workspace_id`, and return 404 (never 403) for IDs belonging to another workspace.
 7. **Every new authenticated route needs an entry in `internal/auth/scopes.go`.** Unlisted routes are denied.
 8. Match the surrounding style. Errors are JSON `{"error":"snake_case_code"}` via `httpx.Error`, and unexpected errors go through `httpx.Internal`, which logs them and returns `internal_error`.
@@ -71,7 +71,8 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 | `internal/unsub` | `Signer` (HMAC token `base64url(ws:contact:email).base64url(mac)`, strict base64), confirm page + POST (one-click) |
 | `internal/seed` | dev seed: Forke (paid, `full_access`), Acme Trial (100), Beta Trial (5) |
 | `internal/db` | `Connect`, `Migrate` (goose provider over the embedded FS), `Health`, `Querier`; `dbtest` holds test helpers and fixtures |
-| `migrations/` | `00001` workspaces/users/sessions/keys/domains · `00002` contacts/tags/suppressions · `00003` campaigns/emails/audience/recipients · `00004` message_logs/events/usage/webhook_endpoints · `00005` SES columns, pause reasons, suppression source, processed SNS messages |
+| `migrations/` | 1 workspaces/users/sessions/keys/domains · 2 contacts/tags/suppressions · 3 campaigns/emails/audience/recipients · 4 logs/events/usage/endpoints · 5 SES/feedback · 6 customer webhook outbox · 7 legacy receipts · 8 retention · 9 transactional engine · 10 shared webhook payload |
+| `internal/transactional` | Service.Accept, native Handler, CompatibilityHandler, durable dispatcher, signed tracking and statistics. Same Sender/global gate as broadcasts |
 | `frontend/` | Next.js 16 pages router, static export, React 19, TanStack Table v8. `lib/api.js` (fetch wrapper + error messages), `lib/session.js` (auth state, upgrade modal), `components/` (DataTable, Modal/Confirm, Layout, …), `pages/` (one page per route). Theme tokens live in `public/app.css`; `public/theme.js` sets the theme before paint |
 
 ## Data model (key columns only)
@@ -108,7 +109,10 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 - **`processed_sns_messages`**: `sns_message_id` PK, the webhook dedupe.
 - **`webhook_endpoints`**: customer HTTPS endpoints; the secret column contains workspace-bound AES-GCM ciphertext for newly managed endpoints. Legacy endpoints migrate disabled and require signing-secret rotation. A trigger on email_events atomically creates webhook_deliveries, including events inserted directly by campaign launch.
 - **`webhook_deliveries`**: PostgreSQL outbox with HMAC signing, leases, bounded retries and seven-day finished-history retention. internal/webhooks owns endpoint management, URL/network protection, encryption and dispatch. WEBHOOK_ENCRYPTION_KEY enables dispatch; missing configuration disables creation/rotation.
-- **`transactional_requests`**: 24-hour workspace-scoped HTTP idempotency receipts. internal/transactional defines EmailEnqueuer; no production engine adapter is wired. POST /api/emails defaults to 503; TRANSACTIONAL_STUB_ENABLED=true is allowed only in development and returns mode=development_stub without sending mail.
+- **transactional_requests**: read-only historical stub receipts. Unexpired keys conflict explicitly; never replay them as real sends or write new receipts.
+- **transactional_messages**: sole live idempotency store and durable priority queue. Native POST /api/transactional and compatibility POST /api/emails share Service.Accept over Diya's accept transaction; only notify after commit. The compatibility handler maps from to from_address and adapts replay headers/status/errors. Main starts one Dispatcher sharing the same Sender and sender.Worker gate as broadcasts. The runtime stub is removed; its old enabled flag fails startup.
+- **Migration order**: 1–5 base, 6 customer webhooks, 7 legacy receipts, 8 webhook retention, 9 transactional engine, 10 new shared webhook payload shape. Never edit 6–8. Diya-origin version-6 databases are incompatible with this history and need a separate planned migration path. Never mark versions manually.
+- **Customer event correlation**: new payloads contain message_id and message_type (transactional/broadcast/workspace), preserving broadcast email_id/recipient_id. Migration 10 replaces only the trigger function; historical queued bytes stay unchanged. Signed opt-in transactional tracking routes generate email.opened/email.clicked; no broadcast tracking is fabricated.
 
 Intern 3 extensions are registered in cmd/server/developer.go. Domain diagnostics live in internal/domains/dns.go; GET /api/domains/{id}/dns is independent of SES identity verification. Custom MAIL FROM is a DNS preview, not provider configuration. Full API examples and signing contracts are in docs/developer-quickstart.md and docs/openapi.yaml.
 
@@ -162,7 +166,9 @@ Each lane runs a limiter at `workspaces.SendRate`: `min(configured or trial rate
 
 **API errors never create suppressions.** Only feedback events and unsubscribes do.
 
-The worker also idles while `holdUntil` is in the future, or while SES `SentLast24Hours` plus local sends since the last check is at least 90% of `Max24HourSend` (values ≤ 0 mean unlimited). Separately, the sweeper resets rows that have been `sending` for more than 5 minutes back to `pending`.
+The broadcast worker idles during holds or at 90% of SES daily quota. Transactional work can use the remaining headroom up to the hard limit. One gate counts local sends and in-flight reservations, prioritizes waiting urgent work and yields a bulk turn after eight urgent grants when bulk waits. It cannot preempt in-flight calls. Both sweepers fail stale sending claims as unknown_outcome without resend, conservatively retaining quota. Per-process limiters require one sending instance.
+
+Transactional acceptance reserves workspace quota atomically; definitive failures release it, ambiguous outcomes retain it. Retries and replays keep the canonical ID and reserve once. Suppression blocks bounced/complained/manual but permits marketing unsubscribes. Eligibility is checked before and after waiting for the gate. Transactional mail has no marketing-contact insertion or unsubscribe footer. The dispatcher polls for missed notifications/restarts. Signature/DNS/lease/retry customer delivery logic remains in internal/webhooks and never blocks sender/provider acknowledgement.
 
 ### SES classification (`ses.Classify`)
 
@@ -181,8 +187,8 @@ The worker also idles while `holdUntil` is in the future, or while SES `SentLast
 Runs in one transaction:
 1. If an SNS message ID is present, insert it into `processed_sns_messages`. On conflict, return `duplicate`.
 2. Parse the event (`eventType`, falling back to `notificationType`). Invalid JSON or an unhandled type returns `ignored`.
-3. Look up the recipient with `ses_message_id = mail.messageId FOR UPDATE`. If there is none: `unknown_message`.
-4. Cross-check the `workspace_id`, `email_id` and `recipient_id` tags when present. On a mismatch: `tag_mismatch`.
+3. Look up the broadcast recipient, then transactional message, with ses_message_id = mail.messageId FOR UPDATE. If neither exists: unknown_message.
+4. Cross-check workspace_id and broadcast email_id/recipient_id or transactional message_id tags when present. On mismatch: tag_mismatch.
 5. Apply the event:
 
 | Event | Effect |
@@ -240,7 +246,9 @@ Links use `PUBLIC_BASE_URL`.
 |---|---|
 | `sessionOnly` | logout and API key management |
 | `workspace` (session + `full_access`) | dashboard, events, contacts read and write, tags, campaign create/read/update, email update/delete/pause/resume/messages/recipients, domains, suppressions |
-| `anyone` (+ `sending_access`) | `GET /api/me`, contact import, `GET /api/campaigns`, create an email in a campaign, `GET` an email, send, report |
+| `anyone` (+ `sending_access`) | GET /api/me, contact import, GET /api/campaigns, create an email in a campaign, GET an email, send, report, both transactional send routes and transactional detail by ID |
+
+Transactional list/stats and webhook management require session or full_access. Sending-only keys cannot create or manage campaigns. Key management remains session-only.
 
 ## Frontend notes
 
