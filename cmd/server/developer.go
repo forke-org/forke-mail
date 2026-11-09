@@ -12,22 +12,16 @@ import (
 )
 
 type developerServices struct {
-	transaction *transactional.CompatibilityHandler
-	hooks       *webhooks.Handler
-	dispatcher  *webhooks.Dispatcher
+	hooks      *webhooks.Handler
+	dispatcher *webhooks.Dispatcher
 }
 
-func newDeveloperServices(pool *pgxpool.Pool, development bool) (*developerServices, error) {
+func newDeveloperServices(pool *pgxpool.Pool) (*developerServices, error) {
+	if os.Getenv("TRANSACTIONAL_STUB_ENABLED") == "true" {
+		return nil, errors.New("TRANSACTIONAL_STUB_ENABLED has been removed; use the real log-driver engine")
+	}
 	h := &webhooks.Handler{Pool: pool}
 	d := &developerServices{hooks: h}
-	d.transaction = &transactional.CompatibilityHandler{Pool: pool}
-	if os.Getenv("TRANSACTIONAL_STUB_ENABLED") == "true" {
-		if !development {
-			return nil, errors.New("TRANSACTIONAL_STUB_ENABLED is restricted to development")
-		}
-		d.transaction.Enqueuer = transactional.DevelopmentStub{}
-		d.transaction.Development = true
-	}
 	if encoded := os.Getenv("WEBHOOK_ENCRYPTION_KEY"); encoded != "" {
 		v, err := webhooks.NewVault(encoded)
 		if err != nil {
@@ -45,7 +39,7 @@ func (d *developerServices) Run(ctx context.Context) {
 	}
 }
 
-func registerDeveloperRoutes(api chi.Router, pool *pgxpool.Pool, d *developerServices) {
+func registerDeveloperRoutes(api chi.Router, pool *pgxpool.Pool, d *developerServices, dispatcher *transactional.Dispatcher) {
 	if d == nil {
 		d = &developerServices{hooks: &webhooks.Handler{Pool: pool}}
 	}
@@ -55,9 +49,6 @@ func registerDeveloperRoutes(api chi.Router, pool *pgxpool.Pool, d *developerSer
 	api.Delete("/api/webhooks/{id}", d.hooks.Delete)
 	api.Post("/api/webhooks/{id}/rotate", d.hooks.Rotate)
 	api.Get("/api/webhooks/{id}/deliveries", d.hooks.Deliveries)
-	txH := d.transaction
-	if txH == nil {
-		txH = &transactional.CompatibilityHandler{Pool: pool}
-	}
+	txH := &transactional.CompatibilityHandler{Service: transactional.Service{Pool: pool, Dispatcher: dispatcher}}
 	api.Post("/api/emails", txH.Send)
 }

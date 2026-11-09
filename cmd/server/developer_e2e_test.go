@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,53 +11,35 @@ import (
 	"time"
 
 	"forkemail/internal/db/dbtest"
-	"forkemail/internal/feedback"
 	"forkemail/internal/transactional"
 	"forkemail/internal/webhooks"
-	"github.com/jackc/pgx/v5"
 )
-
-type fixtureEngine struct{}
-
-func (fixtureEngine) Enqueue(ctx context.Context, tx pgx.Tx, j transactional.Job) error {
-	var campaign string
-	if err := tx.QueryRow(ctx, `INSERT INTO campaigns(workspace_id,name) VALUES($1,$2) RETURNING id`, j.WorkspaceID, j.ID).Scan(&campaign); err != nil {
-		return err
-	}
-	_, err := tx.Exec(ctx, `INSERT INTO emails(id,workspace_id,campaign_id,subject,from_address,text) VALUES($1,$2,$3,$4,$5,$6)`, j.ID, j.WorkspaceID, campaign, j.Message.Subject, j.Message.From, j.Message.Text)
-	return err
-}
 
 type receiverTransport func(*http.Request) (*http.Response, error)
 
 func (f receiverTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
-func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
-	f := newAPIFixture(t)
-	v, err := webhooks.NewVault(base64.StdEncoding.EncodeToString([]byte(strings.Repeat("v", 32))))
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}, transaction: &transactional.CompatibilityHandler{Pool: f.pool, Enqueuer: fixtureEngine{}}})
+func TestDeveloperContractEndToEndWithRealLogEngine(t *testing.T) {
+	f, v := newIntegratedFixture(t)
 	w := f.request("POST", "/api/keys", `{"name":"e2e","scope":"sending_access","password":"test-password"}`, "")
 	var key struct{ Key string }
 	if err := json.Unmarshal(w.Body.Bytes(), &key); err != nil {
 		t.Fatal(err)
 	}
 	if w.Code != 201 {
-		t.Fatalf("key %d", w.Code)
+		t.Fatal("key creation failed")
 	}
-	domain := f.ws + ".example.com"
+	domain := f.ws + ".example.test"
 	w = f.request("POST", "/api/domains", `{"name":"`+domain+`"}`, "")
 	var identity struct{ ID string }
 	if err := json.Unmarshal(w.Body.Bytes(), &identity); err != nil {
 		t.Fatal(err)
 	}
 	if w.Code != 201 {
-		t.Fatalf("domain %d", w.Code)
+		t.Fatal("domain create failed")
 	}
-	if code := f.request("POST", "/api/domains/"+identity.ID+"/verify", "", "").Code; code != 200 {
-		t.Fatalf("verify %d", code)
+	if f.request("POST", "/api/domains/"+identity.ID+"/verify", "", "").Code != 200 {
+		t.Fatal("domain verify failed")
 	}
 	w = f.request("POST", "/api/webhooks", `{"url":"https://hooks.example.com","events":["email.delivered"]}`, "")
 	var endpoint struct{ ID, Secret string }
@@ -66,7 +47,7 @@ func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 	if w.Code != 201 {
-		t.Fatalf("webhook %d", w.Code)
+		t.Fatal("hook create failed")
 	}
 	r := httptest.NewRequest("POST", "/api/emails", strings.NewReader(`{"from":"sender@`+domain+`","to":"person@example.com","subject":"Receipt","text":"Hello"}`))
 	r.Header.Set("Authorization", "Bearer "+key.Key)
@@ -78,31 +59,29 @@ func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 	if w.Code != 202 {
-		t.Fatalf("send %d", w.Code)
+		t.Fatalf("send %d %s", w.Code, w.Body.String())
 	}
-	message := "fixture-ses-" + f.ws
-	dbtest.SentRecipient(t, f.pool, f.ws, receipt.ID, "person@example.com", message)
-	p := feedback.Processor{Pool: f.pool}
-	if _, err := p.Handle(context.Background(), "fixture-sns-"+f.ws, []byte(`{"eventType":"Delivery","mail":{"messageId":"`+message+`"}}`)); err != nil {
-		t.Fatal(err)
+	eventually(t, func() bool {
+		return dbtest.QueryString(t, f.pool, `SELECT (delivered_at IS NOT NULL)::text FROM transactional_messages WHERE id=$1 AND workspace_id=$2`, receipt.ID, f.ws) == "true"
+	})
+	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM contacts WHERE workspace_id=$1`, f.ws); n != "0" {
+		t.Fatal("transactional send created a marketing contact")
 	}
 	verified := false
 	dispatcher := webhooks.Dispatcher{Pool: f.pool, Vault: v, Client: &http.Client{Transport: receiverTransport(func(r *http.Request) (*http.Response, error) {
 		body, _ := io.ReadAll(r.Body)
 		if !webhooks.Verify(endpoint.Secret, r.Header.Get("Webhook-Id"), r.Header.Get("Webhook-Timestamp"), r.Header.Get("Webhook-Signature"), body, time.Now()) {
-			t.Error("signature invalid")
+			t.Error("invalid outgoing signature")
 		}
-		var payload struct {
-			Type string
-			Data struct {
-				EmailID string `json:"email_id"`
-			}
-		}
+		var payload struct{ ID, Type string }
 		if err := json.Unmarshal(body, &payload); err != nil {
 			t.Error(err)
 		}
-		if payload.Type != "email.delivered" || payload.Data.EmailID != receipt.ID {
-			t.Error("message identity lost")
+		if payload.Type != "email.delivered" {
+			t.Error("wrong event")
+		}
+		if actual := dbtest.QueryString(t, f.pool, `SELECT message_id::text FROM email_events WHERE id=$1 AND workspace_id=$2`, payload.ID, f.ws); actual != receipt.ID {
+			t.Error("engine/event message identity lost")
 		}
 		verified = true
 		return &http.Response{StatusCode: 204, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(""))}, nil

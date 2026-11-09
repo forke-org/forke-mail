@@ -32,32 +32,21 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 	if !httpx.Decode(w, r, &req) {
 		return
 	}
-	req.normalize()
-	if code := req.validate(); code != "" {
-		httpx.Error(w, http.StatusUnprocessableEntity, code)
-		return
-	}
-	var res accepted
-	err := pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
-		var err error
-		res, err = accept(r.Context(), tx, who, key, req)
-		return err
-	})
+	res, err := (Service{Pool: h.Pool, Dispatcher: h.Dispatcher}).Accept(r.Context(), who, key, req)
 	if writeError(w, r, err) {
 		return
 	}
 	status := http.StatusOK
-	if res.replayed == "" {
-		h.Dispatcher.Notify(res.id)
+	if res.Replayed == "" {
 		status = http.StatusAccepted
 	} else {
 		w.Header().Set("Idempotent-Replayed", "true")
 	}
-	m, err := load(r.Context(), h.Pool, who.WorkspaceID, res.id)
+	m, err := load(r.Context(), h.Pool, who.WorkspaceID, res.ID)
 	if writeError(w, r, err) {
 		return
 	}
-	httpx.JSON(w, status, sendResponse{Message: m, Replayed: res.replayed})
+	httpx.JSON(w, status, sendResponse{Message: m, Replayed: res.Replayed})
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
@@ -134,6 +123,11 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 	switch {
 	case err == nil:
 		return false
+	case errors.Is(err, errLegacyKey):
+		httpx.Error(w, 409, "legacy_stub_key_requires_new_key")
+	case isValidation(err):
+		v := err.(*validationError)
+		httpx.Error(w, v.status, v.code)
 	case errors.Is(err, errNotFound):
 		httpx.Error(w, http.StatusNotFound, "not_found")
 	case errors.Is(err, errKeyReused):

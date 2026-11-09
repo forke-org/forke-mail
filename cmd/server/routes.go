@@ -139,7 +139,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Post("/api/suppressions", contactH.CreateSuppression)
 		api.Post("/api/suppressions/import", contactH.ImportSuppressions)
 		api.Delete("/api/suppressions/{id}", contactH.DeleteSuppression)
-		registerDeveloperRoutes(api, pool, svc.developer)
+		registerDeveloperRoutes(api, pool, svc.developer, svc.dispatcher)
 		api.Post("/api/transactional", transactionalH.Send)
 		api.Get("/api/transactional", transactionalH.List)
 		api.Get("/api/transactional/stats", transactionalH.Stats)

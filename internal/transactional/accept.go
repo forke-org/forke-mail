@@ -35,6 +35,13 @@ func accept(ctx context.Context, tx pgx.Tx, who auth.Identity, key string, req r
 		if err := lock(ctx, tx, ws+"|key|"+key); err != nil {
 			return accepted{}, err
 		}
+		var legacy bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM transactional_requests WHERE workspace_id=$1 AND idempotency_key=$2 AND expires_at>now())`, ws, key).Scan(&legacy); err != nil {
+			return accepted{}, err
+		}
+		if legacy {
+			return accepted{}, errLegacyKey
+		}
 		if prior, err := byIdempotencyKey(ctx, tx, ws, key, req.hash()); err != nil || prior.id != "" {
 			return prior, err
 		}

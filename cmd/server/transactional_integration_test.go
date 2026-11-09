@@ -1,34 +1,16 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"testing"
 
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/transactional"
-	"forkemail/internal/webhooks"
-	"github.com/jackc/pgx/v5"
 )
-
-type countingEnqueuer struct {
-	calls atomic.Int32
-	fail  bool
-}
-
-func (e *countingEnqueuer) Enqueue(_ context.Context, _ pgx.Tx, _ transactional.Job) error {
-	e.calls.Add(1)
-	if e.fail {
-		return errors.New("test_enqueue_failed")
-	}
-	return nil
-}
 
 func (f apiFixture) sendRequest(body, key string) *httptest.ResponseRecorder {
 	r := httptest.NewRequest("POST", "/api/emails", strings.NewReader(body))
@@ -42,15 +24,13 @@ func (f apiFixture) sendRequest(body, key string) *httptest.ResponseRecorder {
 }
 
 func TestTransactionalIdempotency(t *testing.T) {
-	f := newAPIFixture(t)
+	f, _ := newIntegratedFixture(t)
 	domain := f.ws + ".example.com"
 	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,kind,status) VALUES($1,$2,'domain','verified')`, f.ws, domain)
-	e := &countingEnqueuer{}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool}, transaction: &transactional.CompatibilityHandler{Pool: f.pool, Enqueuer: e}})
 	body := `{"from":"noreply@` + domain + `","to":"person@example.com","subject":"Welcome","text":"Hello"}`
 	first := f.sendRequest(body, "signup-1")
 	if first.Code != 202 {
-		t.Fatalf("send %d", first.Code)
+		t.Fatalf("send %d %s", first.Code, first.Body.String())
 	}
 	var receipt transactional.Receipt
 	if err := json.Unmarshal(first.Body.Bytes(), &receipt); err != nil {
@@ -71,52 +51,65 @@ func TestTransactionalIdempotency(t *testing.T) {
 		})
 	}
 	wg.Wait()
-	if e.calls.Load() != 1 {
-		t.Fatal("duplicate enqueue")
+	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM transactional_messages WHERE workspace_id=$1`, f.ws); n != "1" {
+		t.Fatal("duplicate jobs")
 	}
-	if code := f.sendRequest(strings.Replace(body, "Welcome", "Changed", 1), "signup-1").Code; code != 409 {
-		t.Fatalf("conflict %d", code)
+	native := strings.Replace(body, `"from":`, `"from_address":`, 1)
+	r := httptest.NewRequest("POST", "/api/transactional", strings.NewReader(native))
+	r.AddCookie(f.cookie)
+	r.Header.Set("Idempotency-Key", "signup-1")
+	w := httptest.NewRecorder()
+	f.router.ServeHTTP(w, r)
+	if w.Code != 200 || w.Header().Get("Idempotent-Replayed") != "true" || !strings.Contains(w.Body.String(), receipt.ID) {
+		t.Fatalf("cross-route replay %d %s", w.Code, w.Body.String())
 	}
-	if code := f.sendRequest(body, "").Code; code != 400 {
-		t.Fatalf("missing idempotency %d", code)
+	if f.sendRequest(strings.Replace(body, "Welcome", "Changed", 1), "signup-1").Code != 409 {
+		t.Fatal("changed payload accepted")
 	}
-	if code := f.sendRequest(`{"from":"bad","to":"bad","subject":"x","text":"x"}`, "bad").Code; code != 422 {
-		t.Fatalf("validation %d", code)
+	if f.sendRequest(body, "").Code != 400 {
+		t.Fatal("missing key accepted")
 	}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool}, transaction: &transactional.CompatibilityHandler{Pool: f.pool, Enqueuer: &countingEnqueuer{}}})
-	if w := f.sendRequest(body, "signup-1"); w.Code != 202 || !strings.Contains(w.Body.String(), receipt.ID) {
-		t.Fatal("idempotency lost on handler restart")
+	if f.sendRequest(`{"from":"bad","to":"bad","subject":"x","text":"x"}`, "bad").Code != 422 {
+		t.Fatal("invalid request accepted")
+	}
+	eventually(t, func() bool {
+		return dbtest.QueryString(t, f.pool, `SELECT status FROM transactional_messages WHERE id=$1 AND workspace_id=$2`, receipt.ID, f.ws) == "sent"
+	})
+	if n := dbtest.QueryString(t, f.pool, `SELECT sent_count::text FROM usage_daily WHERE workspace_id=$1`, f.ws); n != "1" {
+		t.Fatalf("quota reserved %s times", n)
 	}
 	dbtest.Exec(t, f.pool, `INSERT INTO suppressions(workspace_id,email,reason) VALUES($1,'person@example.com','manual')`, f.ws)
-	if code := f.sendRequest(body, "blocked").Code; code != 422 {
-		t.Fatalf("suppressed recipient %d", code)
+	if f.sendRequest(body, "blocked").Code != 422 {
+		t.Fatal("suppression bypassed")
+	}
+	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM transactional_requests WHERE workspace_id=$1`, f.ws); n != "0" {
+		t.Fatal("legacy idempotency store used")
 	}
 }
 
-func TestTransactionalRollbackAndStub(t *testing.T) {
-	f := newAPIFixture(t)
+func TestTransactionalLegacyKeysAndAtomicRejection(t *testing.T) {
+	f, _ := newIntegratedFixture(t)
 	domain := f.ws + ".example.com"
-	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,kind,status) VALUES($1,$2,'domain','verified')`, f.ws, domain)
 	body := `{"from":"noreply@` + domain + `","to":"person@example.com","subject":"Welcome","text":"Hello"}`
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool}, transaction: &transactional.CompatibilityHandler{Pool: f.pool, Enqueuer: &countingEnqueuer{fail: true}}})
-	if code := f.sendRequest(body, "rollback").Code; code != 500 {
-		t.Fatalf("enqueue failure %d", code)
+	if f.sendRequest(body, "unverified").Code != 422 {
+		t.Fatal("unverified sender accepted")
 	}
-	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM transactional_requests WHERE workspace_id=$1`, f.ws); n != "0" {
-		t.Fatal("failed enqueue committed receipt")
+	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM transactional_messages WHERE workspace_id=$1`, f.ws); n != "0" {
+		t.Fatal("rejected job persisted")
 	}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool}, transaction: &transactional.CompatibilityHandler{Pool: f.pool, Enqueuer: transactional.DevelopmentStub{}, Development: true}})
-	w := f.sendRequest(body, "stub")
-	if w.Code != 202 || !strings.Contains(w.Body.String(), "development_stub") {
-		t.Fatal("stub not clearly marked")
+	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,kind,status) VALUES($1,$2,'domain','verified')`, f.ws, domain)
+	dbtest.Exec(t, f.pool, `INSERT INTO transactional_requests(workspace_id,idempotency_key,request_hash,mode) VALUES($1,'legacy',repeat('0',64),'development_stub')`, f.ws)
+	response := f.sendRequest(body, "legacy")
+	if response.Code != 409 || !strings.Contains(response.Body.String(), "legacy_stub_key_requires_new_key") {
+		t.Fatal("legacy receipt suppressed real send")
 	}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool}})
-	if code := f.sendRequest(body, "unavailable").Code; code != 503 {
-		t.Fatalf("missing engine %d", code)
+	response = f.sendRequest(body, "fresh")
+	if response.Code != 202 || !strings.Contains(response.Body.String(), `"mode":"engine"`) {
+		t.Fatal("real engine not wired")
 	}
 	t.Setenv("TRANSACTIONAL_STUB_ENABLED", "true")
-	if _, err := newDeveloperServices(f.pool, false); err == nil {
-		t.Fatal("production stub allowed")
+	if _, err := newDeveloperServices(f.pool); err == nil {
+		t.Fatal("obsolete stub flag silently enabled")
 	}
 }
 
@@ -126,17 +119,14 @@ func TestTransactionalBearerAuthentication(t *testing.T) {
 	w := httptest.NewRecorder()
 	f.router.ServeHTTP(w, r)
 	if w.Code != 401 {
-		t.Fatalf("anonymous send %d", w.Code)
+		t.Fatal("anonymous send accepted")
 	}
 	w = f.request("POST", "/api/keys", `{"name":"app","scope":"sending_access","password":"test-password"}`, "")
 	var key struct{ Key string }
 	if err := json.Unmarshal(w.Body.Bytes(), &key); err != nil {
 		t.Fatal(err)
 	}
-	if w.Code != 201 || key.Key == "" {
-		t.Fatal("missing API key")
-	}
-	if code := f.request("POST", "/api/emails", `{}`, key.Key).Code; code != 503 {
-		t.Fatalf("sending key cannot reach send adapter %d", code)
+	if f.request("POST", "/api/emails", `{}`, key.Key).Code != 400 {
+		t.Fatal("sending key cannot reach compatibility API")
 	}
 }
