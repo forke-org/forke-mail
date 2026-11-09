@@ -8,7 +8,7 @@ import { Loading } from '../components/ui';
 import { SessionProvider, useSession } from '../lib/session';
 import { ToastProvider } from '../lib/toast';
 
-const publicPaths = ['/login', '/signup'];
+const publicPaths = ['/login'];
 
 function Shell({ Component, pageProps }) {
   const { status } = useSession();

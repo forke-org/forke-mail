@@ -30,7 +30,7 @@ export async function api(method, path, body) {
 }
 
 const messages = {
-  invalid_credentials: 'Incorrect email or password.',
+  invalid_credentials: 'Incorrect email, username or password, or this Forke account is not an active admin.',
   email_taken: 'An account with this email already exists.',
   invalid_password: 'Password must be 8 to 72 characters.',
   invalid_email: 'Enter a valid email address.',

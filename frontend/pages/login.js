@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { useState } from 'react';
 import AuthCard from '../components/AuthCard';
 import { Field } from '../components/ui';
@@ -25,9 +24,9 @@ export default function Login() {
   };
 
   return (
-    <AuthCard title="Log in to Forke Mail" footer={<>Don&apos;t have an account? <Link href="/signup/">Sign up</Link></>}>
+    <AuthCard title="Log in to Forke Mail" footer="Use your Forke admin account.">
       <form className="stack-sm" onSubmit={submit}>
-        <Field label="Email"><input type="email" autoComplete="email" required autoFocus value={form.email} onChange={set('email')} /></Field>
+        <Field label="Email or username"><input type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} required autoFocus value={form.email} onChange={set('email')} /></Field>
         <Field label="Password"><input type="password" autoComplete="current-password" required value={form.password} onChange={set('password')} /></Field>
         {error ? <p className="form-error">{error}</p> : null}
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>

@@ -25,11 +25,6 @@ export function SessionProvider({ children }) {
     await refreshMe();
   }, [refreshMe]);
 
-  const signup = useCallback(async (fields) => {
-    await api('POST', '/api/auth/signup', fields);
-    await refreshMe();
-  }, [refreshMe]);
-
   const logout = useCallback(async () => {
     try { await api('POST', '/api/auth/logout'); } catch {}
     setState({ status: 'signedOut', me: null });
@@ -52,10 +47,10 @@ export function SessionProvider({ children }) {
     const trial = me ? me.workspace.plan === 'trial' : false;
     const exhausted = trial && me.quota.trial_used >= me.quota.trial_limit;
     return {
-      ...state, trial, exhausted, login, signup, logout, refreshMe,
+      ...state, trial, exhausted, login, logout, refreshMe,
       upgrade, showUpgrade: (reason) => setUpgrade(reason || {}), hideUpgrade: () => setUpgrade(null),
     };
-  }, [state, login, signup, logout, refreshMe, upgrade]);
+  }, [state, login, logout, refreshMe, upgrade]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
