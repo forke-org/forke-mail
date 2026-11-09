@@ -317,6 +317,6 @@ Links use `PUBLIC_BASE_URL`.
 - The free ngrok URL changes on every restart. When it does, update `PUBLIC_BASE_URL`, restart the server and rerun `sesbootstrap`.
 - Rate limiters and the SES send limiter live in memory per process. Run a single sending instance, or account for multiplication.
 - Under the SES driver, signup and seed create no fake domains. Under the log driver they do, and those fake names (e.g. `forke.space`) occupy the global identity namespace in that database.
-- `go test ./...` runs packages in parallel. On a **fresh** test database their migrations can race (`duplicate key … pg_type_typname_nsp_index`); run once with `-p 1` or simply rerun.
+- Migrations take a Postgres session advisory lock (goose `SessionLocker`), so parallel test packages and several server instances starting together migrate one at a time.
 - Content dedupe means two identical transactional requests without an `Idempotency-Key` within 60 s send once. Callers that really want two identical sends must use distinct keys.
 - `go:embed all:out` needs `frontend/out` to exist. `frontend/out/.keep` is committed so a fresh clone compiles before the dashboard is built; it then serves an empty UI.
