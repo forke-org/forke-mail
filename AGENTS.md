@@ -201,7 +201,7 @@ The sweeper fails rows that have been `sending` for more than 5 min as `unknown_
 
 **Priority.** `waitBulk` (broadcast lanes) only takes a global token via `Allow()` when `urgentWaiting == 0`. `AcquireUrgent` reserves with `Wait`. Broadcasts idle at 90 % of the SES daily quota; urgent sends continue to 100 %.
 
-**Tracking.** Tokens are `base64url(payload).base64url(hmac)`, keyed by HMAC(`UNSUBSCRIBE_SECRET`, "forke-mail-transactional-tracking"). Open payloads are `o\n<id>` and click payloads are `c\n<id>\n<url>`, and only `http(s)` targets are accepted. Requests from automated user agents (image proxies, scanners, empty UA) still get the GIF or redirect but are not counted. The first counted open records an `opened` event; every counted click records `clicked` with the URL.
+**Tracking.** Tokens are `base64url(payload).base64url(hmac)`, keyed by HMAC(`UNSUBSCRIBE_SECRET`, "forke-mail-transactional-tracking"). Open payloads are `o\n<id>` and click payloads are `c\n<id>\n<url>`, and only `http(s)` targets are accepted. Gmail and Yahoo image proxies (`GoogleImageProxy`, `YahooMailProxy`) fetch the pixel only when a person opens the email, so they count as opens but never as clicks. Other automated agents (scanners, link checkers, empty UA) still get the GIF or redirect but are not counted. The first counted open records an `opened` event; every counted click records `clicked` with the URL.
 
 ### SES classification (`ses.Classify`)
 

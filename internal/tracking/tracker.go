@@ -21,7 +21,8 @@ var (
 	errInvalidToken = errors.New("invalid_token")
 	b64             = base64.RawURLEncoding.Strict()
 	hrefPattern     = regexp.MustCompile(`(?i)(<a\b[^>]*?\bhref\s*=\s*)("([^"]*)"|'([^']*)')`)
-	automatedAgents = []string{"googleimageproxy", "yahoomailproxy", "bot", "crawler", "spider", "preview", "scanner",
+	mailboxProxies  = []string{"googleimageproxy", "yahoomailproxy"}
+	automatedAgents = []string{"bot", "crawler", "spider", "preview", "scanner",
 		"barracuda", "proofpoint", "mimecast", "safelinks", "python-requests", "curl/", "go-http-client"}
 )
 
@@ -136,11 +137,20 @@ func splitClick(rest string) (messageID, target string, err error) {
 
 func automated(userAgent string) bool {
 	ua := strings.ToLower(userAgent)
-	if ua == "" {
+	return ua == "" || containsAny(ua, mailboxProxies) || containsAny(ua, automatedAgents)
+}
+
+func countableOpen(userAgent string) bool {
+	ua := strings.ToLower(userAgent)
+	if containsAny(ua, mailboxProxies) {
 		return true
 	}
-	for _, marker := range automatedAgents {
-		if strings.Contains(ua, marker) {
+	return ua != "" && !containsAny(ua, automatedAgents)
+}
+
+func containsAny(s string, markers []string) bool {
+	for _, marker := range markers {
+		if strings.Contains(s, marker) {
 			return true
 		}
 	}

@@ -77,7 +77,7 @@ func TestCompatAPIBroadcastFlow(t *testing.T) {
 	if got := dbtest.QueryString(t, f.pool, `SELECT reply_to || '|' || c.name FROM emails e JOIN campaigns c ON c.id = e.campaign_id WHERE e.id = $1`, broadcastID); got != "support@"+domain+"|Blog: New post" {
 		t.Fatalf("stored %q", got)
 	}
-	if w := f.request("POST", "/api/forke-mail/broadcasts/"+broadcastID+"/send", `{}`, key); w.Code != 200 || decodeJSON(t, w.Body.String())["id"] != broadcastID {
+	if w := f.request("POST", "/api/forke-mail/broadcasts/"+broadcastID+"/send", `{}`, key); w.Code != 200 || decodeJSON(t, w.Body.String())["id"] != broadcastID || decodeJSON(t, w.Body.String())["recipients"] != float64(1) {
 		t.Fatalf("send %d %s", w.Code, w.Body)
 	}
 	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM email_recipients WHERE email_id = $1`, broadcastID); n != "1" {

@@ -26,7 +26,7 @@ type Handler struct {
 }
 
 func (h *Handler) Open(w http.ResponseWriter, r *http.Request) {
-	if id, recipient, err := h.Tracker.verifyOpen(chi.URLParam(r, "token")); err == nil && httpx.ValidID(id) && !automated(r.UserAgent()) {
+	if id, recipient, err := h.Tracker.verifyOpen(chi.URLParam(r, "token")); err == nil && httpx.ValidID(id) && countableOpen(r.UserAgent()) {
 		record := h.recordOpen
 		if recipient {
 			record = h.recordRecipientOpen

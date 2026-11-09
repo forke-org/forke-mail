@@ -132,8 +132,9 @@ func (h *Handler) SendBroadcast(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var sent struct {
-		ID string `json:"id"`
+		ID         string `json:"id"`
+		Recipients int    `json:"recipients"`
 	}
 	_ = json.Unmarshal(c.body.Bytes(), &sent)
-	httpx.JSON(w, http.StatusOK, map[string]string{"id": sent.ID})
+	httpx.JSON(w, http.StatusOK, map[string]any{"id": sent.ID, "recipients": sent.Recipients})
 }

@@ -68,6 +68,21 @@ func TestAutomatedAgents(t *testing.T) {
 	}
 }
 
+func TestCountableOpens(t *testing.T) {
+	for ua, want := range map[string]bool{
+		"": false,
+		"Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)": true,
+		"YahooMailProxy; https://help.yahoo.com/kb/yahoo-mail-proxy-SLN28749.html":                  true,
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15":                      true,
+		"Mozilla/5.0 (compatible; Barracuda Sentinel)":                                              false,
+		"Go-http-client/1.1": false,
+	} {
+		if got := countableOpen(ua); got != want {
+			t.Errorf("countableOpen(%q) = %v", ua, got)
+		}
+	}
+}
+
 func TestRecipientTokensSkipOwnLinks(t *testing.T) {
 	tr := NewTracker([]byte(strings.Repeat("k", 32)), "https://mail.test")
 	body := `<a href="https://forke.space/blog/x">Read</a> <a href="https://mail.test/unsubscribe/tok">Unsubscribe</a> <a href="https://mail.test/preferences/tok">Prefs</a></body>`
