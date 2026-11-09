@@ -22,6 +22,7 @@ import (
 	"forkemail/internal/resendapi"
 	"forkemail/internal/seed"
 	"forkemail/internal/sns"
+	"forkemail/internal/tracking"
 	"forkemail/internal/transactional"
 	"forkemail/internal/unsub"
 	"forkemail/internal/workspaces"
@@ -86,7 +87,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	domainH := &domains.Handler{Pool: pool, Identities: svc.identities}
 	dnsH := &domains.DNSHandler{Pool: pool, Region: cfg.AWS.Region}
 	transactionalH := &transactional.Handler{Pool: pool, Dispatcher: svc.dispatcher}
-	trackH := &transactional.TrackHandler{Pool: pool, Tracker: transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)}
+	trackH := &tracking.Handler{Pool: pool, Tracker: tracking.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)}
 	resendH := &resendapi.Handler{Pool: pool, Transactional: transactionalH, Emails: emailH, Tags: contactH.CreateTag}
 	unsubH := &unsub.Handler{Pool: pool, Signer: unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)}}
 

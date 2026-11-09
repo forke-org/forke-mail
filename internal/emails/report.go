@@ -29,6 +29,8 @@ type counts struct {
 	Unsubscribed int `json:"unsubscribed"`
 	Failed       int `json:"failed"`
 	Skipped      int `json:"skipped"`
+	Opened       int `json:"opened"`
+	Clicked      int `json:"clicked"`
 }
 
 func (h *Handler) Report(w http.ResponseWriter, r *http.Request) {
@@ -51,9 +53,10 @@ func (h *Handler) Report(w http.ResponseWriter, r *http.Request) {
 				COUNT(*) FILTER (WHERE status = 'sent'),
 				COUNT(*) FILTER (WHERE status = 'failed'),
 				COUNT(*) FILTER (WHERE status = 'skipped'),
-				COUNT(delivered_at), COUNT(bounced_at), COUNT(complained_at), COUNT(unsubscribed_at)
+				COUNT(delivered_at), COUNT(bounced_at), COUNT(complained_at), COUNT(unsubscribed_at),
+				COUNT(opened_at), COUNT(clicked_at)
 			FROM email_recipients WHERE email_id = $1 AND workspace_id = $2`, id, ws,
-		).Scan(&rep.Total, &c.Pending, &c.Sent, &c.Failed, &c.Skipped, &c.Delivered, &c.Bounced, &c.Complained, &c.Unsubscribed)
+		).Scan(&rep.Total, &c.Pending, &c.Sent, &c.Failed, &c.Skipped, &c.Delivered, &c.Bounced, &c.Complained, &c.Unsubscribed, &c.Opened, &c.Clicked)
 	}
 	if writeError(w, r, err) {
 		return

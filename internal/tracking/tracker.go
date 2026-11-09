@@ -1,4 +1,4 @@
-package transactional
+package tracking
 
 import (
 	"crypto/hmac"
@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	openPrefix  = "o\n"
-	clickPrefix = "c\n"
+	openPrefix           = "o\n"
+	clickPrefix          = "c\n"
+	recipientOpenPrefix  = "ro\n"
+	recipientClickPrefix = "rc\n"
 )
 
 var (
@@ -35,18 +37,26 @@ func NewTracker(secret []byte, baseURL string) Tracker {
 }
 
 func (t Tracker) Instrument(body, messageID string, opens, clicks bool) string {
+	return t.instrument(body, openPrefix+messageID, clickPrefix+messageID, opens, clicks)
+}
+
+func (t Tracker) InstrumentRecipient(body, recipientID string, opens, clicks bool) string {
+	return t.instrument(body, recipientOpenPrefix+recipientID, recipientClickPrefix+recipientID, opens, clicks)
+}
+
+func (t Tracker) instrument(body, openPayload, clickPayload string, opens, clicks bool) string {
 	if clicks {
 		body = hrefPattern.ReplaceAllStringFunc(body, func(tag string) string {
 			parts := hrefPattern.FindStringSubmatch(tag)
 			target := html.UnescapeString(parts[3] + parts[4])
-			if !trackable(target) {
+			if !trackable(target) || t.own(target) {
 				return tag
 			}
-			return parts[1] + `"` + html.EscapeString(t.baseURL+"/t/c/"+t.sign(clickPrefix+messageID+"\n"+target)) + `"`
+			return parts[1] + `"` + html.EscapeString(t.baseURL+"/t/c/"+t.sign(clickPayload+"\n"+target)) + `"`
 		})
 	}
 	if opens {
-		pixel := `<img src="` + html.EscapeString(t.baseURL+"/t/o/"+t.sign(openPrefix+messageID)) +
+		pixel := `<img src="` + html.EscapeString(t.baseURL+"/t/o/"+t.sign(openPayload)) +
 			`" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0">`
 		if i := strings.LastIndex(strings.ToLower(body), "</body>"); i >= 0 {
 			return body[:i] + pixel + body[i:]
@@ -54,6 +64,15 @@ func (t Tracker) Instrument(body, messageID string, opens, clicks bool) string {
 		body += pixel
 	}
 	return body
+}
+
+func (t Tracker) own(target string) bool {
+	for _, path := range []string{"/unsubscribe/", "/preferences/"} {
+		if strings.HasPrefix(target, t.baseURL+path) {
+			return true
+		}
+	}
+	return false
 }
 
 func trackable(target string) bool {
@@ -87,15 +106,27 @@ func (t Tracker) mac(payload []byte) []byte {
 	return m.Sum(nil)
 }
 
-func (t Tracker) verifyOpen(token string) (string, error) {
-	return t.verify(token, openPrefix)
+func (t Tracker) verifyOpen(token string) (id string, recipient bool, err error) {
+	if id, err = t.verify(token, openPrefix); err == nil {
+		return id, false, nil
+	}
+	id, err = t.verify(token, recipientOpenPrefix)
+	return id, true, err
 }
 
-func (t Tracker) verifyClick(token string) (messageID, target string, err error) {
+func (t Tracker) verifyClick(token string) (id, target string, recipient bool, err error) {
 	rest, err := t.verify(token, clickPrefix)
 	if err != nil {
-		return "", "", err
+		if rest, err = t.verify(token, recipientClickPrefix); err != nil {
+			return "", "", false, err
+		}
+		recipient = true
 	}
+	id, target, err = splitClick(rest)
+	return id, target, recipient, err
+}
+
+func splitClick(rest string) (messageID, target string, err error) {
 	messageID, target, ok := strings.Cut(rest, "\n")
 	if !ok || !trackable(target) {
 		return "", "", errInvalidToken

@@ -2,6 +2,7 @@ package transactional
 
 import (
 	"context"
+	"forkemail/internal/tracking"
 	"log/slog"
 	"sync"
 	"time"
@@ -27,12 +28,12 @@ type Dispatcher struct {
 	pool    *pgxpool.Pool
 	sender  sender.Sender
 	gate    Gate
-	tracker Tracker
+	tracker tracking.Tracker
 	wake    chan string
 	claimed chan job
 }
 
-func NewDispatcher(pool *pgxpool.Pool, s sender.Sender, gate Gate, tracker Tracker) *Dispatcher {
+func NewDispatcher(pool *pgxpool.Pool, s sender.Sender, gate Gate, tracker tracking.Tracker) *Dispatcher {
 	return &Dispatcher{
 		pool:    pool,
 		sender:  s,

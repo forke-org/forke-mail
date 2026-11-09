@@ -3,6 +3,9 @@ package transactional
 import (
 	"context"
 	"errors"
+	"forkemail/internal/tracking"
+	"github.com/go-chi/chi/v5"
+	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
@@ -76,7 +79,7 @@ func (e env) accept(t *testing.T, key string, r request) (accepted, error) {
 
 func (e env) dispatch(t *testing.T, s sender.Sender, id string) *Dispatcher {
 	t.Helper()
-	d := NewDispatcher(e.pool, s, &openGate{}, NewTracker([]byte(strings.Repeat("k", 32)), "https://mail.test"))
+	d := NewDispatcher(e.pool, s, &openGate{}, tracking.NewTracker([]byte(strings.Repeat("k", 32)), "https://mail.test"))
 	j, ok, err := claimOne(context.Background(), e.pool, id)
 	if err != nil || !ok {
 		t.Fatalf("claim %v %v", ok, err)
@@ -302,16 +305,22 @@ func TestOpenAndClickTracking(t *testing.T) {
 	res, _ := e.accept(t, "", r)
 	fake := &fakeSender{}
 	d := e.dispatch(t, fake, res.id)
-	h := &TrackHandler{Pool: e.pool, Tracker: d.tracker}
-	ctx := context.Background()
+	h := &tracking.Handler{Pool: e.pool, Tracker: d.tracker}
+	router := chi.NewRouter()
+	router.Get("/t/o/{token}", h.Open)
+	router.Get("/t/c/{token}", h.Click)
+	hit := func(prefix string) {
+		html := fake.sent[0].HTML
+		start := strings.Index(html, "https://mail.test"+prefix)
+		end := start + strings.Index(html[start:], `"`)
+		req := httptest.NewRequest("GET", strings.TrimPrefix(html[start:end], "https://mail.test"), nil)
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15")
+		router.ServeHTTP(httptest.NewRecorder(), req)
+	}
 	for range 3 {
-		if err := h.recordOpen(ctx, res.id); err != nil {
-			t.Fatal(err)
-		}
+		hit("/t/o/")
 	}
-	if err := h.recordClick(ctx, res.id, "https://forke.space/r"); err != nil {
-		t.Fatal(err)
-	}
+	hit("/t/c/")
 	if got := e.value(t, `SELECT open_count || ':' || click_count FROM transactional_messages WHERE id = $1`, res.id); got != "3:1" {
 		t.Errorf("counts %s", got)
 	}

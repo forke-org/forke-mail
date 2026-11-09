@@ -2,6 +2,7 @@ package sender
 
 import (
 	"context"
+	"forkemail/internal/tracking"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -15,6 +16,7 @@ import (
 )
 
 type Worker struct {
+	Tracker    *tracking.Tracker
 	pool       *pgxpool.Pool
 	sender     Sender
 	signer     unsub.Signer

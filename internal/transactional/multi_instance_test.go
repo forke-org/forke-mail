@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/sender"
+	"forkemail/internal/tracking"
 	"forkemail/internal/unsub"
 	"strings"
 	"sync"
@@ -27,7 +28,7 @@ func TestThreeDispatchersSendOnceAndReserveOnce(t *testing.T) {
 	var wg sync.WaitGroup
 	for range 3 {
 		gate := sender.NewWorker(e.pool, fake, unsub.Signer{}, "", 50, 10)
-		d := NewDispatcher(e.pool, fake, gate, NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
+		d := NewDispatcher(e.pool, fake, gate, tracking.NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
 		wg.Go(func() { d.Run(ctx) })
 	}
 	defer func() { cancel(); wg.Wait() }()
@@ -81,7 +82,7 @@ func TestTransactionalCrashRecoveryRejectsStaleClaim(t *testing.T) {
 		t.Fatal("lease not recovered", err)
 	}
 	fake := &fakeSender{}
-	d := NewDispatcher(e.pool, fake, &openGate{}, NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
+	d := NewDispatcher(e.pool, fake, &openGate{}, tracking.NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
 	d.process(context.Background(), old)
 	if fake.calls != 0 {
 		t.Fatal("stale worker sent")

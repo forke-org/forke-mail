@@ -22,6 +22,7 @@ import (
 	"forkemail/internal/sender"
 	"forkemail/internal/ses"
 	"forkemail/internal/sns"
+	"forkemail/internal/tracking"
 	"forkemail/internal/transactional"
 	"forkemail/internal/unsub"
 	"forkemail/internal/workspaces"
@@ -111,7 +112,9 @@ func run() error {
 	worker := sender.NewWorker(pool, mailer, unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)},
 		cfg.PublicBaseURL, cfg.SendRatePerSec, cfg.TrialSendRatePerSec)
 	svc.sendRate = worker.GlobalRate
-	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL))
+	tracker := tracking.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)
+	worker.Tracker = &tracker
+	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, tracker)
 	if cfg.SMTP() {
 		quota := relay.Quota{Pool: pool, SendRate: cfg.SendRatePerSec, DailyLimit: cfg.Relay.DailyLimit, MonthlyLimit: cfg.Relay.MonthlyLimit, Apply: worker.SetLimits}
 		usage, err := quota.Refresh(ctx)

@@ -1,4 +1,4 @@
-package transactional
+package tracking
 
 import (
 	"context"
@@ -20,14 +20,18 @@ var transparentGIF = []byte{
 	0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3b,
 }
 
-type TrackHandler struct {
+type Handler struct {
 	Pool    *pgxpool.Pool
 	Tracker Tracker
 }
 
-func (h *TrackHandler) Open(w http.ResponseWriter, r *http.Request) {
-	if id, err := h.Tracker.verifyOpen(chi.URLParam(r, "token")); err == nil && httpx.ValidID(id) && !automated(r.UserAgent()) {
-		if err := h.recordOpen(r.Context(), id); err != nil {
+func (h *Handler) Open(w http.ResponseWriter, r *http.Request) {
+	if id, recipient, err := h.Tracker.verifyOpen(chi.URLParam(r, "token")); err == nil && httpx.ValidID(id) && !automated(r.UserAgent()) {
+		record := h.recordOpen
+		if recipient {
+			record = h.recordRecipientOpen
+		}
+		if err := record(r.Context(), id); err != nil {
 			slog.Error("record open failed", "message_id", id, "err", err)
 		}
 	}
@@ -36,14 +40,18 @@ func (h *TrackHandler) Open(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(transparentGIF)
 }
 
-func (h *TrackHandler) Click(w http.ResponseWriter, r *http.Request) {
-	id, target, err := h.Tracker.verifyClick(chi.URLParam(r, "token"))
+func (h *Handler) Click(w http.ResponseWriter, r *http.Request) {
+	id, target, recipient, err := h.Tracker.verifyClick(chi.URLParam(r, "token"))
 	if err != nil || !httpx.ValidID(id) {
 		httpx.Error(w, http.StatusNotFound, "not_found")
 		return
 	}
 	if !automated(r.UserAgent()) {
-		if err := h.recordClick(r.Context(), id, target); err != nil {
+		record := h.recordClick
+		if recipient {
+			record = h.recordRecipientClick
+		}
+		if err := record(r.Context(), id, target); err != nil {
 			slog.Error("record click failed", "message_id", id, "err", err)
 		}
 	}
@@ -51,7 +59,7 @@ func (h *TrackHandler) Click(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target, http.StatusFound)
 }
 
-func (h *TrackHandler) recordOpen(ctx context.Context, id string) error {
+func (h *Handler) recordOpen(ctx context.Context, id string) error {
 	return pgx.BeginFunc(ctx, h.Pool, func(tx pgx.Tx) error {
 		var ws string
 		var first bool
@@ -69,7 +77,7 @@ func (h *TrackHandler) recordOpen(ctx context.Context, id string) error {
 	})
 }
 
-func (h *TrackHandler) recordClick(ctx context.Context, id, target string) error {
+func (h *Handler) recordClick(ctx context.Context, id, target string) error {
 	return pgx.BeginFunc(ctx, h.Pool, func(tx pgx.Tx) error {
 		var ws string
 		err := tx.QueryRow(ctx, `

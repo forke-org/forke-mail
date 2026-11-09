@@ -1,4 +1,4 @@
-package transactional
+package tracking
 
 import (
 	"strings"
@@ -23,8 +23,8 @@ func TestInstrumentRewritesHTTPLinksAndAddsPixel(t *testing.T) {
 	}
 	start := strings.Index(out, "/t/c/") + len("/t/c/")
 	token := out[start : start+strings.Index(out[start:], `"`)]
-	id, target, err := tr.verifyClick(token)
-	if err != nil || id != "11111111-1111-1111-1111-111111111111" || target != "https://forke.space/reset?t=1&u=2" {
+	id, target, recipient, err := tr.verifyClick(token)
+	if err != nil || recipient || id != "11111111-1111-1111-1111-111111111111" || target != "https://forke.space/reset?t=1&u=2" {
 		t.Fatalf("click token %q %q %v", id, target, err)
 	}
 }
@@ -35,22 +35,22 @@ func TestTrackingTokensRejectTamperingAndCrossUse(t *testing.T) {
 	open := tr.sign(openPrefix + "id-1")
 	click := tr.sign(clickPrefix + "id-1\nhttps://ok.io")
 	forged := tr.sign(clickPrefix + "id-1\njavascript:alert(1)")
-	if _, err := tr.verifyOpen(open); err != nil {
+	if _, _, err := tr.verifyOpen(open); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := other.verifyOpen(open); err == nil {
+	if _, _, err := other.verifyOpen(open); err == nil {
 		t.Error("token verified with another secret")
 	}
-	if _, _, err := tr.verifyClick(open); err == nil {
+	if _, _, _, err := tr.verifyClick(open); err == nil {
 		t.Error("open token accepted as click")
 	}
-	if _, err := tr.verifyOpen(click); err == nil {
+	if _, _, err := tr.verifyOpen(click); err == nil {
 		t.Error("click token accepted as open")
 	}
-	if _, _, err := tr.verifyClick(forged); err == nil {
+	if _, _, _, err := tr.verifyClick(forged); err == nil {
 		t.Error("non http target accepted")
 	}
-	if _, err := tr.verifyOpen(open[:len(open)-2] + "AA"); err == nil {
+	if _, _, err := tr.verifyOpen(open[:len(open)-2] + "AA"); err == nil {
 		t.Error("tampered signature accepted")
 	}
 }
@@ -65,5 +65,25 @@ func TestAutomatedAgents(t *testing.T) {
 		if got := automated(ua); got != want {
 			t.Errorf("automated(%q) = %v", ua, got)
 		}
+	}
+}
+
+func TestRecipientTokensSkipOwnLinks(t *testing.T) {
+	tr := NewTracker([]byte(strings.Repeat("k", 32)), "https://mail.test")
+	body := `<a href="https://forke.space/blog/x">Read</a> <a href="https://mail.test/unsubscribe/tok">Unsubscribe</a> <a href="https://mail.test/preferences/tok">Prefs</a></body>`
+	out := tr.InstrumentRecipient(body, "22222222-2222-2222-2222-222222222222", true, true)
+	if !strings.Contains(out, `href="https://mail.test/unsubscribe/tok"`) || !strings.Contains(out, `href="https://mail.test/preferences/tok"`) {
+		t.Fatalf("own links were tracked: %s", out)
+	}
+	start := strings.Index(out, "/t/c/") + len("/t/c/")
+	token := out[start : start+strings.Index(out[start:], `"`)]
+	id, target, recipient, err := tr.verifyClick(token)
+	if err != nil || !recipient || id != "22222222-2222-2222-2222-222222222222" || target != "https://forke.space/blog/x" {
+		t.Fatalf("recipient click %q %q %v %v", id, target, recipient, err)
+	}
+	pixel := out[strings.Index(out, "/t/o/")+len("/t/o/"):]
+	pixel = pixel[:strings.Index(pixel, `"`)]
+	if id, recipient, err := tr.verifyOpen(pixel); err != nil || !recipient || id != "22222222-2222-2222-2222-222222222222" {
+		t.Fatalf("recipient open %q %v %v", id, recipient, err)
 	}
 }

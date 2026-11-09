@@ -26,6 +26,8 @@ type state struct {
 	emailStatus     string
 	contactStatus   string
 	suppressed      bool
+	trackOpens      bool
+	trackClicks     bool
 	content         Content
 }
 
@@ -90,6 +92,9 @@ func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipie
 		WorkspaceID: rec.WorkspaceID, ContactID: rec.ContactID, EmailID: rec.EmailID,
 	})
 	msg := Render(st.content, rec, url)
+	if w.Tracker != nil && (st.trackOpens || st.trackClicks) {
+		msg.HTML = w.Tracker.InstrumentRecipient(msg.HTML, rec.ID, st.trackOpens, st.trackClicks)
+	}
 	sendCtx, cancel := context.WithTimeout(writeCtx, sendTimeout)
 	messageID, sendErr := w.sender.Send(sendCtx, msg)
 	cancel()
@@ -118,7 +123,7 @@ func (w *Worker) loadState(ctx context.Context, rec *Recipient) (state, error) {
 	var st state
 	c := &st.content
 	err := w.pool.QueryRow(ctx, `
-		SELECT ws.status, ws.sending_paused, c.status, c.subject, c.from_name, c.from_address, c.reply_to, c.html, c.text,
+		SELECT ws.status, ws.sending_paused, c.status, c.subject, c.from_name, c.from_address, c.reply_to, c.html, c.text, c.track_opens, c.track_clicks,
 			COALESCE(ct.status, ''), COALESCE(ct.first_name, ''),
 			EXISTS (SELECT 1 FROM suppressions s WHERE s.workspace_id = r.workspace_id AND lower(s.email) = lower(r.email))
 			OR COALESCE(ct.paused_until > now(), false)
@@ -128,7 +133,7 @@ func (w *Worker) loadState(ctx context.Context, rec *Recipient) (state, error) {
 		JOIN workspaces ws ON ws.id = r.workspace_id
 		LEFT JOIN contacts ct ON ct.id = r.contact_id AND ct.workspace_id = r.workspace_id
 		WHERE r.id = $1`, rec.ID,
-	).Scan(&st.workspaceStatus, &st.sendingPaused, &st.emailStatus, &c.Subject, &c.FromName, &c.FromAddress, &c.ReplyTo, &c.HTML, &c.Text,
+	).Scan(&st.workspaceStatus, &st.sendingPaused, &st.emailStatus, &c.Subject, &c.FromName, &c.FromAddress, &c.ReplyTo, &c.HTML, &c.Text, &st.trackOpens, &st.trackClicks,
 		&st.contactStatus, &rec.FirstName, &st.suppressed)
 	return st, err
 }

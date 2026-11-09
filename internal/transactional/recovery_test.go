@@ -4,6 +4,7 @@ import (
 	"context"
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/sender"
+	"forkemail/internal/tracking"
 	"strings"
 	"testing"
 	"time"
@@ -35,7 +36,7 @@ func TestEligibilityRecheckedAfterWaitingForSharedGate(t *testing.T) {
 					dbtest.Exec(t, e.pool, `INSERT INTO suppressions(workspace_id,email,reason) VALUES($1,'user@example.com','manual')`, e.ws)
 				}
 			}}
-			d := NewDispatcher(e.pool, s, gate, NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
+			d := NewDispatcher(e.pool, s, gate, tracking.NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
 			j, ok, err := claimOne(context.Background(), e.pool, res.id)
 			if !ok || err != nil {
 				t.Fatal("claim failed", err)
@@ -58,7 +59,7 @@ func TestPollingRecoversDurableQueueWithoutNotification(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := &fakeSender{}
-	d := NewDispatcher(e.pool, s, &openGate{}, NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
+	d := NewDispatcher(e.pool, s, &openGate{}, tracking.NewTracker([]byte(strings.Repeat("k", 32)), "http://localhost"))
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	go func() { d.Run(ctx); close(done) }()
