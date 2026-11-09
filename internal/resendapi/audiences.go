@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"forkemail/internal/auth"
 	"forkemail/internal/contacts"
@@ -130,9 +131,12 @@ func (h *Handler) RemoveContact(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusNotFound, "audience_not_found")
 		return
 	}
-	ref := chi.URLParam(r, "contact")
+	ref, err := url.PathUnescape(chi.URLParam(r, "contact"))
+	if err != nil {
+		fail(w, http.StatusUnprocessableEntity, "invalid_email")
+		return
+	}
 	var id string
-	var err error
 	if httpx.ValidID(ref) {
 		err = h.Pool.QueryRow(r.Context(), `DELETE FROM contacts WHERE id = $1 AND workspace_id = $2 RETURNING id`, ref, ws).Scan(&id)
 	} else {

@@ -128,7 +128,7 @@ func TestResendCompatibleRemoveContact(t *testing.T) {
 			t.Fatalf("contact %s %d", email, w.Code)
 		}
 	}
-	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/Leave@Example.com", "", key); w.Code != 200 {
+	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/Leave%40Example.com", "", key); w.Code != 200 {
 		t.Fatalf("delete by email %d %s", w.Code, w.Body)
 	}
 	byID := dbtest.QueryString(t, f.pool, `SELECT id::text FROM contacts WHERE lower(email) = 'byid@example.com'`)
