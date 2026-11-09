@@ -1,59 +1,53 @@
-import { ArrowRight } from 'lucide-react';
-import { FormEvent, useState } from 'react';
-import Logo from '../components/Logo';
-import MailGlobe from '../components/MailGlobe';
-import { Button, Field, FormError, Input } from '../components/ui';
-import { describeError } from '../lib/api';
-import { useSession } from '../lib/session';
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import AuthShell, { GoogleIcon, GitHubIcon, MailIcon, LockIcon } from "@/components/auth/AuthShell";
+import s from "@/components/auth/auth.module.css";
 
-export default function Login() {
-  const { login } = useSession();
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const set = (key: 'email' | 'password') => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [key]: e.target.value }));
+export default function LoginPage() {
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
+  const [show, setShow] = useState(false);
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      await login(form.email.trim(), form.password);
-    } catch (err) {
-      setError(describeError(err));
-      setBusy(false);
-    }
+    // TODO: call your auth handler with { id, pw }
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-      <div className="relative flex flex-col px-6 py-6 sm:px-10">
-        <Logo />
-        <div className="mx-auto flex w-full max-w-[360px] flex-1 flex-col justify-center py-12">
-          <div className="mb-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.08em] text-muted uppercase">
-            <span className="size-1.5 rounded-[1.5px] bg-accent" />Welcome back
+    <AuthShell compact>
+      <h1 className={s.title}>Welcome back to <em>Forke</em></h1>
+      <p className={s.sub}>Sign in to continue to your workspace.</p>
+
+      <div className={s.social}>
+        <button type="button" className={s.btn}><GoogleIcon /> Google</button>
+        <button type="button" className={s.btn}><GitHubIcon /> GitHub</button>
+      </div>
+      <div className={s.divider}>or</div>
+
+      <form onSubmit={submit}>
+        <label className={s.field}>
+          <span>Email or username</span>
+          <div className={s.control}>
+            <i className={s.icon}><MailIcon /></i>
+            <input className={`${s.input} ${s.withIcon}`} value={id} onChange={(e) => setId(e.target.value)} placeholder="name@example.com" autoComplete="username" required />
           </div>
-          <h1 className="text-[30px] leading-tight font-medium tracking-[-0.035em] text-ink">Log in to your workspace</h1>
-          <p className="mt-2 text-sm text-muted">Enter the email or username and password for your account.</p>
-          <form className="mt-8 flex flex-col gap-4" onSubmit={submit}>
-            <Field label="Email or username">
-              <Input autoComplete="username" autoCapitalize="none" spellCheck={false} required autoFocus value={form.email} onChange={set('email')} className="h-10" />
-            </Field>
-            <Field label="Password">
-              <Input type="password" autoComplete="current-password" required value={form.password} onChange={set('password')} className="h-10" />
-            </Field>
-            <FormError>{error}</FormError>
-            <Button variant="primary" type="submit" loading={busy} className="mt-1 h-10 w-full">
-              {busy ? 'Logging in…' : <>Log in<ArrowRight /></>}
-            </Button>
-          </form>
-        </div>
-        <p className="text-xs text-faint">© 2026 forke — all rights reserved</p>
-      </div>
-      <div className="relative hidden overflow-hidden bg-[radial-gradient(120%_90%_at_0%_50%,#1d1310_0%,#120c0a_45%,#0d0908_100%)] lg:block">
-        <MailGlobe />
-        <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 left-0 w-px [--rail:rgba(240,227,222,0.16)]" />
-      </div>
-    </div>
+        </label>
+        <label className={s.field}>
+          <span>Password</span>
+          <div className={`${s.control} ${s.pw}`}>
+            <i className={s.icon}><LockIcon /></i>
+            <input className={`${s.input} ${s.withIcon}`} type={show ? "text" : "password"} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Enter your password" autoComplete="current-password" required />
+            <button type="button" className={s.eye} onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{show && <path d="M3 3l18 18" />}</svg>
+            </button>
+          </div>
+        </label>
+        <Link href="/forgot-password" className={s.forgot}>Forgot password?</Link>
+        <button className={s.primary} type="submit">Sign in</button>
+      </form>
+
+      <p className={s.swap}>New to Forke? <Link href="/login">Join the movement</Link></p>
+    </AuthShell>
   );
 }
