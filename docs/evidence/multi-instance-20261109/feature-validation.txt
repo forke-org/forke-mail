@@ -1,0 +1,3 @@
+ok  	forkemail/internal/webhooks	9.017s
+ok  	forkemail/internal/db	6.606s
+ok  	forkemail/cmd/verifyintegration	2.271s

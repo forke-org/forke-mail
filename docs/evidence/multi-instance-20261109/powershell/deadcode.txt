@@ -1,0 +1,230 @@
+fatal error: runtime: cannot allocate memory
+
+runtime stack:
+runtime.throw({0x7ff6f2503d60?, 0x24187ff520?})
+	C:/projects/Forke/tools/go/src/runtime/panic.go:1229 +0x4d fp=0x24187ff4e8 sp=0x24187ff4b8 pc=0x7ff6f1f56cad
+runtime.persistentalloc1(0x3fc0, 0x24187ff588?, 0x7ff6f29fcca8)
+	C:/projects/Forke/tools/go/src/runtime/malloc.go:2431 +0x265 fp=0x24187ff540 sp=0x24187ff4e8 pc=0x7ff6f1ef3525
+runtime.persistentalloc.func1()
+	C:/projects/Forke/tools/go/src/runtime/malloc.go:2384 +0x28 fp=0x24187ff570 sp=0x24187ff540 pc=0x7ff6f1ef32a8
+runtime.persistentalloc(0x0?, 0x0?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/malloc.go:2383 +0x45 fp=0x24187ff5b8 sp=0x24187ff570 pc=0x7ff6f1ef3245
+runtime.(*fixalloc).alloc(0x7ff6f29cfe38)
+	C:/projects/Forke/tools/go/src/runtime/mfixalloc.go:90 +0x77 fp=0x24187ff5f0 sp=0x24187ff5b8 pc=0x7ff6f1efb6b7
+runtime.(*mheap).allocMSpanLocked(0x7ff6f29b93a0)
+	C:/projects/Forke/tools/go/src/runtime/mheap.go:1172 +0x9a fp=0x24187ff618 sp=0x24187ff5f0 pc=0x7ff6f1f0e15a
+runtime.(*mheap).allocSpan(0x7ff6f29b93a0, 0x1, 0x0, 0x8)
+	C:/projects/Forke/tools/go/src/runtime/mheap.go:1313 +0x225 fp=0x24187ff6c8 sp=0x24187ff618 pc=0x7ff6f1f0e3c5
+runtime.(*mheap).alloc.func1()
+	C:/projects/Forke/tools/go/src/runtime/mheap.go:1017 +0x5c fp=0x24187ff710 sp=0x24187ff6c8 pc=0x7ff6f1f0ddfc
+runtime.systemstack(0x20e14bcfcd20)
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:562 +0x49 fp=0x24187ff720 sp=0x24187ff710 pc=0x7ff6f1f5c969
+
+goroutine 3239 gp=0x20e169c19860 m=3 mp=0x20e14bcff008 [running]:
+runtime.systemstack_switch()
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:516 +0x8 fp=0x20e17ca067a8 sp=0x20e17ca06798 pc=0x7ff6f1f5c908
+runtime.(*mheap).alloc(0x17eda348f20?, 0x20e17ca06860?, 0x47?)
+	C:/projects/Forke/tools/go/src/runtime/mheap.go:1011 +0x57 fp=0x20e17ca067f0 sp=0x20e17ca067a8 pc=0x7ff6f1f0dd57
+runtime.(*mcentral).grow(0x25d500001178?)
+	C:/projects/Forke/tools/go/src/runtime/mcentral.go:253 +0x36 fp=0x20e17ca06820 sp=0x20e17ca067f0 pc=0x7ff6f1ef62b6
+runtime.(*mcentral).cacheSpan(0x7ff6f29c9e38)
+	C:/projects/Forke/tools/go/src/runtime/mcentral.go:171 +0x454 fp=0x20e17ca06898 sp=0x20e17ca06820 pc=0x7ff6f1ef6134
+runtime.(*mcache).refill(0x17e94dd0108, 0x8?)
+	C:/projects/Forke/tools/go/src/runtime/mcache.go:205 +0x16b fp=0x20e17ca068d8 sp=0x20e17ca06898 pc=0x7ff6f1ef570b
+runtime.(*mcache).nextFree(0x17e94dd0108, 0x8)
+	C:/projects/Forke/tools/go/src/runtime/malloc.go:1058 +0x7e fp=0x20e17ca06910 sp=0x20e17ca068d8 pc=0x7ff6f1ef1c1e
+runtime.mallocgcSmallScanNoHeader(0x20, 0x7ff6f24893a0)
+	C:/projects/Forke/tools/go/src/runtime/malloc.go:1581 +0x145 fp=0x20e17ca06970 sp=0x20e17ca06910 pc=0x7ff6f1ef24c5
+runtime.mallocgc(0x20, 0x7ff6f24893a0, 0x1)
+	C:/projects/Forke/tools/go/src/runtime/malloc.go:1202 +0xa5 fp=0x20e17ca069a0 sp=0x20e17ca06970 pc=0x7ff6f1f547c5
+runtime.growslice(0x0, 0x20e1826d4000?, 0x7ff6f252f0e0?, 0x20e1653e4640?, 0x7ff6f24893a0)
+	C:/projects/Forke/tools/go/src/runtime/slice.go:273 +0x507 fp=0x20e17ca06a10 sp=0x20e17ca069a0 pc=0x7ff6f1f59067
+golang.org/x/tools/go/ssa.(*storebuf).store(...)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:547
+golang.org/x/tools/go/ssa.(*builder).assign(0x20e1819612f0?, 0x20e1826d4000, {0x7ff6f252fc38, 0x20e1826d82d0}, {0x7ff6f252f0e0?, 0x20e1653e4640?}, 0x6?, 0x20e17ca06b68)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:617 +0x3ed fp=0x20e17ca06ad0 sp=0x20e17ca06a10 pc=0x7ff6f2307ead
+golang.org/x/tools/go/ssa.(*builder).assignStmt(0x20e1819612f0, 0x20e1826d4000, {0x20e1657f0870, 0x1, 0x20e17ca06c28?}, {0x20e1657f0890, 0x1, 0x7ff6f24c3b20?}, 0x1)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:1230 +0x45a fp=0x20e17ca06bd8 sp=0x20e17ca06ad0 pc=0x7ff6f230c95a
+golang.org/x/tools/go/ssa.(*builder).stmt(0x20e1819612f0, 0x20e1826d4000, {0x7ff6f252ed50?, 0x20e1653e4680?})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2722 +0x5b5 fp=0x20e17ca06d08 sp=0x20e17ca06bd8 pc=0x7ff6f2318b95
+golang.org/x/tools/go/ssa.(*builder).stmt(0x20e1819612f0, 0x20e1826d4000, {0x7ff6f252eea0?, 0x20e1653e4740?})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2759 +0x76e fp=0x20e17ca06e38 sp=0x20e17ca06d08 pc=0x7ff6f2318d4e
+golang.org/x/tools/go/ssa.(*builder).stmtList(...)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:973
+golang.org/x/tools/go/ssa.(*builder).stmt(0x20e1819612f0, 0x20e1826d4000, {0x7ff6f252ee70?, 0x20e1657ed800?})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2755 +0x10d1 fp=0x20e17ca06f68 sp=0x20e17ca06e38 pc=0x7ff6f23196b1
+golang.org/x/tools/go/ssa.(*builder).buildFromSyntax(0x20e1819612f0, 0x20e1826d4000)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2964 +0x25a fp=0x20e17ca06fe0 sp=0x20e17ca06f68 pc=0x7ff6f231b0ba
+golang.org/x/tools/go/ssa.(*builder).expr0(0x20e1819612f0, 0x20e17021fa00, {0x7ff6f252f050?, 0x20e1657f0920}, {0x7, {0x7ff6f252cfd8, 0x20e168a681c0}, {0x0, 0x0}})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:678 +0x1397 fp=0x20e17ca07358 sp=0x20e17ca06fe0 pc=0x7ff6f23096d7
+golang.org/x/tools/go/ssa.(*builder).expr(0x20e1819612f0, 0x20e17021fa00, {0x7ff6f252f050, 0x20e1657f0920})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:642 +0x178 fp=0x20e17ca07410 sp=0x20e17ca07358 pc=0x7ff6f2308238
+golang.org/x/tools/go/ssa.(*builder).emitCallArgs(0x20e1819612f0, 0x20e17021fa00, 0x20e15fda3e40, 0x20e1653e4880, {0x0?, 0x0, 0x78?})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:1091 +0x105 fp=0x20e17ca07558 sp=0x20e17ca07410 pc=0x7ff6f230b485
+golang.org/x/tools/go/ssa.(*builder).setCall(0x20e1819612f0, 0x20e17021fa00, 0x20e1653e4880, 0x20e1826d25c0)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:1152 +0x85 fp=0x20e17ca075b0 sp=0x20e17ca07558 pc=0x7ff6f230bec5
+golang.org/x/tools/go/ssa.(*builder).expr0(0x20e1819612f0, 0x20e17021fa00, {0x7ff6f252f0e0?, 0x20e1653e4880}, {0x7, {0x7ff6f252ce70, 0x20e14bd4e080}, {0x0, 0x0}})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:725 +0x2005 fp=0x20e17ca07928 sp=0x20e17ca075b0 pc=0x7ff6f230a345
+golang.org/x/tools/go/ssa.(*builder).expr(0x20e1819612f0, 0x20e17021fa00, {0x7ff6f252f0e0, 0x20e1653e4880})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:642 +0x178 fp=0x20e17ca079e0 sp=0x20e17ca07928 pc=0x7ff6f2308238
+golang.org/x/tools/go/ssa.(*builder).returnStmt(0x20e1819612f0, 0x20e17021fa00, 0x20e165803260)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2849 +0x15a fp=0x20e17ca07b08 sp=0x20e17ca079e0 pc=0x7ff6f231a0ba
+golang.org/x/tools/go/ssa.(*builder).stmt(0x20e1819612f0, 0x20e17021fa00, {0x7ff6f252ede0?, 0x20e165803260?})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2749 +0x531 fp=0x20e17ca07c38 sp=0x20e17ca07b08 pc=0x7ff6f2318b11
+golang.org/x/tools/go/ssa.(*builder).stmtList(...)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:973
+golang.org/x/tools/go/ssa.(*builder).stmt(0x20e1819612f0, 0x20e17021fa00, {0x7ff6f252ee70?, 0x20e1657ed830?})
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2755 +0x10d1 fp=0x20e17ca07d68 sp=0x20e17ca07c38 pc=0x7ff6f23196b1
+golang.org/x/tools/go/ssa.(*builder).buildFromSyntax(0x20e1819612f0, 0x20e17021fa00)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2964 +0x25a fp=0x20e17ca07de0 sp=0x20e17ca07d68 pc=0x7ff6f231b0ba
+golang.org/x/tools/go/ssa.(*builder).buildFunction(0x66?, 0x20e17021fa00)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2914 +0x186 fp=0x20e17ca07ea0 sp=0x20e17ca07de0 pc=0x7ff6f231ace6
+golang.org/x/tools/go/ssa.(*builder).iterate(0x20e1819612f0)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:2899 +0x25 fp=0x20e17ca07ec0 sp=0x20e17ca07ea0 pc=0x7ff6f231ab05
+golang.org/x/tools/go/ssa.(*Package).build(0x20e16ffa8300)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:3185 +0xce fp=0x20e17ca07f20 sp=0x20e17ca07ec0 pc=0x7ff6f231c8ce
+golang.org/x/tools/go/ssa.(*Package).build-fm()
+	<autogenerated>:1 +0x17 fp=0x20e17ca07f38 sp=0x20e17ca07f20 pc=0x7ff6f2348137
+sync.(*Once).doSlow(0x20e16b734a40?, 0x7ff6f2197be0?)
+	C:/projects/Forke/tools/go/src/sync/once.go:78 +0xac fp=0x20e17ca07f90 sp=0x20e17ca07f38 pc=0x7ff6f1f68bcc
+sync.(*Once).Do(...)
+	C:/projects/Forke/tools/go/src/sync/once.go:69
+golang.org/x/tools/go/ssa.(*Package).Build(...)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:3174
+golang.org/x/tools/go/ssa.(*Program).Build.func1(0x20e14bd9ff98?)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:3153 +0x45 fp=0x20e17ca07fc8 sp=0x20e17ca07f90 pc=0x7ff6f231c765
+golang.org/x/tools/go/ssa.(*Program).Build.gowrap1()
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:3156 +0x1b fp=0x20e17ca07fe0 sp=0x20e17ca07fc8 pc=0x7ff6f231c6fb
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e17ca07fe8 sp=0x20e17ca07fe0 pc=0x7ff6f1f5e5a1
+created by golang.org/x/tools/go/ssa.(*Program).Build in goroutine 1
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:3152 +0x196
+
+goroutine 1 gp=0x20e14bcfc000 m=nil [chan send]:
+runtime.gopark(0x20e14bd14000?, 0x300f6f2523138?, 0x8?, 0xe1?, 0x20e16fab2a00?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bdef180 sp=0x20e14bdef160 pc=0x7ff6f1f56dce
+runtime.chansend(0x20e14bcd2310, 0x7ff6f2525948, 0x1, 0x20e14bdef258?)
+	C:/projects/Forke/tools/go/src/runtime/chan.go:283 +0x3fc fp=0x20e14bdef1f0 sp=0x20e14bdef180 pc=0x7ff6f1ee8e7c
+runtime.chansend1(0x20e16fd30c50?, 0x1?)
+	C:/projects/Forke/tools/go/src/runtime/chan.go:161 +0x17 fp=0x20e14bdef220 sp=0x20e14bdef1f0 pc=0x7ff6f1ee8a77
+golang.org/x/tools/go/ssa.(*Program).Build(0x20e16e9bad20)
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/go/ssa/builder.go:3151 +0x106 fp=0x20e14bdef2d0 sp=0x20e14bdef220 pc=0x7ff6f231c606
+main.main()
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/tools@v0.43.0/cmd/deadcode/deadcode.go:158 +0x75f fp=0x20e14bdeff48 sp=0x20e14bdef2d0 pc=0x7ff6f237f43f
+runtime.main()
+	C:/projects/Forke/tools/go/src/runtime/proc.go:290 +0x2c7 fp=0x20e14bdeffe0 sp=0x20e14bdeff48 pc=0x7ff6f1f23147
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bdeffe8 sp=0x20e14bdeffe0 pc=0x7ff6f1f5e5a1
+
+goroutine 2 gp=0x20e14bcfc780 m=nil [force gc (idle), 1 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd01fa8 sp=0x20e14bd01f88 pc=0x7ff6f1f56dce
+runtime.goparkunlock(...)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:468
+runtime.forcegchelper()
+	C:/projects/Forke/tools/go/src/runtime/proc.go:375 +0xb8 fp=0x20e14bd01fe0 sp=0x20e14bd01fa8 pc=0x7ff6f1f23438
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd01fe8 sp=0x20e14bd01fe0 pc=0x7ff6f1f5e5a1
+created by runtime.init.7 in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0x20e14bcfc960 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd03f88 sp=0x20e14bd03f68 pc=0x7ff6f1f56dce
+runtime.goparkunlock(...)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:468
+runtime.bgsweep(0x20e14bcd8100)
+	C:/projects/Forke/tools/go/src/runtime/mgcsweep.go:324 +0x151 fp=0x20e14bd03fc8 sp=0x20e14bd03f88 pc=0x7ff6f1f0a611
+runtime.gcenable.gowrap1()
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:214 +0x17 fp=0x20e14bd03fe0 sp=0x20e14bd03fc8 pc=0x7ff6f1efb957
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd03fe8 sp=0x20e14bd03fe0 pc=0x7ff6f1f5e5a1
+created by runtime.gcenable in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x20e14bcfcb40 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0x7ff6f2523ca8?, 0x0?, 0x0?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd0ff78 sp=0x20e14bd0ff58 pc=0x7ff6f1f56dce
+runtime.goparkunlock(...)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:468
+runtime.(*scavengerState).park(0x7ff6f29ad1a0)
+	C:/projects/Forke/tools/go/src/runtime/mgcscavenge.go:425 +0x49 fp=0x20e14bd0ffa8 sp=0x20e14bd0ff78 pc=0x7ff6f1f08089
+runtime.bgscavenge(0x20e14bcd8100)
+	C:/projects/Forke/tools/go/src/runtime/mgcscavenge.go:658 +0x59 fp=0x20e14bd0ffc8 sp=0x20e14bd0ffa8 pc=0x7ff6f1f08619
+runtime.gcenable.gowrap2()
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:215 +0x17 fp=0x20e14bd0ffe0 sp=0x20e14bd0ffc8 pc=0x7ff6f1efb917
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd0ffe8 sp=0x20e14bd0ffe0 pc=0x7ff6f1f5e5a1
+created by runtime.gcenable in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0x20e14bcfcf00 m=nil [GOMAXPROCS updater (idle), 1 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd11f88 sp=0x20e14bd11f68 pc=0x7ff6f1f56dce
+runtime.goparkunlock(...)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:468
+runtime.updateMaxProcsGoroutine()
+	C:/projects/Forke/tools/go/src/runtime/proc.go:7095 +0xe7 fp=0x20e14bd11fe0 sp=0x20e14bd11f88 pc=0x7ff6f1f319e7
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd11fe8 sp=0x20e14bd11fe0 pc=0x7ff6f1f5e5a1
+created by runtime.defaultGOMAXPROCSUpdateEnable in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/proc.go:7083 +0x37
+
+goroutine 6 gp=0x20e14bcfd0e0 m=nil [finalizer wait, 1 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd0be20 sp=0x20e14bd0be00 pc=0x7ff6f1f56dce
+runtime.runFinalizers()
+	C:/projects/Forke/tools/go/src/runtime/mfinal.go:210 +0x107 fp=0x20e14bd0bfe0 sp=0x20e14bd0be20 pc=0x7ff6f1efa8e7
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd0bfe8 sp=0x20e14bd0bfe0 pc=0x7ff6f1f5e5a1
+created by runtime.createfing in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/mfinal.go:172 +0x3d
+
+goroutine 7 gp=0x20e14bcfd2c0 m=nil [cleanup wait, 1 minutes]:
+runtime.gopark(0x101000000000000?, 0x73?, 0x3?, 0x0?, 0x7ff6f293f500?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd05f68 sp=0x20e14bd05f48 pc=0x7ff6f1f56dce
+runtime.goparkunlock(...)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff6f29ad500)
+	C:/projects/Forke/tools/go/src/runtime/mcleanup.go:522 +0xd4 fp=0x20e14bd05fa0 sp=0x20e14bd05f68 pc=0x7ff6f1ef78d4
+runtime.runCleanups()
+	C:/projects/Forke/tools/go/src/runtime/mcleanup.go:718 +0x45 fp=0x20e14bd05fe0 sp=0x20e14bd05fa0 pc=0x7ff6f1ef7f45
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd05fe8 sp=0x20e14bd05fe0 pc=0x7ff6f1f5e5a1
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/mcleanup.go:672 +0xa5
+
+goroutine 8 gp=0x20e14bcfd4a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x7ff6f29f8700?, 0x2?, 0xd8?, 0x44?, 0x0?)
+	C:/projects/Forke/tools/go/src/runtime/proc.go:462 +0xce fp=0x20e14bd0df40 sp=0x20e14bd0df20 pc=0x7ff6f1f56dce
+runtime.gcBgMarkWorker(0x20e14bcd2620)
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:1791 +0xeb fp=0x20e14bd0dfc8 sp=0x20e14bd0df40 pc=0x7ff6f1efe48b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:1695 +0x17 fp=0x20e14bd0dfe0 sp=0x20e14bd0dfc8 pc=0x7ff6f1efe377
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bd0dfe8 sp=0x20e14bd0dfe0 pc=0x7ff6f1f5e5a1
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	C:/projects/Forke/tools/go/src/runtime/mgc.go:1695 +0x105
+
+goroutine 9 gp=0x20e14bcfd680 m=0 mp=0x7ff6f29ae9a0 [syscall, 1 minutes]:
+runtime.cgocall(0x7ff6f1ee5c20, 0x7ff6f29aecf0)
+	C:/projects/Forke/tools/go/src/runtime/cgocall.go:167 +0x3e fp=0x20e14bda1e20 sp=0x20e14bda1db8 pc=0x7ff6f1f53d3e
+syscall.syscalln(0x0?, 0x0?, {0x20e14bda1ea0?, 0x7ff6f2996980?, 0x20e14bda1e50?})
+	C:/projects/Forke/tools/go/src/runtime/syscall_windows.go:431 +0x4e fp=0x20e14bda1e40 sp=0x20e14bda1e20 pc=0x7ff6f1f5ab2e
+syscall.SyscallN(0x7ff6f2996980?, {0x20e14bda1ea0?, 0x0?, 0x0?})
+	C:/projects/Forke/tools/go/src/syscall/dll_windows.go:99 +0x1e fp=0x20e14bda1e78 sp=0x20e14bda1e40 pc=0x7ff6f1f7f1fe
+syscall.WaitForSingleObject(0x1b8, 0xffffffff)
+	C:/projects/Forke/tools/go/src/syscall/zsyscall_windows.go:1159 +0x6a fp=0x20e14bda1ec8 sp=0x20e14bda1e78 pc=0x7ff6f1f8a62a
+os.(*Process).wait(0x20e14bd12000)
+	C:/projects/Forke/tools/go/src/os/exec_windows.go:28 +0x89 fp=0x20e14bda1f58 sp=0x20e14bda1ec8 pc=0x7ff6f1fe8129
+os.(*Process).Wait(...)
+	C:/projects/Forke/tools/go/src/os/exec.go:346
+os/exec.(*Cmd).Wait(0x20e14bd22b60)
+	C:/projects/Forke/tools/go/src/os/exec/exec.go:930 +0x45 fp=0x20e14bda1fb8 sp=0x20e14bda1f58 pc=0x7ff6f2194045
+golang.org/x/telemetry.startChild.func1()
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/telemetry@v0.0.0-20260311193753-579e4da9a98c/start.go:246 +0x25 fp=0x20e14bda1fe0 sp=0x20e14bda1fb8 pc=0x7ff6f22f74c5
+runtime.goexit({})
+	C:/projects/Forke/tools/go/src/runtime/asm_amd64.s:1771 +0x1 fp=0x20e14bda1fe8 sp=0x20e14bda1fe0 pc=0x7ff6f1f5e5a1
+created by golang.org/x/telemetry.startChild in goroutine 1
+	C:/Users/KRISHNA AGARWAL/go/pkg/mod/golang.org/x/telemetry@v0.0.0-20260311193753-579e4da9a98c/start.go:245 +0x7d4
+exit status 2

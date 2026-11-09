@@ -1,0 +1,27 @@
+{
+  "powershell-final": {
+    "tests": {
+      "pass": 123
+    },
+    "race": {
+      "pass": 123
+    }
+  },
+  "bash": {
+    "tests": {
+      "pass": 123
+    },
+    "race": {
+      "pass": 123
+    }
+  },
+  "critical_race_five": {
+    "passed": 320,
+    "failed": 0,
+    "skipped": 0
+  },
+  "protected_files_unchanged": 20,
+  "environment": "local, log driver/fake provider",
+  "source_head": "c0b1c63763932678093c6b5068e131d107a04d35",
+  "push_authorized": "user follow-up: resume and then push the final stage also"
+}

@@ -1,0 +1,157 @@
+2026/11/09 14:32:59 WARN ses 24 hour quota nearly used, worker idle sent_last_24h=95 max_24h=100
+2026/11/09 14:32:59 WARN worker holding sends reason=test until=2026-11-09T14:42:59.893+05:30
+FAIL	forkemail/internal/sender	409.884s
+--- FAIL: TestConcurrentDuplicatesCreateOneMessage (0.72s)
+    engine_test.go:158: failed to initialize: failed to connect to `user=forkemail database=verify_followup_20261109`: 127.0.0.1:55439 (127.0.0.1): failed to receive message: read tcp 127.0.0.1:59035->127.0.0.1:55439: wsarecv: An existing connection was forcibly closed by the remote host.
+2026/11/09 14:39:58 WARN transactional send failed message_id=f5471f8f-51a1-47d1-ad39-b590e9497e98 reason=boom attempts=1
+2026/11/09 14:39:58 WARN transactional send failed message_id=e579141e-3abc-4bf4-bb35-ad36b1d8d57d reason=boom attempts=1
+2026/11/09 14:39:59 WARN transactional send failed message_id=d8e66f78-3f0d-45c6-b199-5dd584543e94 reason=boom attempts=1
+2026/11/09 14:39:59 WARN transactional send failed message_id=d72ee518-0775-4c9c-9f7f-c3322d8e4456 reason=boom attempts=1
+2026/11/09 14:39:59 WARN transactional send failed message_id=8b41df12-0938-4688-806e-37658145f3db reason=boom attempts=1
+2026/11/09 14:40:01 WARN transactional send failed message_id=68a65f45-93a1-4d4c-971f-0d7178499cb8 reason=throttled attempts=5
+FAIL
+FAIL	forkemail/internal/transactional	25.615s
+# forkemail/cmd/server.test
+runtime: VirtualAlloc of 3342336 bytes failed with errno=1455
+fatal error: out of memory
+
+runtime stack:
+runtime.throw({0x7ff7ecbb821a?, 0x2d773ffa40?})
+	runtime/panic.go:1229 +0x4d fp=0x2d773ffa08 sp=0x2d773ff9d8 pc=0x7ff7ec8c2f2d
+runtime.sysUsedOS(0x911b1970000, 0x330000)
+	runtime/mem_windows.go:83 +0x1e5 fp=0x2d773ffa88 sp=0x2d773ffa08 pc=0x7ff7ec8640c5
+runtime.sysUsed(...)
+	runtime/mem.go:91
+runtime.(*mheap).allocSpan(0x7ff7ece73280, 0x198, 0x0, 0x1)
+	runtime/mheap.go:1404 +0x4a7 fp=0x2d773ffb38 sp=0x2d773ffa88 pc=0x7ff7ec87a187
+runtime.(*mheap).alloc.func1()
+	runtime/mheap.go:1017 +0x5c fp=0x2d773ffb80 sp=0x2d773ffb38 pc=0x7ff7ec87993c
+runtime.systemstack(0x911a560c960)
+	runtime/asm_amd64.s:562 +0x49 fp=0x2d773ffb90 sp=0x2d773ffb80 pc=0x7ff7ec8c8349
+
+goroutine 1 gp=0x911a560c000 m=3 mp=0x911a5617008 [running]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x911a55fcfe0 sp=0x911a55fcfd0 pc=0x7ff7ec8c82e8
+runtime.(*mheap).alloc(0x330000?, 0x198?, 0xb8?)
+	runtime/mheap.go:1011 +0x57 fp=0x911a55fd028 sp=0x911a55fcfe0 pc=0x7ff7ec879897
+runtime.(*mcache).allocLarge(0x911a55fd128?, 0x32f3e3, 0x1)
+	runtime/mcache.go:257 +0x7f fp=0x911a55fd078 sp=0x911a55fd028 pc=0x7ff7ec8613df
+runtime.mallocgcLarge(0x7ff7ec91eba7?, 0x7ff7ecb51080, 0x1)
+	runtime/malloc.go:1755 +0x79 fp=0x911a55fd0d0 sp=0x911a55fd078 pc=0x7ff7ec85e5f9
+runtime.mallocgc(0x32f3e3, 0x7ff7ecb51080, 0x1)
+	runtime/malloc.go:1208 +0xd3 fp=0x911a55fd100 sp=0x911a55fd0d0 pc=0x7ff7ec8c1093
+runtime.makeslice(0x911b04cab40?, 0x911a55fd198?, 0x7ff7ec91eba7?)
+	runtime/slice.go:117 +0x49 fp=0x911a55fd128 sp=0x911a55fd100 pc=0x7ff7ec8c4549
+cmd/internal/bio.(*Reader).Slice(0x911a55f96e0, 0x32f3e3)
+	cmd/internal/bio/buf.go:130 +0x30 fp=0x911a55fd170 sp=0x911a55fd128 pc=0x7ff7ec950370
+cmd/link/internal/loader.(*Loader).Preload(0x911a56ea388, 0x159, 0x911a55f96e0, 0x911ab469a40, 0x911b04f64e0, 0x32f3e3)
+	cmd/link/internal/loader/loader.go:2164 +0x65 fp=0x911a55fd260 sp=0x911a55fd170 pc=0x7ff7ec990705
+cmd/link/internal/ld.ldobj(0x911a56fa200, 0x911a55f96e0, 0x911ab469a40, 0x32f48b, {0x911b017b400, 0x7d}, {0x911a572b400, 0x75})
+	cmd/link/internal/ld/lib.go:2455 +0xa87 fp=0x911a55fd428 sp=0x911a55fd260 pc=0x7ff7eca617c7
+cmd/link/internal/ld.loadobjfile(0x911a56fa200, 0x911ab469a40)
+	cmd/link/internal/ld/lib.go:1161 +0x76b fp=0x911a55fd5d0 sp=0x911a55fd428 pc=0x7ff7eca55aab
+cmd/link/internal/ld.(*Link).loadlib(0x911a56fa200)
+	cmd/link/internal/ld/lib.go:551 +0x236 fp=0x911a55fd708 sp=0x911a55fd5d0 pc=0x7ff7eca52776
+cmd/link/internal/ld.Main(_, {0x20, 0x20, 0x1, 0x7, 0x10, 0x0, {0x911a568e5a9, 0x1, 0x1}, ...})
+	cmd/link/internal/ld/main.go:366 +0x142b fp=0x911a55fdac8 sp=0x911a55fd708 pc=0x7ff7eca7418b
+main.main()
+	cmd/link/main.go:72 +0x131e fp=0x911a55fdf48 sp=0x911a55fdac8 pc=0x7ff7ecb1b1be
+runtime.main()
+	runtime/proc.go:290 +0x2c7 fp=0x911a55fdfe0 sp=0x911a55fdf48 pc=0x7ff7ec88fee7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a55fdfe8 sp=0x911a55fdfe0 pc=0x7ff7ec8c9f81
+
+goroutine 2 gp=0x911a560c780 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x911a560ffa8 sp=0x911a560ff88 pc=0x7ff7ec8c304e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.forcegchelper()
+	runtime/proc.go:375 +0xb8 fp=0x911a560ffe0 sp=0x911a560ffa8 pc=0x7ff7ec8901d8
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a560ffe8 sp=0x911a560ffe0 pc=0x7ff7ec8c9f81
+created by runtime.init.7 in goroutine 1
+	runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0x911a560cb40 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x911a5611f88 sp=0x911a5611f68 pc=0x7ff7ec8c304e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.bgsweep(0x911a55e4100)
+	runtime/mgcsweep.go:324 +0x151 fp=0x911a5611fc8 sp=0x911a5611f88 pc=0x7ff7ec876151
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:214 +0x17 fp=0x911a5611fe0 sp=0x911a5611fc8 pc=0x7ff7ec867497
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a5611fe8 sp=0x911a5611fe0 pc=0x7ff7ec8c9f81
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x911a560cd20 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0x7ff7ecbda3b8?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x911a5621f78 sp=0x911a5621f58 pc=0x7ff7ec8c304e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*scavengerState).park(0x7ff7ece68e20)
+	runtime/mgcscavenge.go:425 +0x49 fp=0x911a5621fa8 sp=0x911a5621f78 pc=0x7ff7ec873bc9
+runtime.bgscavenge(0x911a55e4100)
+	runtime/mgcscavenge.go:658 +0x59 fp=0x911a5621fc8 sp=0x911a5621fa8 pc=0x7ff7ec874159
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x17 fp=0x911a5621fe0 sp=0x911a5621fc8 pc=0x7ff7ec867457
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a5621fe8 sp=0x911a5621fe0 pc=0x7ff7ec8c9f81
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+
+goroutine 18 gp=0x911a5682000 m=nil [GOMAXPROCS updater (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x911a561df88 sp=0x911a561df68 pc=0x7ff7ec8c304e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.updateMaxProcsGoroutine()
+	runtime/proc.go:7095 +0xe7 fp=0x911a561dfe0 sp=0x911a561df88 pc=0x7ff7ec89e787
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a561dfe8 sp=0x911a561dfe0 pc=0x7ff7ec8c9f81
+created by runtime.defaultGOMAXPROCSUpdateEnable in goroutine 1
+	runtime/proc.go:7083 +0x37
+
+goroutine 19 gp=0x911a56821e0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x911a561fe20 sp=0x911a561fe00 pc=0x7ff7ec8c304e
+runtime.runFinalizers()
+	runtime/mfinal.go:210 +0x107 fp=0x911a561ffe0 sp=0x911a561fe20 pc=0x7ff7ec866427
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a561ffe8 sp=0x911a561ffe0 pc=0x7ff7ec8c9f81
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 20 gp=0x911a56823c0 m=nil [cleanup wait]:
+runtime.gopark(0x101000000000000?, 0x3f?, 0x3?, 0x0?, 0x7ff7ece21340?)
+	runtime/proc.go:462 +0xce fp=0x911a5613f68 sp=0x911a5613f48 pc=0x7ff7ec8c304e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff7ece690e0)
+	runtime/mcleanup.go:522 +0xd4 fp=0x911a5613fa0 sp=0x911a5613f68 pc=0x7ff7ec863414
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x45 fp=0x911a5613fe0 sp=0x911a5613fa0 pc=0x7ff7ec863a85
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a5613fe8 sp=0x911a5613fe0 pc=0x7ff7ec8c9f81
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0xa5
+
+goroutine 21 gp=0x911a56825a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x2e57dd464b60?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x911a5a19f40 sp=0x911a5a19f20 pc=0x7ff7ec8c304e
+runtime.gcBgMarkWorker(0x911a5684150)
+	runtime/mgc.go:1791 +0xeb fp=0x911a5a19fc8 sp=0x911a5a19f40 pc=0x7ff7ec869fcb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x911a5a19fe0 sp=0x911a5a19fc8 pc=0x7ff7ec869eb7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x911a5a19fe8 sp=0x911a5a19fe0 pc=0x7ff7ec8c9f81
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	runtime/mgc.go:1695 +0x105
+
+goroutine 22 gp=0x911a5682780 m=nil [GC worker (idle)]:
+runtime.gopark(0x2e57dd464b600x0?, 0x0?	runtime/proc.go462 + fp=0x911a5a1bf40 pc=0x7ff7ec8c304e0x911a5684150runtime/mgc.go1791(runtime/asm_amd64.s
+FAIL	forkemail/cmd/server [build failed]
+FAIL

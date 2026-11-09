@@ -1,0 +1,3 @@
+ok  	forkemail/internal/sender	24.200s
+ok  	forkemail/internal/transactional	28.835s
+ok  	forkemail/internal/domains	1.725s

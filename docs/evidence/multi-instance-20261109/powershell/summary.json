@@ -1,0 +1,60 @@
+{
+  "checks": [
+    {
+      "check": "2 published migrations unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "3 unique migration versions",
+      "status": "PASS"
+    },
+    {
+      "check": "4 fresh/v8 upgrade, seeded rows and rollback/reapply",
+      "status": "PASS"
+    },
+    {
+      "check": "5 live local HTTP cross-route idempotency and signed fake-receiver webhook",
+      "status": "PASS"
+    },
+    {
+      "check": "6 sending key denied campaign creation",
+      "status": "PASS"
+    },
+    {
+      "check": "7 no runtime stub or duplicate route registrations",
+      "status": "PASS"
+    },
+    {
+      "check": "8a build",
+      "status": "PASS"
+    },
+    {
+      "check": "8b vet",
+      "status": "PASS"
+    },
+    {
+      "check": "8c gofmt",
+      "status": "PASS"
+    },
+    {
+      "check": "8d deadcode",
+      "status": "FAIL",
+      "reason": "go failed; see deadcode.txt"
+    },
+    {
+      "check": "8e full normal tests",
+      "status": "PASS"
+    },
+    {
+      "check": "8f full race tests",
+      "status": "PASS"
+    },
+    {
+      "check": "9 protected asset hashes",
+      "status": "PASS"
+    }
+  ],
+  "database": "verify_20261109_101849_f9fbe55709e0",
+  "environment": "local (log driver/fake provider)",
+  "failures": 1
+}

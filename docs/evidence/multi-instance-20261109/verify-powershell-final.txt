@@ -1,0 +1,16 @@
+PASS 1 branch and fetched teammate hashes match
+PASS 2 published migrations unchanged
+PASS 3 unique migration versions
+PASS 4 fresh/v8 upgrade, seeded rows and rollback/reapply
+PASS 5 live local HTTP cross-route idempotency and signed fake-receiver webhook
+PASS 6 sending key denied campaign creation
+PASS 7 no runtime stub or duplicate route registrations
+PASS 8a build
+PASS 8b vet
+PASS 8c gofmt
+PASS 8d deadcode
+PASS 8e full normal tests
+PASS 8f full race tests
+PASS 9 protected asset hashes
+PASS all required checks; evidence: docs/evidence/multi-instance-20261109/powershell-final
+PASS cleanup dropped verify_20261109_103821_df25408b7a7f
