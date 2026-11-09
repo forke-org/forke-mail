@@ -89,6 +89,9 @@ func fillUnsubscribeLink(body, url string) string {
 }
 
 func withTextFooter(body, unsubscribeURL string) string {
+	if strings.TrimSpace(body) == "" {
+		return ""
+	}
 	if hasUnsubscribeLink(body) {
 		return fillUnsubscribeLink(body, unsubscribeURL)
 	}

@@ -59,7 +59,7 @@ func (w *Worker) idle() bool {
 	}
 	if time.Since(w.quotaLogged) > time.Minute {
 		w.quotaLogged = time.Now()
-		slog.Warn("ses 24 hour quota nearly used, worker idle", "sent_last_24h", sent, "max_24h", l.Max24HourSend)
+		slog.Warn("24 hour send quota nearly used, worker idle", "sent_last_24h", sent, "max_24h", l.Max24HourSend)
 	}
 	return true
 }

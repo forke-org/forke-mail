@@ -59,8 +59,12 @@ func Build(m sender.Message, messageID string, now time.Time) ([]byte, error) {
 		headers = append(headers, [2]string{"X-Forke-" + textproto.CanonicalMIMEHeaderKey(strings.ReplaceAll(name, "_", "-")), tags[name]})
 	}
 
+	text := m.Text
+	if strings.TrimSpace(text) == "" && m.HTML != "" {
+		text = PlainText(m.HTML)
+	}
 	var body bytes.Buffer
-	contentType, err := writeBody(&body, m.Text, m.HTML)
+	contentType, err := writeBody(&body, text, m.HTML)
 	if err != nil {
 		return nil, err
 	}
