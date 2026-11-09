@@ -4,14 +4,23 @@ import "context"
 
 type Message struct {
 	WorkspaceID string            `json:"workspace_id"`
-	EmailID     string            `json:"email_id"`
-	RecipientID string            `json:"recipient_id"`
+	EmailID     string            `json:"email_id,omitempty"`
+	RecipientID string            `json:"recipient_id,omitempty"`
+	MessageID   string            `json:"message_id,omitempty"`
 	To          string            `json:"to"`
 	From        string            `json:"from"`
+	ReplyTo     string            `json:"reply_to,omitempty"`
 	Subject     string            `json:"subject"`
 	HTML        string            `json:"html"`
 	Text        string            `json:"text"`
 	Headers     map[string]string `json:"headers"`
+}
+
+func (m Message) Tags() map[string]string {
+	if m.MessageID != "" {
+		return map[string]string{"workspace_id": m.WorkspaceID, "message_id": m.MessageID}
+	}
+	return map[string]string{"workspace_id": m.WorkspaceID, "email_id": m.EmailID, "recipient_id": m.RecipientID}
 }
 
 type Sender interface {

@@ -29,7 +29,7 @@ type state struct {
 }
 
 func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipient) bool {
-	if limiter.Wait(ctx) != nil || w.global.Wait(ctx) != nil || w.idle() {
+	if limiter.Wait(ctx) != nil || w.waitBulk(ctx) != nil || w.idle() {
 		return false
 	}
 	st, err := w.loadState(ctx, &rec)
@@ -64,14 +64,14 @@ func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipie
 	messageID, sendErr := w.sender.Send(sendCtx, msg)
 	cancel()
 	if sendErr == nil {
-		w.countSent()
+		w.CountSent()
 		w.complete(writeCtx, rec, "sent", messageID, "")
 		if sim, ok := w.sender.(Simulator); ok {
 			sim.Simulate(writeCtx, msg, messageID)
 		}
 		return true
 	}
-	failure := classify(sendErr)
+	failure := Classify(sendErr)
 	if failure.Action != UnknownOutcome {
 		if err := workspaces.Release(writeCtx, w.pool, res); err != nil {
 			slog.Error("release quota failed", "workspace_id", rec.WorkspaceID, "err", err)
@@ -80,7 +80,7 @@ func (w *Worker) process(ctx context.Context, limiter *rate.Limiter, rec Recipie
 	return w.handleFailure(writeCtx, rec, failure)
 }
 
-func classify(err error) *SendError {
+func Classify(err error) *SendError {
 	var se *SendError
 	if errors.As(err, &se) {
 		return se
@@ -136,7 +136,7 @@ func (w *Worker) handleFailure(ctx context.Context, rec Recipient, f *SendError)
 	var err error
 	switch {
 	case f.Action == PauseSending:
-		w.holdSending(f.Reason)
+		w.HoldSending(f.Reason)
 		if err = Unclaim(ctx, w.pool, []string{rec.ID}); err == nil {
 			err = w.pause(ctx, rec, "ses_sending_paused")
 		}

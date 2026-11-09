@@ -26,6 +26,11 @@ func TestScopeTable(t *testing.T) {
 		{FullAccess, "DELETE /api/suppressions/{id}", true},
 		{SendingAccess, "DELETE /api/suppressions/{id}", false},
 		{SendingAccess, "POST /api/suppressions/import", false},
+		{SendingAccess, "POST /api/transactional", true},
+		{SendingAccess, "GET /api/transactional/{id}", true},
+		{SendingAccess, "GET /api/transactional", false},
+		{SendingAccess, "GET /api/transactional/stats", false},
+		{FullAccess, "GET /api/transactional/stats", true},
 	}
 	for _, c := range cases {
 		if got := Allowed(c.scope, c.route); got != c.want {

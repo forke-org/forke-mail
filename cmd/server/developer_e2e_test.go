@@ -39,7 +39,7 @@ func TestDeveloperContractEndToEndWithFakeEngine(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}, transaction: &transactional.Handler{Pool: f.pool, Enqueuer: fixtureEngine{}}})
+	f.developer(&developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}, transaction: &transactional.CompatibilityHandler{Pool: f.pool, Enqueuer: fixtureEngine{}}})
 	w := f.request("POST", "/api/keys", `{"name":"e2e","scope":"sending_access","password":"test-password"}`, "")
 	var key struct{ Key string }
 	if err := json.Unmarshal(w.Body.Bytes(), &key); err != nil {

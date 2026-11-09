@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Handler struct {
+type CompatibilityHandler struct {
 	Pool        *pgxpool.Pool
 	Enqueuer    EmailEnqueuer
 	Development bool
@@ -33,7 +33,7 @@ var errBlocked = errors.New("recipient_suppressed")
 var errPaused = errors.New("workspace_sending_paused")
 var errCapacity = errors.New("transactional_queue_full")
 
-func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
+func (h *CompatibilityHandler) Send(w http.ResponseWriter, r *http.Request) {
 	if h.Enqueuer == nil {
 		httpx.Error(w, 503, "transactional_engine_unavailable")
 		return

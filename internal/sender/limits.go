@@ -30,14 +30,14 @@ func (w *Worker) SetLimits(l Limits) {
 	}
 }
 
-func (w *Worker) holdSending(reason string) {
+func (w *Worker) HoldSending(reason string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.holdUntil = time.Now().Add(sesPauseHold)
 	slog.Warn("worker holding sends", "reason", reason, "until", w.holdUntil)
 }
 
-func (w *Worker) countSent() {
+func (w *Worker) CountSent() {
 	w.mu.Lock()
 	w.sentSinceCheck++
 	w.mu.Unlock()

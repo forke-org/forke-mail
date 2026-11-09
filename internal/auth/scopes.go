@@ -22,6 +22,10 @@ var (
 )
 
 var routeScopes = map[string][]string{
+	"POST /api/transactional":           anyone,
+	"GET /api/transactional":            workspace,
+	"GET /api/transactional/stats":      workspace,
+	"GET /api/transactional/{id}":       anyone,
 	"GET /api/me":                       anyone,
 	"POST /api/emails":                  anyone,
 	"POST /api/auth/logout":             sessionOnly,

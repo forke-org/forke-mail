@@ -20,6 +20,7 @@ import (
 	"forkemail/internal/sender"
 	"forkemail/internal/ses"
 	"forkemail/internal/sns"
+	"forkemail/internal/transactional"
 	"forkemail/internal/unsub"
 
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
@@ -83,6 +84,7 @@ func run() error {
 	worker := sender.NewWorker(pool, mailer, unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)},
 		cfg.PublicBaseURL, cfg.SendRatePerSec, cfg.TrialSendRatePerSec)
 	svc.sendRate = worker.GlobalRate
+	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL))
 	if account != nil {
 		account.Apply = worker.SetLimits
 		snap, err := account.Refresh(ctx)
@@ -96,6 +98,7 @@ func run() error {
 	var background sync.WaitGroup
 	for _, task := range append(tasks,
 		worker.Run,
+		svc.dispatcher.Run,
 		func(ctx context.Context) { sender.RunSweeper(ctx, pool) },
 		func(ctx context.Context) { lim.public.Janitor(ctx, limiterIdleTimeout) },
 		func(ctx context.Context) { lim.keys.Janitor(ctx, limiterIdleTimeout) },

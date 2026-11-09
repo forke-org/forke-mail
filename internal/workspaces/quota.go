@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
@@ -14,13 +13,17 @@ var (
 	ErrDailyLimitReached   = errors.New("daily_limit_reached")
 )
 
+type beginner interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+}
+
 type Reservation struct {
 	WorkspaceID string
 	Trial       bool
 	Day         time.Time
 }
 
-func Reserve(ctx context.Context, pool *pgxpool.Pool, workspaceID string) (Reservation, error) {
+func Reserve(ctx context.Context, pool beginner, workspaceID string) (Reservation, error) {
 	res := Reservation{WorkspaceID: workspaceID}
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		var plan string
@@ -51,7 +54,7 @@ func Reserve(ctx context.Context, pool *pgxpool.Pool, workspaceID string) (Reser
 	return res, err
 }
 
-func Release(ctx context.Context, pool *pgxpool.Pool, res Reservation) error {
+func Release(ctx context.Context, pool beginner, res Reservation) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		if res.Trial {
 			if _, err := tx.Exec(ctx, `

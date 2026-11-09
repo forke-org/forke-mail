@@ -26,10 +26,6 @@ type Processor struct {
 	Reputation Thresholds
 }
 
-type recipient struct {
-	id, workspaceID, emailID, email string
-}
-
 func (p *Processor) Handle(ctx context.Context, snsMessageID string, raw []byte) (string, error) {
 	var result string
 	err := pgx.BeginFunc(ctx, p.Pool, func(tx pgx.Tx) error {
@@ -67,10 +63,7 @@ func (p *Processor) apply(ctx context.Context, tx pgx.Tx, ev Event) (string, err
 	if ev.Mail.MessageID == "" {
 		return Ignored, nil
 	}
-	var r recipient
-	err := tx.QueryRow(ctx, `
-		SELECT id, workspace_id, email_id, email FROM email_recipients
-		WHERE ses_message_id = $1 FOR UPDATE`, ev.Mail.MessageID).Scan(&r.id, &r.workspaceID, &r.emailID, &r.email)
+	r, err := findRecipient(ctx, tx, ev.Mail.MessageID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		slog.Info("ses event for unknown message", "event", kind)
 		return UnknownMessage, nil
@@ -78,15 +71,18 @@ func (p *Processor) apply(ctx context.Context, tx pgx.Tx, ev Event) (string, err
 	if err != nil {
 		return "", err
 	}
-	if !tagsMatch(ev.Mail.Tags, r) {
+	if !tagsMatch(ev.Mail.Tags, r.expectedTags()) {
 		slog.Warn("ses event tags do not match recipient", "event", kind, "recipient_id", r.id)
 		return TagMismatch, nil
 	}
 	record := func(eventType string, detail map[string]any) error {
-		return events.Record(ctx, tx, events.Event{
-			WorkspaceID: r.workspaceID, EmailID: r.emailID, RecipientID: r.id,
-			SESMessageID: ev.Mail.MessageID, Type: eventType, Detail: detail,
-		})
+		e := events.Event{WorkspaceID: r.workspaceID, SESMessageID: ev.Mail.MessageID, Type: eventType, Detail: detail}
+		if r.transactional() {
+			e.MessageID = r.id
+		} else {
+			e.EmailID, e.RecipientID = r.emailID, r.id
+		}
+		return events.Record(ctx, tx, e)
 	}
 	switch kind {
 	case "Delivery":
@@ -111,10 +107,14 @@ func (p *Processor) apply(ctx context.Context, tx pgx.Tx, ev Event) (string, err
 	return Processed, nil
 }
 
-func tagsMatch(tags map[string][]string, r recipient) bool {
-	for name, want := range map[string]string{"workspace_id": r.workspaceID, "email_id": r.emailID, "recipient_id": r.id} {
+func tagsMatch(tags map[string][]string, expected map[string]string) bool {
+	for _, name := range []string{"workspace_id", "email_id", "recipient_id", "message_id"} {
 		values, ok := tags[name]
-		if ok && (len(values) != 1 || values[0] != want) {
+		if !ok {
+			continue
+		}
+		want, known := expected[name]
+		if !known || len(values) != 1 || values[0] != want {
 			return false
 		}
 	}
@@ -131,7 +131,7 @@ func (p *Processor) delivery(ctx context.Context, tx pgx.Tx, r recipient, ev Eve
 		detail["smtp_response"] = ev.Delivery.SMTPResponse
 	}
 	if _, err := tx.Exec(ctx, `
-		UPDATE email_recipients SET delivered_at = COALESCE(delivered_at, $2) WHERE id = $1`, r.id, ts); err != nil {
+		UPDATE `+r.table+` SET delivered_at = COALESCE(delivered_at, $2) WHERE id = $1`, r.id, ts); err != nil {
 		return err
 	}
 	return record("delivered", detail)
@@ -152,7 +152,7 @@ func (p *Processor) bounce(ctx context.Context, tx pgx.Tx, r recipient, ev Event
 		return record("soft_bounced", detail)
 	}
 	if _, err := tx.Exec(ctx, `
-		UPDATE email_recipients SET bounced_at = COALESCE(bounced_at, $2), bounce_type = $3 WHERE id = $1`,
+		UPDATE `+r.table+` SET bounced_at = COALESCE(bounced_at, $2), bounce_type = $3 WHERE id = $1`,
 		r.id, at(b.Timestamp), b.BounceType+"/"+b.BounceSubType); err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (p *Processor) complaint(ctx context.Context, tx pgx.Tx, r recipient, ev Ev
 		detail["feedback_id"] = ev.Complaint.FeedbackID
 	}
 	if _, err := tx.Exec(ctx, `
-		UPDATE email_recipients SET complained_at = COALESCE(complained_at, $2) WHERE id = $1`, r.id, ts); err != nil {
+		UPDATE `+r.table+` SET complained_at = COALESCE(complained_at, $2) WHERE id = $1`, r.id, ts); err != nil {
 		return err
 	}
 	if _, err := contacts.Suppress(ctx, tx, contacts.Suppression{
@@ -196,7 +196,7 @@ func (p *Processor) reject(ctx context.Context, tx pgx.Tx, r recipient, ev Event
 		reason = "rejected: " + ev.Reject.Reason
 	}
 	if _, err := tx.Exec(ctx, `
-		UPDATE email_recipients SET status = 'failed', last_error = $2 WHERE id = $1`, r.id, reason); err != nil {
+		UPDATE `+r.table+` SET status = 'failed', last_error = $2 WHERE id = $1`, r.id, reason); err != nil {
 		return err
 	}
 	return record("rejected", map[string]any{"reason": reason})

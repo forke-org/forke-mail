@@ -12,7 +12,7 @@ import (
 )
 
 type developerServices struct {
-	transaction *transactional.Handler
+	transaction *transactional.CompatibilityHandler
 	hooks       *webhooks.Handler
 	dispatcher  *webhooks.Dispatcher
 }
@@ -20,7 +20,7 @@ type developerServices struct {
 func newDeveloperServices(pool *pgxpool.Pool, development bool) (*developerServices, error) {
 	h := &webhooks.Handler{Pool: pool}
 	d := &developerServices{hooks: h}
-	d.transaction = &transactional.Handler{Pool: pool}
+	d.transaction = &transactional.CompatibilityHandler{Pool: pool}
 	if os.Getenv("TRANSACTIONAL_STUB_ENABLED") == "true" {
 		if !development {
 			return nil, errors.New("TRANSACTIONAL_STUB_ENABLED is restricted to development")
@@ -57,7 +57,7 @@ func registerDeveloperRoutes(api chi.Router, pool *pgxpool.Pool, d *developerSer
 	api.Get("/api/webhooks/{id}/deliveries", d.hooks.Deliveries)
 	txH := d.transaction
 	if txH == nil {
-		txH = &transactional.Handler{Pool: pool}
+		txH = &transactional.CompatibilityHandler{Pool: pool}
 	}
 	api.Post("/api/emails", txH.Send)
 }
