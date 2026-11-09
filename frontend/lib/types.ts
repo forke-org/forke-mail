@@ -218,3 +218,24 @@ export interface Reengagement {
   grace_days: number;
   min_broadcasts: number;
 }
+
+export interface Webhook {
+  id: string;
+  url: string;
+  events: string[];
+  enabled: boolean;
+  secret_version: number;
+  created_at: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  event_id: string;
+  status: string;
+  attempts: number;
+  response_code: number | null;
+  last_error: string | null;
+  next_attempt_at: string;
+  created_at: string;
+  finished_at: string | null;
+}

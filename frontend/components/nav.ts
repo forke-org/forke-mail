@@ -1,5 +1,5 @@
 import {
-  Activity, Ban, Globe, Hash, KeyRound, LayoutDashboard, Megaphone, Settings, Users, Zap, type LucideIcon,
+  Activity, Ban, Globe, Hash, KeyRound, Webhook, LayoutDashboard, Megaphone, Settings, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -33,6 +33,7 @@ export const navGroups: { label: string | null; items: NavItem[] }[] = [
     label: 'Configuration',
     items: [
       { href: '/domains/', label: 'Domains', icon: Globe, keywords: 'dns dkim spf identities' },
+      { href: '/webhooks/', label: 'Webhooks', icon: Webhook, keywords: 'events sync callbacks forke admin' },
       { href: '/keys/', label: 'API keys', icon: KeyRound, superAdmin: true, keywords: 'tokens api' },
       { href: '/settings/', label: 'Settings', icon: Settings, keywords: 'plan usage re-engagement account' },
     ],
