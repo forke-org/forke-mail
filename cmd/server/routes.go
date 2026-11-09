@@ -147,6 +147,8 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	})
 
 	r.Get("/healthz", db.Health(pool))
+	r.Get("/_next/static/*", frontend.Handler().ServeHTTP)
+	r.Head("/_next/static/*", frontend.Handler().ServeHTTP)
 
 	if svc.verifier != nil {
 		r.Method(http.MethodPost, "/webhooks/ses", &feedback.Webhook{Verifier: svc.verifier, Processor: svc.feedback})

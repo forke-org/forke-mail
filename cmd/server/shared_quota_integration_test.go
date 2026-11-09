@@ -27,7 +27,7 @@ func TestBothWorkersShareTrialQuota(t *testing.T) {
 	}
 	f.worker.SetLimits(sender.Limits{Max24HourSend: 1000})
 	eventually(t, func() bool {
-		return dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM message_logs WHERE workspace_id=$1`, f.ws) == "2"
+		return dbtest.QueryString(t, f.pool, `SELECT ((SELECT count(delivered_at) FROM email_recipients WHERE workspace_id=$1)+(SELECT count(delivered_at) FROM transactional_messages WHERE workspace_id=$1))::text`, f.ws) == "2"
 	})
 	if dbtest.QueryString(t, f.pool, `SELECT trial_sent_count::text FROM workspaces WHERE id=$1`, f.ws) != "2" {
 		t.Fatal("shared quota not charged exactly twice")
