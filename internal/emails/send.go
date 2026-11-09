@@ -54,7 +54,7 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 	var recipients int64
 	err := pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
 		var err error
-		recipients, err = send(r.Context(), tx, ws, id)
+		recipients, err = Launch(r.Context(), tx, ws, id)
 		return err
 	})
 	if writeError(w, r, err) {
@@ -63,7 +63,7 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, map[string]any{"id": id, "status": "sending", "recipients": recipients})
 }
 
-func send(ctx context.Context, tx pgx.Tx, ws, id string) (int64, error) {
+func Launch(ctx context.Context, tx pgx.Tx, ws, id string) (int64, error) {
 	e, err := load(ctx, tx, ws, id, true)
 	if err != nil {
 		return 0, err

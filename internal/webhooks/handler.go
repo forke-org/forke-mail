@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var EventTypes = []string{"email.queued", "email.sent", "email.delivered", "email.bounced", "email.soft_bounced", "email.complained", "email.unsubscribed", "email.failed", "email.rejected", "email.delayed", "email.opened", "email.clicked", "workspace.sending_paused"}
+var EventTypes = []string{"email.queued", "email.sent", "email.delivered", "email.bounced", "email.soft_bounced", "email.complained", "email.unsubscribed", "email.failed", "email.rejected", "email.delayed", "email.opened", "email.clicked", "workspace.sending_paused", "contact.updated", "contact.deleted"}
 
 type Handler struct {
 	Pool    *pgxpool.Pool

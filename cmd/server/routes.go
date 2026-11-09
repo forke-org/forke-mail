@@ -18,6 +18,7 @@ import (
 	"forkemail/internal/forke"
 	"forkemail/internal/httpx"
 	"forkemail/internal/keys"
+	"forkemail/internal/lifecycle"
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/resendapi"
 	"forkemail/internal/seed"
@@ -117,6 +118,9 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Delete("/api/contacts/{id}", contactH.Delete)
 		api.Get("/api/tags", contactH.ListTags)
 		api.Post("/api/tags", contactH.CreateTag)
+		lifecycleH := &lifecycle.Handler{Pool: pool}
+		api.Get("/api/settings/reengagement", lifecycleH.Get)
+		api.Put("/api/settings/reengagement", lifecycleH.Put)
 		api.Get("/api/topics", contactH.Topics)
 		api.Put("/api/topics/{key}", contactH.PutTopic)
 

@@ -50,7 +50,7 @@ func TestLaunchRefusedWhileWorkspacePaused(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer tx.Rollback(context.Background())
-	if _, err := send(context.Background(), tx, ws, email); !errors.Is(err, errSendingPaused) {
+	if _, err := Launch(context.Background(), tx, ws, email); !errors.Is(err, errSendingPaused) {
 		t.Fatalf("got %v, want errSendingPaused", err)
 	}
 }

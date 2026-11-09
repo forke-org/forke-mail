@@ -17,6 +17,7 @@ import (
 	"forkemail/internal/domains"
 	"forkemail/internal/feedback"
 	"forkemail/internal/forke"
+	"forkemail/internal/lifecycle"
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/relay"
 	"forkemail/internal/sender"
@@ -143,6 +144,7 @@ func run() error {
 	for _, task := range append(tasks,
 		worker.Run,
 		svc.dispatcher.Run,
+		lifecycle.Runner{Pool: pool}.Run,
 		func(ctx context.Context) { sender.RunSweeper(ctx, pool) },
 		func(ctx context.Context) { lim.public.Janitor(ctx, limiterIdleTimeout) },
 		func(ctx context.Context) { lim.keys.Janitor(ctx, limiterIdleTimeout) },
