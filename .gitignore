@@ -13,3 +13,5 @@ frontend/.next
 frontend/out/*
 !frontend/out/.keep
 npm-debug.log*
+*.tsbuildinfo
+frontend/next-env.d.ts

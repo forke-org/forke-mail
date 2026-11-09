@@ -79,7 +79,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 | `internal/seed` | dev seed: Forke (paid, `full_access`), Acme Trial (100), Beta Trial (5) |
 | `internal/db` | `Connect`, `Migrate` (goose provider over the embedded FS), `Health`, `Querier`; `dbtest` holds test helpers and fixtures |
 | `migrations/` | `00001` workspaces/users/sessions/keys/domains · `00002` contacts/tags/suppressions · `00003` campaigns/emails/audience/recipients · `00004` message_logs/events/usage/webhook_endpoints · `00005` SES columns, pause reasons, suppression source, processed SNS messages · `00006` customer webhook outbox · `00007` transactional_messages, `email_events.message_id`, opened/clicked, nullable `message_logs` targets · `00008` webhook retention · `00009` webhook payloads carry `message_id` · `00010` global `sent_at` indexes for relay quotas · `00011` Forke admin link and roles on `users` · `00012` `emails.reply_to` |
-| `frontend/` | Next.js 16 pages router, static export, React 19, TanStack Table v8. `lib/api.js` (fetch wrapper + error messages), `lib/session.js` (auth state, upgrade modal), `components/` (DataTable, Modal/Confirm, Layout, …), `pages/` (one page per route). Theme tokens live in `public/app.css`; `public/theme.js` sets the theme before paint |
+| `frontend/` | Next.js 16 pages router in TypeScript, Tailwind CSS v4, static export, React 19, TanStack Table v8, lucide icons. `lib/api.ts` (fetch wrapper + error messages), `lib/session.tsx` (auth state, role flags, upgrade modal), `lib/types.ts` (API shapes), `components/ui.tsx` (design system), `components/Layout.tsx` + `nav.ts` + `CommandMenu.tsx` (app shell), `pages/` (one page per route). Theme tokens live in `styles/globals.css`; `public/theme.js` sets the theme before paint; `public/app.css` styles only the Go preference centre page |
 
 ## Data model (key columns only)
 
@@ -286,26 +286,26 @@ Links use `PUBLIC_BASE_URL`.
 ## Frontend notes
 
 - **Build.** The production build is `next build --webpack` with `output: 'export'`. Webpack, not Turbopack, because the strict CSP forbids inline scripts. `trailingSlash: true`, so page links look like `/emails/edit/?id=…`.
-- **Auth state.** All data fetching goes through `lib/api.js` (`api(method, path, body)`). A 401 signs the user out, a 429 shows a toast, and a 402 opens the upgrade modal. Add a human message for each new error code to `messages` in `lib/api.js`.
-- **Session.** `lib/session.js` exposes `me` (from `/api/me`), `trial`, `exhausted`, `refreshMe` and `showUpgrade`. `me.domains` is the list of **verified** identity names; a name containing `@` is a single email identity, which the email editor's From field handles.
-- **Tables.** Every table uses `components/DataTable.js` (TanStack Table): client-side or server-side pagination via the `server` prop, sorting and row selection.
-- **Styling.** Plain CSS with tokens on `:root` and `:root[data-theme="dark"]`. Do not add a CSS framework.
-- **Request logging.** `pages/emails/edit.js` logs each broadcast request payload with `console.log('[forke] request', …)`. This is intentional; keep it.
+- **Auth state.** All data fetching goes through `lib/api.ts` (`api<T>(method, path, body)`). A 401 signs the user out, a 429 shows a toast, and a 402 opens the upgrade modal. Add a human message for each new error code to `messages` in `lib/api.ts`.
+- **Session.** `lib/session.tsx` exposes `me` (from `/api/me`), `trial`, `exhausted`, `superAdmin`, `canManage` (super admin or full access key, mirrors the `manage` scope), `refreshMe` and `showUpgrade`. Hide actions the role cannot perform instead of letting them fail. `me.domains` is the list of **verified** identity names; a name containing `@` is a single email identity, which the email editor's From field handles.
+- **Tables.** Every table uses `components/DataTable.tsx` (TanStack Table): client-side or server-side pagination via the `server` prop, sorting and row selection.
+- **Styling.** Tailwind CSS v4 utilities over semantic tokens (`bg-surface`, `text-muted`, `bg-accent`, …) defined in `styles/globals.css` for light and `[data-theme=dark]` (dark is the default). The look follows the Cloudflare dashboard (grouped sidebar, breadcrumb top bar, dense tables) in Forke's colours (`#050505`, accent `#FF7A00`) and Geist fonts, which are self-hosted by `next/font`. Build UI from `components/ui.tsx` rather than one-off styles. `npx tsc --noEmit` must pass.
+- **Request logging.** `pages/emails/edit.tsx` logs each broadcast request payload with `console.log('[forke] request', …)`. This is intentional; keep it.
 - **Embedding.** Run `npm run build` after frontend changes, because the Go binary embeds `frontend/out`.
 
 ## Recipes
 
 - **New authenticated endpoint.** Write the handler in the right `internal/<domain>` package, register it in `cmd/server/routes.go`, add it to `routeScopes`, and extend `internal/auth/scopes_test.go`.
-- **New column or enum value.** Add a new migration. For an enum value, drop and re-add the check constraint. Update the Go structs and scans, and the frontend badges in `components/ui.js` if the value is shown.
+- **New column or enum value.** Add a new migration. For an enum value, drop and re-add the check constraint. Update the Go structs and scans, and the frontend badges in `components/ui.tsx` if the value is shown.
 - **New event type.** Add it to:
   - the `email_events_type_check` constraint (new migration);
   - `events.types` in `internal/events/handler.go`;
-  - the filter list in `frontend/pages/activity.js`;
-  - badge tones in `components/ui.js`.
+  - the filter list in `frontend/pages/activity.tsx`;
+  - badge tones in `components/ui.tsx`.
 - **New email pause reason.** Add it to:
   - the `emails_pause_reason_check` constraint (new migration);
   - the place that sets it;
-  - `pauseReasons`, and `noResume` if resuming makes no sense, in `frontend/pages/emails/view.js`.
+  - `pauseReasons`, and `noResume` if resuming makes no sense, in `frontend/pages/emails/view.tsx`.
 - **Another sender.** Implement `sender.Sender` and return a `*sender.SendError` with the right `Action` for every failure, then select it in `cmd/server/main.go`.
 - **Testing SES behaviour without AWS.** Fake the narrow client interfaces in `internal/ses` (`sendAPI`, `accountAPI`, `identityAPI`), use `snstest.NewSigner` for signed SNS messages, and use `/dev/ses-event` or `Processor.Handle` for events.
 
