@@ -2,6 +2,8 @@
 
 Implemented on krishna on 2026-11-09. All delivery evidence here is **local (log driver)** or fake network/provider evidence. No live SES sending, remote push or shared/production/Diya-origin database was used. Existing working-ss directory and zip were preserved.
 
+This records the original integration at dfc782f. The subsequent [multi-instance follow-up](multi-instance-handoff.md) replaces the earlier race-toolchain blocker and single-sender-instance limitation with current evidence, migration 11 and independent verification scripts.
+
 ## Outcomes by approved step
 
 | Step | Status | Result and evidence |
@@ -55,7 +57,7 @@ Diya's incoming 00006_transactional.sql was renamed to 00009_transactional.sql w
 - POST /api/emails: transactional.CompatibilityHandler.Send; maps from to from_address and preserves compatibility headers/status/errors.
 - Durable transactional acceptance: transactional.Service.Accept → accept transaction → transactional_messages. The legacy table is read only to reject conflicting stub receipts.
 - Dispatch: one transactional.Dispatcher and broadcast Worker use the same Sender and global gate constructed in main.go. No new SES client/limiter/idempotency store was introduced.
-- Shared sender edits after merge: priority.go, limits.go, worker.go, process.go and sweep.go. Gate permits have matching ReleaseSend calls, including transactional/process.go. SES and feedback modules adopt Diya's incoming integration rather than a competing sender.
+- Shared sender edits after merge: priority.go, limits.go, worker.go, process.go and sweeper.go. The later multi-instance follow-up replaces ReleaseSend with owner-bound Permit.Start/Finish and durable shared admission. SES and feedback modules adopt Diya's incoming integration rather than a competing sender.
 - Customer webhook ownership: internal/webhooks and queue_customer_webhooks trigger; migration 10 replaces the function for future events only. SNS handling remains separate from customer HTTP dispatch.
 - Key lifecycle remains owned by internal/keys and auth. Management scope was not broadened.
 - UI verification found static chunks consuming the public endpoint bucket. Dedicated GET/HEAD /_next/static/* serving avoids dashboard hydration failures; API/public action rate limits remain intact, with a regression test.
@@ -99,7 +101,7 @@ Final suite: 103 tests passed, 0 failed, 0 skipped; 16 tested packages passed an
 
 Frontend: npm ci, npx next build --webpack, then create out/.keep on Windows. All 17 static pages exported; npm audit reported zero vulnerabilities. OpenAPI YAML parsing and route/schema checks also ran.
 
-Race attempt: CGO_ENABLED=1, CC=C:\MinGW\bin\gcc.exe, go test -race ./internal/auth. It failed to build runtime/cgo with `cc1.exe: sorry, unimplemented: 64-bit mode not compiled in`. Install a 64-bit MinGW-w64 GCC, point CC to its gcc.exe, and rerun go test -race ./... with TEST_DATABASE_URL set. Race tests have not run.
+Historical race attempt at dfc782f used the 32-bit MinGW compiler and failed to build runtime/cgo. The follow-up found existing C:/msys64/ucrt64/bin/gcc.exe, target x86_64-w64-mingw32. Full normal/race runs now pass 123 tests each, and concurrency-critical packages pass 320 tests across five repeats. See multi-instance-handoff.md and its raw evidence for the current results.
 
 The first browser repeat exposed static-chunk 429s, subsequently fixed and retested. A repeat shared-quota test originally waited for message logging rather than feedback completion; it now waits for both delivered outcomes before asserting. A concurrent standalone server also consumed test webhook jobs, so the server was stopped and test runs repeated in isolation. The pre-fix targeted failure log is retained as pipelines-before-fix.txt; final results are in pipelines.txt/tests.jsonl. This does not weaken receiver-isolation assertions.
 
@@ -107,6 +109,6 @@ The first browser repeat exposed static-chunk 429s, subsequently fixed and retes
 
 No engine adapter/wiring contract remains pending. Live SES delivery, real SNS infrastructure, DNS ownership/DKIM, custom MAIL FROM provider configuration and a real customer HTTPS receiver smoke test were not exercised. Default SES MAIL FROM remains distinct from custom DNS preview, consistent with the [AWS guide](https://docs.aws.amazon.com/ses/latest/dg/mail-from.html).
 
-Run one sending process: limiter/rate/quota snapshots are in memory. Priority affects waiting work only; existing in-flight calls are never preempted. Bounded bulk turns are not an exact latency SLA. API rate buckets also remain per process. Conservative unknown_outcome handling can drop a message whose delivery status is uncertain; operators must reconcile rather than blindly resend.
+The follow-up now provides PostgreSQL-backed sending admission across instances sharing the same database/schema/account/configuration. Priority affects waiting work only; existing in-flight calls are not preempted. Bounded bulk turns are not an exact latency SLA. API request buckets remain per process. Conservative unknown_outcome handling can drop uncertain messages; operators must reconcile rather than blindly resend. See the follow-up handoff for current tests and deployment limits.
 
 Keep WEBHOOK_ENCRYPTION_KEY stable in a secret store. Losing it prevents secret decryption. New event payload fields do not backfill old pending deliveries. Receivers must accept both old/new shapes and deduplicate delivery IDs. PostgreSQL capacity is finite; monitor queue age, quota holds, storage and failed deliveries. Signed tracking is an estimate and only implemented for transactional messages.

@@ -130,7 +130,7 @@ Sending keys can submit through both APIs and read a message by ID. List/stats r
 
 Both flows require a workspace-owned verified sender. Broadcasts exclude marketing opt-outs and inactive contacts. Transactional sends block bounced, complained and manually suppressed addresses, but allow marketing unsubscribes. They create no marketing contacts and add no newsletter footer. Sender identity and suppression are rechecked before dispatch, including after waiting on the shared gate.
 
-The single in-process gate prioritizes waiting transactional work, yielding a broadcast turn after eight urgent grants when bulk waits. In-flight calls are not preempted. Broadcasts retain workspace pacing and 90% SES daily headroom; transactional work can use remaining headroom up to the hard limit, including in-flight slots. Ambiguous outcomes and stale sending claims fail as unknown_outcome without automatic resend, retaining quota conservatively. Definitive failures release transactional quota; bounded retries retain the same ID/reservation. Transactional queue age is limited to one hour.
+The shared PostgreSQL-backed gate prioritizes waiting transactional work, yielding a broadcast turn after eight urgent grants when bulk is ready. All sending instances share token/quota accounting and workspace pacing. In-flight calls are not preempted. Broadcasts retain 90% SES daily headroom; transactional work can use the remainder up to the hard limit. Expired pre-provider ownership safely requeues; provider-started ambiguous outcomes become unknown_outcome without automatic resend, retaining quota conservatively. Definitive failures release transactional quota; retries keep the same ID/reservation. Transactional queue age is limited to one hour. See docs/multi-instance-handoff.md for lease/deployment boundaries.
 
 New webhook bodies after migration 10 include:
 
@@ -219,7 +219,7 @@ On signing-secret rotation, queued/retried deliveries use the current secret/ver
 - Worker leases expire after 30 seconds and recover after restart/periodic maintenance. Disabling an endpoint cancels queued/claimed rows; an already in-flight HTTP request can complete. Deleting an endpoint deletes its delivery history.
 - Finished delivery history is retained for seven days and pruned in bounded batches. Event retention is separate. Monitor pending queue age, disk usage and failure counts; PostgreSQL capacity is finite.
 - Only metadata/status is stored for attempts; customer response bodies and signing/API secrets are not logged.
-- Existing API token buckets apply: paid keys default to 20 requests/sec with burst 40; trial keys 2/sec with burst 5; dashboard sessions use the paid API rule. Public endpoints default to 10/sec with burst 30. Limits are per process, so run a single instance unless coordinated limiting is added.
+- Existing API token buckets apply: paid keys default to 20 requests/sec with burst 40; trial keys 2/sec with burst 5; dashboard sessions use the paid API rule. Public endpoints default to 10/sec with burst 30. HTTP limits remain per process; coordinate them at ingress if a cluster-wide request budget is required. Sending admission is separately PostgreSQL-backed across instances.
 
 ## Error contract
 
