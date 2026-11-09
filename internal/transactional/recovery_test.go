@@ -3,6 +3,7 @@ package transactional
 import (
 	"context"
 	"forkemail/internal/db/dbtest"
+	"forkemail/internal/sender"
 	"strings"
 	"testing"
 	"time"
@@ -13,7 +14,10 @@ type changingGate struct {
 	change func()
 }
 
-func (g *changingGate) AcquireUrgent(context.Context) error { g.change(); return nil }
+func (g *changingGate) AcquireUrgent(context.Context) (sender.Permit, error) {
+	g.change()
+	return sender.Permit{}, nil
+}
 
 func TestEligibilityRecheckedAfterWaitingForSharedGate(t *testing.T) {
 	for _, kind := range []string{"identity", "suppression"} {

@@ -10,6 +10,7 @@ import (
 	"forkemail/internal/sender"
 
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const accountRefresh = 10 * time.Minute
@@ -27,13 +28,20 @@ type Snapshot struct {
 
 type Account struct {
 	Client accountAPI
-	Apply  func(sender.Limits)
+	Apply  func(sender.Limits) error
+	Pool   *pgxpool.Pool
 
 	mu   sync.Mutex
 	last Snapshot
 }
 
 func (a *Account) Refresh(ctx context.Context) (Snapshot, error) {
+	observed := time.Now()
+	if a.Pool != nil {
+		if err := a.Pool.QueryRow(ctx, `SELECT clock_timestamp()`).Scan(&observed); err != nil {
+			return Snapshot{}, err
+		}
+	}
 	out, err := a.Client.GetAccount(ctx, &sesv2.GetAccountInput{})
 	if err != nil {
 		return Snapshot{}, err
@@ -49,13 +57,16 @@ func (a *Account) Refresh(ctx context.Context) (Snapshot, error) {
 			MaxSendRate:     out.SendQuota.MaxSendRate,
 			Max24HourSend:   out.SendQuota.Max24HourSend,
 			SentLast24Hours: out.SendQuota.SentLast24Hours,
+			ObservedAt:      observed,
 		},
 	}
 	a.mu.Lock()
 	a.last = s
 	a.mu.Unlock()
 	if a.Apply != nil {
-		a.Apply(s.Limits)
+		if err := a.Apply(s.Limits); err != nil {
+			return Snapshot{}, err
+		}
 	}
 	return s, nil
 }

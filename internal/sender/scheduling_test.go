@@ -16,11 +16,13 @@ func TestConcurrentUrgentCannotOversubscribeQuota(t *testing.T) {
 	w := NewWorker(nil, nil, unsub.Signer{}, "", 1000, 10)
 	w.SetLimits(Limits{Max24HourSend: 1})
 	var n atomic.Int32
+	permits := make(chan Permit, 16)
 	var wg sync.WaitGroup
 	for range 16 {
 		wg.Go(func() {
-			if w.AcquireUrgent(context.Background()) == nil {
+			if p, err := w.AcquireUrgent(context.Background()); err == nil {
 				n.Add(1)
+				permits <- p
 			}
 		})
 	}
@@ -28,9 +30,9 @@ func TestConcurrentUrgentCannotOversubscribeQuota(t *testing.T) {
 	if n.Load() != 1 {
 		t.Fatalf("quota granted %d times", n.Load())
 	}
-	w.CountSent()
-	w.ReleaseSend()
-	if !errors.Is(w.AcquireUrgent(context.Background()), ErrSESQuotaExhausted) {
+	p := <-permits
+	p.Finish(context.Background(), true)
+	if _, err := w.AcquireUrgent(context.Background()); !errors.Is(err, ErrSESQuotaExhausted) {
 		t.Fatal("used quota granted again")
 	}
 }
@@ -41,10 +43,11 @@ func TestBulkProgressUnderContinuousUrgentLoad(t *testing.T) {
 	w.urgentStreak = 8
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if err := w.waitBulk(ctx); err != nil {
+	p, err := w.waitBulk(ctx, "", 0)
+	if err != nil {
 		t.Fatal("bulk starved", err)
 	}
-	w.ReleaseSend()
+	p.Finish(ctx, false)
 	if w.urgentStreak != 0 {
 		t.Fatal("fairness budget not reset")
 	}
@@ -52,7 +55,7 @@ func TestBulkProgressUnderContinuousUrgentLoad(t *testing.T) {
 	cancel2()
 	for w.global.Allow() {
 	}
-	if !errors.Is(w.AcquireUrgent(ctx), context.Canceled) {
+	if _, err := w.AcquireUrgent(ctx); !errors.Is(err, context.Canceled) {
 		t.Fatal("cancellation ignored")
 	}
 }
@@ -83,12 +86,12 @@ func TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate(t *testing.T) {
 	for range 8 {
 		wg.Go(func() {
 			for ctx.Err() == nil {
-				if err := w.AcquireUrgent(ctx); err != nil {
+				p, err := w.AcquireUrgent(ctx)
+				if err != nil {
 					return
 				}
 				urgent.Add(1)
-				w.CountSent()
-				w.ReleaseSend()
+				p.Finish(ctx, true)
 			}
 		})
 	}
@@ -97,14 +100,14 @@ func TestSustainedConcurrentUrgentLoadAllowsBulkWithinSharedRate(t *testing.T) {
 		time.Sleep(time.Millisecond)
 	}
 	for range 4 {
-		if err := w.waitBulk(ctx); err != nil {
+		p, err := w.waitBulk(ctx, "", 0)
+		if err != nil {
 			cancel()
 			wg.Wait()
 			t.Fatal("broadcast starved under actual urgent load", err)
 		}
 		bulk.Add(1)
-		w.CountSent()
-		w.ReleaseSend()
+		p.Finish(ctx, true)
 	}
 	cancel()
 	wg.Wait()

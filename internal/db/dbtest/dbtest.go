@@ -5,8 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"forkemail/internal/db"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,15 +14,7 @@ func Pool(t *testing.T) *pgxpool.Pool {
 	if url == "" {
 		t.Skip("TEST_DATABASE_URL not set")
 	}
-	pool, err := db.Connect(context.Background(), url)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(pool.Close)
-	if err := db.Migrate(context.Background(), pool); err != nil {
-		t.Fatal(err)
-	}
-	return pool
+	return isolatedPool(t, url)
 }
 
 func Workspace(t *testing.T, pool *pgxpool.Pool, plan string, trialLimit int) string {

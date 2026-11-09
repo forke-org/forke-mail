@@ -74,7 +74,7 @@ func run() error {
 		}
 		client := sesv2.NewFromConfig(awsCfg)
 		mailer = ses.Sender{Client: client, ConfigurationSet: cfg.AWS.ConfigurationSet}
-		account = &ses.Account{Client: client}
+		account = &ses.Account{Client: client, Pool: pool}
 		identities := ses.Identities{Client: client}
 		svc.identities = identities
 		svc.verifier = sns.NewVerifier(cfg.AWS.Region, cfg.AWS.TopicARN)
@@ -85,6 +85,11 @@ func run() error {
 		cfg.PublicBaseURL, cfg.SendRatePerSec, cfg.TrialSendRatePerSec)
 	svc.sendRate = worker.GlobalRate
 	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL))
+	if account == nil {
+		if err := worker.SetLimits(sender.Limits{MaxSendRate: cfg.SendRatePerSec}); err != nil {
+			return err
+		}
+	}
 	if account != nil {
 		account.Apply = worker.SetLimits
 		snap, err := account.Refresh(ctx)

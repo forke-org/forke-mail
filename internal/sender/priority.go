@@ -13,9 +13,12 @@ var (
 	ErrSESQuotaExhausted = errors.New("ses_daily_quota_exhausted")
 )
 
-func (w *Worker) AcquireUrgent(ctx context.Context) error {
+func (w *Worker) AcquireUrgent(ctx context.Context) (Permit, error) {
+	if w.pool != nil {
+		return w.acquireShared(ctx, true, "", 0)
+	}
 	if err := w.urgentBlocked(); err != nil {
-		return err
+		return Permit{}, err
 	}
 	w.urgentWaiting.Add(1)
 	defer w.urgentWaiting.Add(-1)
@@ -27,22 +30,25 @@ func (w *Worker) AcquireUrgent(ctx context.Context) error {
 			break
 		}
 		if err := waitTurn(ctx); err != nil {
-			return err
+			return Permit{}, err
 		}
 	}
 	if err := w.global.Wait(ctx); err != nil {
-		return err
+		return Permit{}, err
 	}
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if err := w.claimSlotLocked(); err != nil {
-		return err
+		return Permit{}, err
 	}
 	w.urgentStreak = min(8, w.urgentStreak+1)
-	return nil
+	return w.localPermit(), nil
 }
 
-func (w *Worker) waitBulk(ctx context.Context) error {
+func (w *Worker) waitBulk(ctx context.Context, workspace string, perSecond float64) (Permit, error) {
+	if w.pool != nil {
+		return w.acquireShared(ctx, false, workspace, perSecond)
+	}
 	w.bulkWaiting.Add(1)
 	defer w.bulkWaiting.Add(-1)
 	for {
@@ -53,11 +59,14 @@ func (w *Worker) waitBulk(ctx context.Context) error {
 				w.urgentStreak = 0
 			}
 			w.mu.Unlock()
-			return err
+			if err != nil {
+				return Permit{}, err
+			}
+			return w.localPermit(), nil
 		}
 		w.mu.Unlock()
 		if err := waitTurn(ctx); err != nil {
-			return err
+			return Permit{}, err
 		}
 	}
 }
@@ -82,14 +91,6 @@ func (w *Worker) claimSlotLocked() error {
 	}
 	w.inFlight++
 	return nil
-}
-
-func (w *Worker) ReleaseSend() {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if w.inFlight > 0 {
-		w.inFlight--
-	}
 }
 
 func (w *Worker) urgentBlocked() error {

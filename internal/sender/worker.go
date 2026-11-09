@@ -42,16 +42,19 @@ type lane struct {
 }
 
 func NewWorker(pool *pgxpool.Pool, s Sender, signer unsub.Signer, baseURL string, globalRate, trialRate float64) *Worker {
-	return &Worker{
+	w := &Worker{
 		pool:       pool,
 		sender:     s,
 		signer:     signer,
 		baseURL:    baseURL,
 		globalRate: globalRate,
 		trialRate:  trialRate,
-		global:     rate.NewLimiter(rate.Limit(globalRate), max(1, int(globalRate))),
 		lanes:      make(map[string]bool),
 	}
+	if pool == nil {
+		w.global = rate.NewLimiter(rate.Limit(globalRate), max(1, int(globalRate)))
+	}
+	return w
 }
 
 func (w *Worker) Run(ctx context.Context) {
@@ -132,7 +135,7 @@ func (w *Worker) startLane(ctx context.Context, l lane) {
 func (w *Worker) runLane(ctx context.Context, l lane) {
 	limiter := rate.NewLimiter(rate.Limit(l.perSecond), 1)
 	for ctx.Err() == nil && !w.idle() {
-		batch, err := Claim(ctx, w.pool, l.workspaceID, max(1, int(l.perSecond)))
+		batch, err := Claim(ctx, w.pool, l.workspaceID, 1)
 		if err != nil {
 			if ctx.Err() == nil {
 				slog.Error("claim failed", "workspace_id", l.workspaceID, "err", err)
@@ -152,13 +155,9 @@ func (w *Worker) runLane(ctx context.Context, l lane) {
 }
 
 func (w *Worker) unclaim(ctx context.Context, batch []Recipient) {
-	ids := make([]string, len(batch))
-	for i, r := range batch {
-		ids[i] = r.ID
-	}
 	unclaimCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
-	if err := Unclaim(unclaimCtx, w.pool, ids); err != nil {
+	if err := Unclaim(unclaimCtx, w.pool, batch); err != nil {
 		slog.Error("unclaim failed", "err", err)
 	}
 }

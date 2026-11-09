@@ -2,6 +2,7 @@ package transactional
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"mime"
 	"net/mail"
@@ -36,7 +37,8 @@ func (d *Dispatcher) process(ctx context.Context, j job) {
 		d.fail(writeCtx, j, reason, true)
 		return
 	}
-	if err := d.gate.AcquireUrgent(ctx); err != nil {
+	permit, err := d.gate.AcquireUrgent(ctx)
+	if err != nil {
 		reason := err.Error()
 		if ctx.Err() != nil {
 			reason = ""
@@ -44,13 +46,27 @@ func (d *Dispatcher) process(ctx context.Context, j job) {
 		d.requeue(writeCtx, j, gateBackoff, reason)
 		return
 	}
-	defer d.gate.ReleaseSend()
+	consumed := false
+	defer func() { permit.Finish(ctx, consumed) }()
 	if reason, err := d.blocked(ctx, j); err != nil || reason != "" {
 		if err != nil {
 			d.requeue(writeCtx, j, gateBackoff, "")
 		} else {
 			d.fail(writeCtx, j, reason, true)
 		}
+		return
+	}
+	if err := pgx.BeginFunc(ctx, d.pool, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx, `UPDATE transactional_messages SET provider_started_at=clock_timestamp() WHERE id=$1 AND workspace_id=$2 AND claim_token=$3 AND status='sending' AND provider_started_at IS NULL AND claimed_at>clock_timestamp()-interval '5 minutes'`, j.id, j.workspaceID, j.claimToken)
+		if err != nil {
+			return err
+		}
+		if tag.RowsAffected() != 1 {
+			return sender.ErrPermitExpired
+		}
+		return permit.Start(ctx, tx)
+	}); err != nil {
+		d.requeue(writeCtx, j, gateBackoff, "")
 		return
 	}
 	msg := d.render(j)
@@ -60,7 +76,7 @@ func (d *Dispatcher) process(ctx context.Context, j job) {
 	cancel()
 	sendMS := float64(time.Since(start).Microseconds()) / 1000
 	if sendErr == nil {
-		d.gate.CountSent()
+		consumed = true
 		d.complete(writeCtx, j, messageID, sendMS)
 		if sim, ok := d.sender.(sender.Simulator); ok {
 			sim.Simulate(writeCtx, msg, messageID)
@@ -68,9 +84,7 @@ func (d *Dispatcher) process(ctx context.Context, j job) {
 		return
 	}
 	f := sender.Classify(sendErr)
-	if f.Action == sender.UnknownOutcome {
-		d.gate.CountSent()
-	}
+	consumed = f.Action == sender.UnknownOutcome
 	slog.Warn("transactional send failed", "message_id", j.id, "reason", f.Reason, "attempts", j.attempts)
 	switch {
 	case f.Action == sender.PauseSending:
@@ -136,13 +150,17 @@ func (d *Dispatcher) render(j job) sender.Message {
 }
 
 func (d *Dispatcher) complete(ctx context.Context, j job, messageID string, sendMS float64) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	err := pgx.BeginFunc(ctx, d.pool, func(tx pgx.Tx) error {
 		var dispatchMS float64
 		if err := tx.QueryRow(ctx, `
 			UPDATE transactional_messages
 			SET status = 'sent', ses_message_id = $2, sent_at = now(), claimed_at = NULL, last_error = NULL
-			WHERE id = $1
-			RETURNING EXTRACT(EPOCH FROM (sent_at - created_at)) * 1000`, j.id, messageID).Scan(&dispatchMS); err != nil {
+			WHERE id = $1 AND workspace_id=$3 AND claim_token=$4 AND status='sending'
+			RETURNING EXTRACT(EPOCH FROM (sent_at - created_at)) * 1000`, j.id, messageID, j.workspaceID, j.claimToken).Scan(&dispatchMS); errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		} else if err != nil {
 			return err
 		}
 		return events.Record(ctx, tx, events.Event{
@@ -156,30 +174,40 @@ func (d *Dispatcher) complete(ctx context.Context, j job, messageID string, send
 }
 
 func (d *Dispatcher) retry(ctx context.Context, j job, backoff time.Duration, lastError string) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	if _, err := d.pool.Exec(ctx, `
 		UPDATE transactional_messages
-		SET status = 'queued', claimed_at = NULL, last_error = $2, next_attempt_at = now() + make_interval(secs => $3)
-		WHERE id = $1 AND status = 'sending'`, j.id, lastError, backoff.Seconds()); err != nil {
+		SET status = 'queued', claimed_at = NULL,claim_token=NULL,provider_started_at=NULL,last_error = $2, next_attempt_at = now() + make_interval(secs => $3)
+		WHERE id = $1 AND workspace_id=$4 AND claim_token=$5 AND status = 'sending'`, j.id, lastError, backoff.Seconds(), j.workspaceID, j.claimToken); err != nil {
 		slog.Error("retry transactional message failed", "message_id", j.id, "err", err)
 	}
 }
 
 func (d *Dispatcher) requeue(ctx context.Context, j job, backoff time.Duration, lastError string) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	if _, err := d.pool.Exec(ctx, `
 		UPDATE transactional_messages
-		SET status = 'queued', attempts = GREATEST(attempts - 1, 0), claimed_at = NULL,
+		SET status = 'queued', attempts = GREATEST(attempts - 1, 0), claimed_at = NULL,claim_token=NULL,provider_started_at=NULL,
 			last_error = COALESCE(NULLIF($2, ''), last_error), next_attempt_at = now() + make_interval(secs => $3)
-		WHERE id = $1 AND status = 'sending'`, j.id, lastError, backoff.Seconds()); err != nil {
+		WHERE id = $1 AND workspace_id=$4 AND claim_token=$5 AND status = 'sending'`, j.id, lastError, backoff.Seconds(), j.workspaceID, j.claimToken); err != nil {
 		slog.Error("requeue transactional message failed", "message_id", j.id, "err", err)
 	}
 }
 
 func (d *Dispatcher) fail(ctx context.Context, j job, reason string, releaseQuota bool) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	err := pgx.BeginFunc(ctx, d.pool, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, `
+		tag, err := tx.Exec(ctx, `
 			UPDATE transactional_messages SET status = 'failed', claimed_at = NULL, last_error = $2
-			WHERE id = $1`, j.id, reason); err != nil {
+			WHERE id = $1 AND workspace_id=$3 AND claim_token=$4 AND status='sending'`, j.id, reason, j.workspaceID, j.claimToken)
+		if err != nil {
 			return err
+		}
+		if tag.RowsAffected() != 1 {
+			return nil
 		}
 		if releaseQuota && j.quotaDay != nil {
 			res := workspaces.Reservation{WorkspaceID: j.workspaceID, Trial: j.quotaTrial, Day: *j.quotaDay}

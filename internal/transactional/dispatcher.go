@@ -19,9 +19,7 @@ const (
 )
 
 type Gate interface {
-	AcquireUrgent(ctx context.Context) error
-	ReleaseSend()
-	CountSent()
+	AcquireUrgent(ctx context.Context) (sender.Permit, error)
 	HoldSending(reason string)
 }
 
@@ -106,7 +104,7 @@ func (d *Dispatcher) pollDue(ctx context.Context) {
 		case d.claimed <- j:
 		case <-ctx.Done():
 			for _, rest := range batch[i:] {
-				d.requeue(ctx, rest, 0, "")
+				d.requeue(context.WithoutCancel(ctx), rest, 0, "")
 			}
 			return
 		}
