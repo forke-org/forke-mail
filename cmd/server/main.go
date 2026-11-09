@@ -17,6 +17,7 @@ import (
 	"forkemail/internal/domains"
 	"forkemail/internal/feedback"
 	"forkemail/internal/ratelimit"
+	"forkemail/internal/relay"
 	"forkemail/internal/sender"
 	"forkemail/internal/ses"
 	"forkemail/internal/sns"
@@ -67,6 +68,11 @@ func run() error {
 	tasks = append(tasks, developer.Run)
 	var mailer sender.Sender = sender.LogSender{Pool: pool, Feedback: processor}
 	var account *ses.Account
+	if cfg.SMTP() {
+		mailer = relay.Sender{Config: cfg.Relay}
+		svc.identities = relay.Identities{Allowed: cfg.Relay.AllowedSenders}
+		svc.sendingMode = func() string { return "smtp" }
+	}
 	if cfg.SES() {
 		awsCfg, err := ses.LoadConfig(ctx, cfg.AWS.Region)
 		if err != nil {
@@ -86,6 +92,16 @@ func run() error {
 	svc.sendRate = worker.GlobalRate
 	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker,
 		transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL))
+	if cfg.SMTP() {
+		quota := relay.Quota{Pool: pool, SendRate: cfg.SendRatePerSec, DailyLimit: cfg.Relay.DailyLimit, MonthlyLimit: cfg.Relay.MonthlyLimit, Apply: worker.SetLimits}
+		usage, err := quota.Refresh(ctx)
+		if err != nil {
+			return fmt.Errorf("smtp quota: %w", err)
+		}
+		slog.Info("smtp relay", "addr", cfg.Relay.Addr(), "tls", cfg.Relay.TLS, "daily_limit", cfg.Relay.DailyLimit,
+			"monthly_limit", cfg.Relay.MonthlyLimit, "sent_24h", usage.Last24Hours, "sent_month", usage.ThisMonth)
+		tasks = append(tasks, quota.Run, func(ctx context.Context) { domains.RunPoller(ctx, pool, svc.identities) })
+	}
 	if account != nil {
 		account.Apply = worker.SetLimits
 		snap, err := account.Refresh(ctx)

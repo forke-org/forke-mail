@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"forkemail/internal/relay"
 )
 
 const minSecretLength = 32
@@ -22,6 +24,7 @@ type Config struct {
 	TrustedProxy        netip.Prefix
 	SenderDriver        string
 	AWS                 AWS
+	Relay               relay.Config
 	SESTestEmail        string
 	MaxBounceRate       float64
 	MaxComplaintRate    float64
@@ -44,6 +47,10 @@ func (c Config) Development() bool {
 
 func (c Config) SES() bool {
 	return c.SenderDriver == "ses"
+}
+
+func (c Config) SMTP() bool {
+	return c.SenderDriver == "smtp"
 }
 
 func Load() (Config, error) {
@@ -81,7 +88,7 @@ func Load() (Config, error) {
 	if c.Development() && len(c.SeedToken) < minSecretLength {
 		errs = append(errs, fmt.Errorf("SEED_TOKEN must be at least %d characters", minSecretLength))
 	}
-	if err := ValidateBaseURL(c.PublicBaseURL, c.Development() && !c.SES()); err != nil {
+	if err := ValidateBaseURL(c.PublicBaseURL, c.Development() && !c.SES() && !c.SMTP()); err != nil {
 		errs = append(errs, err)
 	}
 	switch c.SenderDriver {
@@ -95,8 +102,13 @@ func Load() (Config, error) {
 		if aws.TopicARN == "" {
 			errs = append(errs, errors.New("SNS_TOPIC_ARN is required when SENDER_DRIVER=ses (run sesbootstrap to create it)"))
 		}
+	case "smtp":
+		c.Relay = loadSMTP(&errs)
+		if err := c.Relay.Validate(c.Development()); err != nil {
+			errs = append(errs, err)
+		}
 	default:
-		errs = append(errs, errors.New("SENDER_DRIVER must be log or ses"))
+		errs = append(errs, errors.New("SENDER_DRIVER must be log, ses or smtp"))
 	}
 	if c.SESTestEmail != "" && !strings.Contains(c.SESTestEmail, "@") {
 		errs = append(errs, errors.New("SES_TEST_EMAIL must be an email address"))
@@ -124,6 +136,45 @@ func ValidateBaseURL(raw string, allowHTTP bool) error {
 		return nil
 	}
 	return errors.New("PUBLIC_BASE_URL must use https (http is only allowed in development with SENDER_DRIVER=log)")
+}
+
+func loadSMTP(errs *[]error) relay.Config {
+	c := relay.Config{
+		Host:     strings.TrimSpace(os.Getenv("SMTP_HOST")),
+		Port:     587,
+		Username: os.Getenv("SMTP_USERNAME"),
+		Password: os.Getenv("SMTP_PASSWORD"),
+		TLS:      get("SMTP_TLS", relay.TLSStartTLS),
+		HeloName: strings.TrimSpace(os.Getenv("SMTP_HELO_NAME")),
+	}
+	if raw := os.Getenv("SMTP_PORT"); raw != "" {
+		port, err := strconv.Atoi(raw)
+		if err != nil {
+			*errs = append(*errs, errors.New("SMTP_PORT must be a number"))
+		}
+		c.Port = port
+	}
+	c.DailyLimit = count(errs, "SMTP_DAILY_LIMIT")
+	c.MonthlyLimit = count(errs, "SMTP_MONTHLY_LIMIT")
+	for _, s := range strings.Split(os.Getenv("SMTP_ALLOWED_SENDERS"), ",") {
+		if s = strings.ToLower(strings.TrimSpace(s)); s != "" {
+			c.AllowedSenders = append(c.AllowedSenders, s)
+		}
+	}
+	return c
+}
+
+func count(errs *[]error, key string) int {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return 0
+	}
+	v, err := strconv.Atoi(raw)
+	if err != nil || v < 0 {
+		*errs = append(*errs, fmt.Errorf("%s must be zero or a positive whole number", key))
+		return 0
+	}
+	return v
 }
 
 func get(key, fallback string) string {
