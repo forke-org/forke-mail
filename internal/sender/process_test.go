@@ -103,7 +103,7 @@ func TestRetryGivesUpAfterMaxAttempts(t *testing.T) {
 	}
 }
 
-func TestSuppressionRecheckedBeforeSend(t *testing.T) {
+func TestSuppressionCheckedAtSendTime(t *testing.T) {
 	pool := dbtest.Pool(t)
 	ws := dbtest.Workspace(t, pool, "paid", 0)
 	dbtest.Exec(t, pool, `INSERT INTO suppressions (workspace_id, email, reason, source) VALUES ($1, 'late@x.io', 'manual', 'manual')`, ws)

@@ -40,36 +40,36 @@ func decodeJSON(t *testing.T, body string) map[string]any {
 	return m
 }
 
-func TestResendCompatibleBroadcastFlow(t *testing.T) {
+func TestCompatAPIBroadcastFlow(t *testing.T) {
 	f := newAPIFixture(t)
 	key := f.key(t, "full_access")
 	domain := f.verifiedDomain(t)
 
-	w := f.request("POST", "/api/resend/audiences", `{"name":"Forke Subscribers"}`, key)
+	w := f.request("POST", "/api/forke-mail/audiences", `{"name":"Forke Subscribers"}`, key)
 	if w.Code != 201 {
 		t.Fatalf("create audience %d %s", w.Code, w.Body)
 	}
 	audienceID := decodeJSON(t, w.Body.String())["id"].(string)
-	if again := f.request("POST", "/api/resend/audiences", `{"name":"forke subscribers"}`, key); again.Code != 201 || decodeJSON(t, again.Body.String())["id"] != audienceID {
+	if again := f.request("POST", "/api/forke-mail/audiences", `{"name":"forke subscribers"}`, key); again.Code != 201 || decodeJSON(t, again.Body.String())["id"] != audienceID {
 		t.Fatalf("audience not reused: %s", again.Body)
 	}
-	if list := f.request("GET", "/api/resend/audiences", "", key); !strings.Contains(list.Body.String(), audienceID) {
+	if list := f.request("GET", "/api/forke-mail/audiences", "", key); !strings.Contains(list.Body.String(), audienceID) {
 		t.Fatalf("list %s", list.Body)
 	}
 	for _, email := range []string{"reader@example.com", "Reader@example.com", "gone@example.com"} {
-		if w := f.request("POST", "/api/resend/audiences/"+audienceID+"/contacts", `{"email":"`+email+`","unsubscribed":false}`, key); w.Code != 201 {
+		if w := f.request("POST", "/api/forke-mail/audiences/"+audienceID+"/contacts", `{"email":"`+email+`","unsubscribed":false}`, key); w.Code != 201 {
 			t.Fatalf("contact %s %d %s", email, w.Code, w.Body)
 		}
 	}
-	if w := f.request("POST", "/api/resend/audiences/"+audienceID+"/contacts", `{"email":"gone@example.com","unsubscribed":true}`, key); w.Code != 201 {
+	if w := f.request("POST", "/api/forke-mail/audiences/"+audienceID+"/contacts", `{"email":"gone@example.com","unsubscribed":true}`, key); w.Code != 201 {
 		t.Fatalf("unsubscribe contact %d", w.Code)
 	}
-	if w := f.request("POST", "/api/resend/audiences/00000000-0000-0000-0000-000000000000/contacts", `{"email":"x@example.com"}`, key); w.Code != 404 {
+	if w := f.request("POST", "/api/forke-mail/audiences/00000000-0000-0000-0000-000000000000/contacts", `{"email":"x@example.com"}`, key); w.Code != 404 {
 		t.Fatalf("unknown audience %d", w.Code)
 	}
 
-	w = f.request("POST", "/api/resend/broadcasts", `{"audience_id":"`+audienceID+`","from":"Forke Blog <blog@`+domain+`>","reply_to":"support@`+domain+`",
-		"subject":"New post","html":"<p>Hi</p><a href=\"{{{RESEND_UNSUBSCRIBE_URL}}}\">Unsubscribe</a>","name":"Blog: New post"}`, key)
+	w = f.request("POST", "/api/forke-mail/broadcasts", `{"audience_id":"`+audienceID+`","from":"Forke Blog <blog@`+domain+`>","reply_to":"support@`+domain+`",
+		"subject":"New post","html":"<p>Hi</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>","name":"Blog: New post"}`, key)
 	if w.Code != 201 {
 		t.Fatalf("create broadcast %d %s", w.Code, w.Body)
 	}
@@ -77,7 +77,7 @@ func TestResendCompatibleBroadcastFlow(t *testing.T) {
 	if got := dbtest.QueryString(t, f.pool, `SELECT reply_to || '|' || c.name FROM emails e JOIN campaigns c ON c.id = e.campaign_id WHERE e.id = $1`, broadcastID); got != "support@"+domain+"|Blog: New post" {
 		t.Fatalf("stored %q", got)
 	}
-	if w := f.request("POST", "/api/resend/broadcasts/"+broadcastID+"/send", `{}`, key); w.Code != 200 || decodeJSON(t, w.Body.String())["id"] != broadcastID {
+	if w := f.request("POST", "/api/forke-mail/broadcasts/"+broadcastID+"/send", `{}`, key); w.Code != 200 || decodeJSON(t, w.Body.String())["id"] != broadcastID {
 		t.Fatalf("send %d %s", w.Code, w.Body)
 	}
 	if n := dbtest.QueryString(t, f.pool, `SELECT count(*)::text FROM email_recipients WHERE email_id = $1`, broadcastID); n != "1" {
@@ -85,17 +85,17 @@ func TestResendCompatibleBroadcastFlow(t *testing.T) {
 	}
 }
 
-func TestResendCompatibleEmails(t *testing.T) {
+func TestCompatAPIEmails(t *testing.T) {
 	f := newAPIFixture(t)
 	key := f.key(t, "sending_access")
 	domain := f.verifiedDomain(t)
 
-	w := f.request("POST", "/api/resend/emails", `{"from":"Forke <hello@`+domain+`>","to":"person@example.com","reply_to":"support@`+domain+`","subject":"Welcome","html":"<p>Hi</p>"}`, key)
+	w := f.request("POST", "/api/forke-mail/emails", `{"from":"Forke <hello@`+domain+`>","to":"person@example.com","reply_to":"support@`+domain+`","subject":"Welcome","html":"<p>Hi</p>"}`, key)
 	if w.Code != 200 {
 		t.Fatalf("send %d %s", w.Code, w.Body)
 	}
 	id := decodeJSON(t, w.Body.String())["id"].(string)
-	got := f.request("GET", "/api/resend/emails/"+id, "", key)
+	got := f.request("GET", "/api/forke-mail/emails/"+id, "", key)
 	body := decodeJSON(t, got.Body.String())
 	if got.Code != 200 || body["last_event"] != "queued" || body["from"] != "Forke <hello@"+domain+">" {
 		t.Fatalf("get %d %s", got.Code, got.Body)
@@ -107,45 +107,45 @@ func TestResendCompatibleEmails(t *testing.T) {
 		`{"from":"hello@elsewhere.test","to":"a@example.com","subject":"x","html":"y"}`:                   "",
 	}
 	for body, message := range cases {
-		w := f.request("POST", "/api/resend/emails", body, key)
+		w := f.request("POST", "/api/forke-mail/emails", body, key)
 		resp := decodeJSON(t, w.Body.String())
 		if w.Code < 400 || resp["name"] == nil || (message != "" && resp["message"] != message) {
 			t.Fatalf("%s: %d %s", body, w.Code, w.Body)
 		}
 	}
-	if w := f.request("POST", "/api/resend/audiences", `{"name":"x"}`, key); w.Code != 403 {
+	if w := f.request("POST", "/api/forke-mail/audiences", `{"name":"x"}`, key); w.Code != 403 {
 		t.Fatalf("sending key created audience: %d", w.Code)
 	}
 }
 
-func TestResendCompatibleRemoveContact(t *testing.T) {
+func TestCompatAPIRemoveContact(t *testing.T) {
 	f := newAPIFixture(t)
 	key := f.key(t, "full_access")
-	w := f.request("POST", "/api/resend/audiences", `{"name":"Subscribers"}`, key)
+	w := f.request("POST", "/api/forke-mail/audiences", `{"name":"Subscribers"}`, key)
 	audienceID := decodeJSON(t, w.Body.String())["id"].(string)
 	for _, email := range []string{"stay@example.com", "leave@example.com", "byid@example.com"} {
-		if w := f.request("POST", "/api/resend/audiences/"+audienceID+"/contacts", `{"email":"`+email+`"}`, key); w.Code != 201 {
+		if w := f.request("POST", "/api/forke-mail/audiences/"+audienceID+"/contacts", `{"email":"`+email+`"}`, key); w.Code != 201 {
 			t.Fatalf("contact %s %d", email, w.Code)
 		}
 	}
-	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/Leave%40Example.com", "", key); w.Code != 200 {
+	if w := f.request("DELETE", "/api/forke-mail/audiences/"+audienceID+"/contacts/Leave%40Example.com", "", key); w.Code != 200 {
 		t.Fatalf("delete by email %d %s", w.Code, w.Body)
 	}
 	byID := dbtest.QueryString(t, f.pool, `SELECT id::text FROM contacts WHERE lower(email) = 'byid@example.com'`)
-	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/"+byID, "", key); w.Code != 200 {
+	if w := f.request("DELETE", "/api/forke-mail/audiences/"+audienceID+"/contacts/"+byID, "", key); w.Code != 200 {
 		t.Fatalf("delete by id %d %s", w.Code, w.Body)
 	}
-	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/leave@example.com", "", key); w.Code != 404 {
+	if w := f.request("DELETE", "/api/forke-mail/audiences/"+audienceID+"/contacts/leave@example.com", "", key); w.Code != 404 {
 		t.Fatalf("second delete %d", w.Code)
 	}
-	if w := f.request("DELETE", "/api/resend/audiences/00000000-0000-0000-0000-000000000000/contacts/stay@example.com", "", key); w.Code != 404 {
+	if w := f.request("DELETE", "/api/forke-mail/audiences/00000000-0000-0000-0000-000000000000/contacts/stay@example.com", "", key); w.Code != 404 {
 		t.Fatalf("unknown audience %d", w.Code)
 	}
 	if got := dbtest.QueryString(t, f.pool, `SELECT string_agg(email, ',') FROM contacts WHERE email LIKE '%@example.com' AND workspace_id = (SELECT workspace_id FROM api_keys WHERE prefix = $1)`, key[:12]); got != "stay@example.com" {
 		t.Fatalf("remaining %q", got)
 	}
 	sending := f.key(t, "sending_access")
-	if w := f.request("DELETE", "/api/resend/audiences/"+audienceID+"/contacts/stay@example.com", "", sending); w.Code != 403 {
+	if w := f.request("DELETE", "/api/forke-mail/audiences/"+audienceID+"/contacts/stay@example.com", "", sending); w.Code != 403 {
 		t.Fatalf("sending key %d", w.Code)
 	}
 }

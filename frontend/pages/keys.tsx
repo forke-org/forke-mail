@@ -153,7 +153,7 @@ export default function Keys() {
   const createButton = <Button variant="primary" icon={Plus} onClick={() => setForm({ mode: 'create' })}>Create API key</Button>;
   return (
     <>
-      <PageHeader title="API keys" description="Send from Forke apps through the REST or Resend-compatible API. Keys are shown once, then only their prefix." actions={createButton} />
+      <PageHeader title="API keys" description="Send from Forke apps through the REST API. Keys are shown once, then only their prefix." actions={createButton} />
       <Card flush>
         <DataTable columns={columns} data={state.data ? state.data.keys : null} error={state.error} noun="keys" empty={{ title: 'No API keys yet', hint: 'Create a key to start using the API.', action: createButton }} />
       </Card>

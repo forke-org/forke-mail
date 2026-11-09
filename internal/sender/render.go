@@ -71,7 +71,7 @@ func withHTMLFooter(body, unsubscribeURL string) string {
 	return body + footer
 }
 
-var unsubscribePlaceholders = []string{"{{{RESEND_UNSUBSCRIBE_URL}}}", "{{unsubscribe_url}}"}
+var unsubscribePlaceholders = []string{"{{unsubscribe_url}}"}
 
 func hasUnsubscribeLink(body string) bool {
 	for _, p := range unsubscribePlaceholders {

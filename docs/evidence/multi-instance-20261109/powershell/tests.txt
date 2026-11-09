@@ -561,10 +561,10 @@
 {"Time":"2026-11-09T15:54:34.2930877+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Output":"2026/11/09 15:54:34 WARN send failed recipient_id=f80f740e-b1c3-436d-be61-01a5dc425cde email_id=eea06365-3907-443b-80e5-6a7c1723402c reason=throttled attempts=5\n"}
 {"Time":"2026-11-09T15:54:34.9182858+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Output":"--- PASS: TestRetryGivesUpAfterMaxAttempts (1.83s)\n"}
 {"Time":"2026-11-09T15:54:34.9182858+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestRetryGivesUpAfterMaxAttempts","Elapsed":1.83}
-{"Time":"2026-11-09T15:54:34.9188182+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend"}
-{"Time":"2026-11-09T15:54:34.9188182+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend","Output":"=== RUN   TestSuppressionRecheckedBeforeSend\n"}
-{"Time":"2026-11-09T15:54:36.5395706+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend","Output":"--- PASS: TestSuppressionRecheckedBeforeSend (1.62s)\n"}
-{"Time":"2026-11-09T15:54:36.5395706+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestSuppressionRecheckedBeforeSend","Elapsed":1.62}
+{"Time":"2026-11-09T15:54:34.9188182+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestSuppressionCheckedAtSendTime"}
+{"Time":"2026-11-09T15:54:34.9188182+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSuppressionCheckedAtSendTime","Output":"=== RUN   TestSuppressionCheckedAtSendTime\n"}
+{"Time":"2026-11-09T15:54:36.5395706+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestSuppressionCheckedAtSendTime","Output":"--- PASS: TestSuppressionCheckedAtSendTime (1.62s)\n"}
+{"Time":"2026-11-09T15:54:36.5395706+05:30","Action":"pass","Package":"forkemail/internal/sender","Test":"TestSuppressionCheckedAtSendTime","Elapsed":1.62}
 {"Time":"2026-11-09T15:54:36.5395706+05:30","Action":"run","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor"}
 {"Time":"2026-11-09T15:54:36.5395706+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor","Output":"=== RUN   TestLogSenderEmitsSESEventsThroughProcessor\n"}
 {"Time":"2026-11-09T15:54:38.3698767+05:30","Action":"output","Package":"forkemail/internal/sender","Test":"TestLogSenderEmitsSESEventsThroughProcessor","Output":"--- PASS: TestLogSenderEmitsSESEventsThroughProcessor (1.83s)\n"}

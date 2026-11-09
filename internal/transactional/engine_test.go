@@ -153,7 +153,7 @@ func TestDuplicateContentWithoutKeyIsDeduplicated(t *testing.T) {
 	dbtest.Exec(t, e.pool, `UPDATE transactional_messages SET status = 'failed' WHERE id = $1`, first.id)
 	retry, _ := e.accept(t, "", e.req("user@x.io", "receipt 1"))
 	if retry.id == first.id {
-		t.Fatal("a failed message blocked a resend")
+		t.Fatal("a failed message blocked a retry")
 	}
 }
 

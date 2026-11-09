@@ -1,8 +1,8 @@
 # Forke Mail
 
-Forke Mail is Forke's own email service and our replacement for Resend. It imports contacts, groups broadcast emails into campaigns, sends one-to-one transactional email (sign-in codes, password resets, receipts) over the API, and delivers through an **SMTP relay** (OCI Email Delivery on the Oracle Always Free tier) or **Amazon SES**.
+Forke Mail is Forke's own email service. It imports contacts, groups broadcast emails into campaigns, sends one-to-one transactional email (sign-in codes, password resets, receipts) over the API, and delivers through an **SMTP relay** (OCI Email Delivery on the Oracle Always Free tier) or **Amazon SES**.
 
-It speaks a **Resend-compatible API** under `/api/resend`, so the Forke apps switch over by changing a base URL and an API key. Forke admins sign in with their existing Forke accounts: `super_admin` and `admin` roles come straight from Forke's `admins` table.
+Forke's apps send through its API under `/api/forke-mail` with one API key. Forke admins sign in with their existing Forke accounts: `super_admin` and `admin` roles come straight from Forke's `admins` table.
 
 It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for all state. It needs no Redis, message broker or ORM.
 
@@ -14,7 +14,7 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
 - [Quick start (local, no AWS needed)](#quick-start-local-no-aws-needed)
 - [Configuration](#configuration)
 - [Sign-in and roles](#sign-in-and-roles)
-- [Switching Forke from Resend](#switching-forke-from-resend)
+- [Sending from the Forke apps](#sending-from-the-forke-apps)
 - [Sending through OCI Email Delivery](#sending-through-oci-email-delivery)
 - [Using the dashboard](#using-the-dashboard)
 - [REST API](#rest-api)
@@ -50,7 +50,7 @@ It is a single Go binary that embeds a Next.js dashboard and uses PostgreSQL for
   - A sweeper recovers recipients stuck mid-send after a crash.
   - Every email gets a per-recipient unsubscribe link and the `List-Unsubscribe` / one-click headers.
 - **SMTP relay.** `SENDER_DRIVER=smtp` delivers through any authenticated SMTP relay over STARTTLS or TLS, built for OCI Email Delivery. Daily and monthly caps keep you inside a free allowance, and a plain-text part is generated from HTML when you only send HTML.
-- **Resend-compatible API.** `POST /emails`, audiences, contacts and broadcasts under `/api/resend`, including the `{{{RESEND_UNSUBSCRIBE_URL}}}` placeholder.
+- **Simple app API.** `POST /emails`, audiences, contacts and broadcasts under `/api/forke-mail`, including the `{{unsubscribe_url}}` placeholder.
 - **Amazon SES integration.**
   - Sends through SESv2 using a configuration set and message tags.
   - Classifies SES errors without SDK retries; ambiguous outcomes are never retried, so no one gets a duplicate.
@@ -290,43 +290,33 @@ Other routes:
 
 Creating, rotating or revoking API keys asks for the Forke password again.
 
-## Switching Forke from Resend
+## Sending from the Forke apps
 
-Forke's apps (`forke-admin`, `forke-dashboard`, `forke-marketing`) call Resend's REST API with `fetch`. Forke Mail serves the same calls under `/api/resend`:
+Forke's apps (`forke-admin`, `forke-dashboard`, `forke-marketing`) send through the Forke Mail API under `/api/forke-mail`:
 
-| Resend call used by Forke | Forke Mail behaviour |
+| Call | Forke Mail behaviour |
 |---|---|
 | `POST /emails` | transactional send: one `to` address, optional `reply_to`, `tags`, `Idempotency-Key` header. Returns `{"id"}` |
 | `GET /emails/{id}` | message with `last_event` (`queued`, `sent`, `delivered`, `bounced`, …) |
 | `GET /audiences`, `POST /audiences` | audiences are contact tags. Creating an existing name returns the existing audience |
 | `POST /audiences/{id}/contacts` | upserts the contact and tags it. `unsubscribed: true` suppresses it. Unsubscribed, bounced or complained contacts are never reactivated |
-| `POST /broadcasts` | creates a draft email for the audience inside a campaign named after the broadcast `name` |
+| `DELETE /audiences/{id}/contacts/{email or id}` | deletes the contact (its suppression record is kept) |
+| `POST /broadcasts` | creates a draft email for the audience inside a campaign named after the broadcast `name`; optional `topic` |
 | `POST /broadcasts/{id}/send` | launches it; the worker sends to every active, unsuppressed contact in the audience |
 
-`{{{RESEND_UNSUBSCRIBE_URL}}}` (and `{{unsubscribe_url}}`) in a broadcast's HTML or text becomes the recipient's signed unsubscribe link, and the one-click `List-Unsubscribe` headers are added. Errors keep Resend's shape: `{"statusCode": 422, "name": "validation_error", "message": "..."}`, and `429` keeps `Retry-After`.
+`{{unsubscribe_url}}` in a broadcast's HTML or text becomes the recipient's signed preferences link, and the one-click `List-Unsubscribe` headers are added. Errors use the shape `{"statusCode": 422, "name": "validation_error", "message": "..."}`, and `429` keeps `Retry-After`.
 
 Not supported yet, and rejected with a clear 422 instead of being silently dropped: more than one `to`, `cc`/`bcc`, attachments, custom headers and `scheduled_at`.
 
-### Steps
+### App configuration
 
-1. Deploy Forke Mail at `https://mail.forke.space` (see [Deploying to production](#deploying-to-production)).
-2. Sign in as a `super_admin`, add the sending domain (`forke.space`) and create a `full_access` API key.
-3. In each Forke app, point the two Resend URLs at Forke Mail and swap the key:
+```sh
+FORKE_MAIL_API_KEY=fm_live_...          # full_access for forke-admin (broadcasts), sending_access is enough for the others
+EMAIL_API_URL=https://mail.forke.space/api/forke-mail   # optional, this is the default
+FORKE_MAIL_AUDIENCE_ID=                 # optional; unset means "Forke Subscribers", found or created by name
+```
 
-   ```ts
-   const RESEND_API = process.env.FORKE_MAIL_API_URL || 'https://api.resend.com'
-   // and in the single-send helper:
-   const res = await fetch(`${RESEND_API}/emails`, { ... })
-   ```
-
-   ```sh
-   FORKE_MAIL_API_URL=https://mail.forke.space/api/resend
-   RESEND_API_KEY=fm_live_...
-   ```
-
-4. Remove `RESEND_AUDIENCE_ID`, or set it to the Forke Mail audience id. With it unset, the apps find or create "Forke Subscribers" by name, as they already do.
-
-The apps' existing retry logic (`429` with `Retry-After`, `5xx`) works unchanged.
+The apps retry `429` (honouring `Retry-After`) and `5xx`.
 
 ## Sending through OCI Email Delivery
 
@@ -416,7 +406,7 @@ Read it back with `GET /api/transactional/{id}`. That works with any key scope a
 ### Idempotency and deduplication
 
 - **`Idempotency-Key` header (recommended).** A repeat within 24 hours with the same body returns the original message and sends nothing. A different body returns `409`. The key is per workspace, up to 256 printable ASCII characters. Concurrent requests with the same key are serialized with a Postgres advisory lock, so exactly one message is created.
-- **Content dedupe (no key).** Without a key, an identical message (same recipient, sender, reply-to, subject and bodies) accepted in the last 60 seconds and not failed is returned instead of being sent again. This catches double-clicked "resend code" buttons and client retries. To send identical content twice on purpose, give each request its own key.
+- **Content dedupe (no key).** Without a key, an identical message (same recipient, sender, reply-to, subject and bodies) accepted in the last 60 seconds and not failed is returned instead of being sent again. This catches double-clicked "send code again" buttons and client retries. To send identical content twice on purpose, give each request its own key.
 - **Never a duplicate send.** As with campaigns, an SES call with no answer (a timeout or network error) is marked `failed` with `unknown_outcome` and never retried. A message stuck in `sending` for 5 minutes, for example after a crash, is also failed rather than resent.
 - **Expiry.** A message still waiting after an hour (for example while SES sending is paused) fails with `expired` instead of delivering a stale code.
 
@@ -746,7 +736,7 @@ internal/
   accounts/        Forke admin login, local dev login, logout, workspace and user creation
   forke/           read-only access to Forke's admins table (password check, live role)
   relay/           SMTP relay sender, MIME builder, quota guard, allowed-sender identities
-  resendapi/       Resend-compatible endpoints translated onto the native handlers
+  compatapi/       /api/forke-mail endpoints translated onto the native handlers
   auth/            API keys, sessions, authentication middleware, route scopes
   campaigns/       campaign CRUD
   config/          environment parsing and validation

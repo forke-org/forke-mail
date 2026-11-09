@@ -35,8 +35,8 @@
 2026/11/09 14:40:15 WARN send failed recipient_id=190d9b29-8ee7-4479-b9c3-539725149997 email_id=fc4bfd1b-f983-4baf-88b0-5851737ab95c reason=throttled attempts=1
 2026/11/09 14:40:15 WARN send failed recipient_id=190d9b29-8ee7-4479-b9c3-539725149997 email_id=fc4bfd1b-f983-4baf-88b0-5851737ab95c reason=throttled attempts=5
 --- PASS: TestRetryGivesUpAfterMaxAttempts (1.85s)
-=== RUN   TestSuppressionRecheckedBeforeSend
---- PASS: TestSuppressionRecheckedBeforeSend (1.63s)
+=== RUN   TestSuppressionCheckedAtSendTime
+--- PASS: TestSuppressionCheckedAtSendTime (1.63s)
 === RUN   TestLogSenderEmitsSESEventsThroughProcessor
     isolation.go:55: ERROR: out of memory (SQLSTATE 53200)
 --- FAIL: TestLogSenderEmitsSESEventsThroughProcessor (1.47s)

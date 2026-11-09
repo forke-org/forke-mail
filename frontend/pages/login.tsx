@@ -10,7 +10,7 @@ const features = [
   { icon: Megaphone, title: 'Broadcasts', text: 'Newsletters and launches to every subscriber, with topics and a preference centre.' },
   { icon: Zap, title: 'Transactional', text: 'Codes and receipts that jump the queue ahead of every broadcast.' },
   { icon: ShieldCheck, title: 'Protected by default', text: 'Bounces, complaints and unsubscribes are suppressed automatically.' },
-  { icon: Hash, title: 'Resend compatible', text: 'Point existing code at Forke Mail by changing one base URL.' },
+  { icon: Hash, title: 'Simple API', text: 'Send from any app with one API key and a base URL.' },
 ];
 
 export default function Login() {
