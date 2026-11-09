@@ -92,7 +92,7 @@ func (w *Worker) loadState(ctx context.Context, rec *Recipient) (state, error) {
 	var st state
 	c := &st.content
 	err := w.pool.QueryRow(ctx, `
-		SELECT ws.status, ws.sending_paused, c.status, c.subject, c.from_name, c.from_address, c.html, c.text,
+		SELECT ws.status, ws.sending_paused, c.status, c.subject, c.from_name, c.from_address, c.reply_to, c.html, c.text,
 			COALESCE(ct.status, ''), COALESCE(ct.first_name, ''),
 			EXISTS (SELECT 1 FROM suppressions s WHERE s.workspace_id = r.workspace_id AND lower(s.email) = lower(r.email))
 		FROM email_recipients r
@@ -100,7 +100,7 @@ func (w *Worker) loadState(ctx context.Context, rec *Recipient) (state, error) {
 		JOIN workspaces ws ON ws.id = r.workspace_id
 		LEFT JOIN contacts ct ON ct.id = r.contact_id AND ct.workspace_id = r.workspace_id
 		WHERE r.id = $1`, rec.ID,
-	).Scan(&st.workspaceStatus, &st.sendingPaused, &st.emailStatus, &c.Subject, &c.FromName, &c.FromAddress, &c.HTML, &c.Text,
+	).Scan(&st.workspaceStatus, &st.sendingPaused, &st.emailStatus, &c.Subject, &c.FromName, &c.FromAddress, &c.ReplyTo, &c.HTML, &c.Text,
 		&st.contactStatus, &rec.FirstName, &st.suppressed)
 	return st, err
 }

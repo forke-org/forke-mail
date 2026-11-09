@@ -22,3 +22,14 @@ func TestRenderEscapesMergeFieldsInHTML(t *testing.T) {
 		t.Fatalf("headers = %v", m.Headers)
 	}
 }
+
+func TestRenderFillsUnsubscribePlaceholders(t *testing.T) {
+	c := Content{Subject: "s", FromAddress: "a@forke.space", HTML: `<a href="{{{RESEND_UNSUBSCRIBE_URL}}}">Unsubscribe</a>`, Text: "Bye: {{unsubscribe_url}}"}
+	m := Render(c, Recipient{Email: "r@example.com"}, "https://mail.forke.space/unsubscribe/t?a=1&b=2")
+	if m.HTML != `<a href="https://mail.forke.space/unsubscribe/t?a=1&amp;b=2">Unsubscribe</a>` {
+		t.Fatalf("html %q", m.HTML)
+	}
+	if m.Text != "Bye: https://mail.forke.space/unsubscribe/t?a=1&b=2" {
+		t.Fatalf("text %q", m.Text)
+	}
+}

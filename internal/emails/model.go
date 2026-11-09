@@ -29,6 +29,7 @@ type Email struct {
 	Subject      string     `json:"subject"`
 	FromName     string     `json:"from_name"`
 	FromAddress  string     `json:"from_address"`
+	ReplyTo      string     `json:"reply_to"`
 	HTML         string     `json:"html"`
 	Text         string     `json:"text"`
 	Status       string     `json:"status"`
@@ -46,6 +47,7 @@ type fields struct {
 	Subject     *string   `json:"subject"`
 	FromName    *string   `json:"from_name"`
 	FromAddress *string   `json:"from_address"`
+	ReplyTo     *string   `json:"reply_to"`
 	HTML        *string   `json:"html"`
 	Text        *string   `json:"text"`
 	Audience    *Audience `json:"audience"`
@@ -60,6 +62,7 @@ func (f fields) applyTo(e *Email) {
 	set(&e.Subject, f.Subject)
 	set(&e.FromName, f.FromName)
 	set(&e.FromAddress, f.FromAddress)
+	set(&e.ReplyTo, f.ReplyTo)
 	set(&e.HTML, f.HTML)
 	set(&e.Text, f.Text)
 	if f.Audience != nil {
@@ -68,7 +71,7 @@ func (f fields) applyTo(e *Email) {
 }
 
 const selectEmail = `
-	SELECT e.id, e.campaign_id, c.name, e.subject, e.from_name, e.from_address, e.html, e.text, e.status, e.pause_reason,
+	SELECT e.id, e.campaign_id, c.name, e.subject, e.from_name, e.from_address, e.reply_to, e.html, e.text, e.status, e.pause_reason,
 		e.scheduled_at, e.started_at, e.finished_at, e.created_at, s.total, s.processed
 	FROM emails e
 	JOIN campaigns c ON c.id = e.campaign_id
@@ -78,6 +81,6 @@ const selectEmail = `
 	) s`
 
 func scanTargets(e *Email) []any {
-	return []any{&e.ID, &e.CampaignID, &e.CampaignName, &e.Subject, &e.FromName, &e.FromAddress, &e.HTML, &e.Text,
+	return []any{&e.ID, &e.CampaignID, &e.CampaignName, &e.Subject, &e.FromName, &e.FromAddress, &e.ReplyTo, &e.HTML, &e.Text,
 		&e.Status, &e.PauseReason, &e.ScheduledAt, &e.StartedAt, &e.FinishedAt, &e.CreatedAt, &e.Recipients, &e.Processed}
 }

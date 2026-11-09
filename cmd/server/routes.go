@@ -19,6 +19,7 @@ import (
 	"forkemail/internal/httpx"
 	"forkemail/internal/keys"
 	"forkemail/internal/ratelimit"
+	"forkemail/internal/resendapi"
 	"forkemail/internal/seed"
 	"forkemail/internal/sns"
 	"forkemail/internal/transactional"
@@ -86,6 +87,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	dnsH := &domains.DNSHandler{Pool: pool, Region: cfg.AWS.Region}
 	transactionalH := &transactional.Handler{Pool: pool, Dispatcher: svc.dispatcher}
 	trackH := &transactional.TrackHandler{Pool: pool, Tracker: transactional.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)}
+	resendH := &resendapi.Handler{Pool: pool, Transactional: transactionalH, Emails: emailH, Tags: contactH.CreateTag}
 	unsubH := &unsub.Handler{Pool: pool, Signer: unsub.Signer{Secret: []byte(cfg.UnsubscribeSecret)}}
 
 	r := chi.NewRouter()
@@ -147,6 +149,14 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Post("/api/suppressions/import", contactH.ImportSuppressions)
 		api.Delete("/api/suppressions/{id}", contactH.DeleteSuppression)
 		registerDeveloperRoutes(api, pool, svc.developer)
+
+		api.Post("/api/resend/emails", resendH.SendEmail)
+		api.Get("/api/resend/emails/{id}", resendH.GetEmail)
+		api.Get("/api/resend/audiences", resendH.ListAudiences)
+		api.Post("/api/resend/audiences", resendH.CreateAudience)
+		api.Post("/api/resend/audiences/{id}/contacts", resendH.AddContact)
+		api.Post("/api/resend/broadcasts", resendH.CreateBroadcast)
+		api.Post("/api/resend/broadcasts/{id}/send", resendH.SendBroadcast)
 	})
 
 	r.Get("/healthz", db.Health(pool))

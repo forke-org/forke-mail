@@ -58,9 +58,9 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		var id string
 		if err := tx.QueryRow(r.Context(), `
-			INSERT INTO emails (workspace_id, campaign_id, subject, from_name, from_address, html, text)
-			VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-			ws, campaignID, e.Subject, e.FromName, e.FromAddress, e.HTML, e.Text).Scan(&id); err != nil {
+			INSERT INTO emails (workspace_id, campaign_id, subject, from_name, from_address, reply_to, html, text)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+			ws, campaignID, e.Subject, e.FromName, e.FromAddress, e.ReplyTo, e.HTML, e.Text).Scan(&id); err != nil {
 			return err
 		}
 		if err := saveAudience(r.Context(), tx, ws, id, e.Audience); err != nil {
@@ -116,8 +116,8 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		if _, err := tx.Exec(r.Context(), `
-			UPDATE emails SET subject = $3, from_name = $4, from_address = $5, html = $6, text = $7
-			WHERE id = $1 AND workspace_id = $2`, id, ws, e.Subject, e.FromName, e.FromAddress, e.HTML, e.Text); err != nil {
+			UPDATE emails SET subject = $3, from_name = $4, from_address = $5, reply_to = $6, html = $7, text = $8
+			WHERE id = $1 AND workspace_id = $2`, id, ws, e.Subject, e.FromName, e.FromAddress, e.ReplyTo, e.HTML, e.Text); err != nil {
 			return err
 		}
 		if f.Audience != nil {
