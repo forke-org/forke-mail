@@ -4,6 +4,15 @@ Forke Mail runs on the Always Free Ampere VM as the `forke-mail` systemd service
 
 ## Release a new version
 
+Every push to `main` deploys automatically. The `deploy` job in `.github/workflows/ci.yml` runs after the tests pass:
+- it builds the dashboard and the ARM64 binary;
+- it copies them with `forke-mail.service` and `install.sh` to `/tmp` on the VM;
+- it runs `install.sh` and fails unless `/healthz` answers 200.
+
+It uses the same repository secrets as the other Forke deploys: `ORACLE_HOST`, `ORACLE_USER` and `ORACLE_SSH_KEY`. The user needs passwordless `sudo`. Run it again from the Actions tab with "Run workflow".
+
+To release by hand instead:
+
 ```sh
 (cd frontend && npm ci && npm run build)
 GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o forke-mail-linux-arm64 ./cmd/server
