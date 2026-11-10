@@ -19,7 +19,7 @@ const starterHTML = `<html>
   <body style="font-family: -apple-system, Segoe UI, sans-serif; color: #18181b; padding: 24px;">
     <h1 style="font-size: 22px;">Hi {{first_name}},</h1>
     <p>Here is what is new this month.</p>
-    <p><a href="https://forke.space">Read more on forke.space</a></p>
+    <p><a href="https://example.com">Read more</a></p>
   </body>
 </html>`;
 
@@ -186,14 +186,14 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
                         <span className="grid place-items-center border-y border-line-strong bg-surface-2 px-2 text-sm text-muted">@</span>
                       </>
                     )}
-                    <Select className={singleAddress ? 'w-full' : 'min-w-0 flex-[1.6] [&_select]:rounded-l-none'} value={form.from_identity} onChange={set('from_identity')} aria-label="Sending identity">
+                    <Select className={singleAddress ? 'w-full' : 'min-w-0 flex-[1.6] [&>button]:rounded-l-none'} value={form.from_identity} onChange={set('from_identity')} aria-label="Sending identity">
                       {identityOptions.length ? identityOptions.map((d) => <option key={d} value={d}>{d}</option>) : <option value="">No verified domains</option>}
                     </Select>
                   </div>
                 </Field>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Reply-to" hint="Optional. Replies go here instead of the from address."><Input type="email" placeholder="team@forke.space" value={form.reply_to} onChange={set('reply_to')} /></Field>
+                <Field label="Reply-to" hint="Optional. Replies go here instead of the from address."><Input type="email" placeholder="team@yourdomain.com" value={form.reply_to} onChange={set('reply_to')} /></Field>
                 <Field label="Topic" hint="Contacts who opted out of this topic are skipped.">
                   <Select value={form.topic} onChange={set('topic')}>
                     <option value="">No topic (everyone)</option>
@@ -201,7 +201,7 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
                   </Select>
                 </Field>
               </div>
-              <Field label="Subject"><Input maxLength={300} placeholder="What's new at Forke, {{first_name}}" value={form.subject} onChange={set('subject')} /></Field>
+              <Field label="Subject"><Input maxLength={300} placeholder="What's new this month, {{first_name}}" value={form.subject} onChange={set('subject')} /></Field>
             </div>
           </Card>
           <Card

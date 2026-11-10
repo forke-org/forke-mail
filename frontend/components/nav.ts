@@ -33,7 +33,7 @@ export const navGroups: { label: string | null; items: NavItem[] }[] = [
     label: 'Configuration',
     items: [
       { href: '/domains/', label: 'Domains', icon: Globe, keywords: 'dns dkim spf identities' },
-      { href: '/webhooks/', label: 'Webhooks', icon: Webhook, keywords: 'events sync callbacks forke admin' },
+      { href: '/webhooks/', label: 'Webhooks', icon: Webhook, keywords: 'events sync callbacks integrations' },
       { href: '/keys/', label: 'API keys', icon: KeyRound, superAdmin: true, keywords: 'tokens api' },
       { href: '/settings/', label: 'Settings', icon: Settings, keywords: 'plan usage re-engagement account' },
     ],

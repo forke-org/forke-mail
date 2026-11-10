@@ -10,7 +10,7 @@ import { never, useLoad } from '../../lib/useLoad';
 
 const failureReasons: Record<string, string> = {
   expired: 'It waited in the queue for over an hour, so it was dropped instead of sent late.',
-  unknown_outcome: 'Amazon SES did not answer, so it was not retried to avoid sending it twice.',
+  unknown_outcome: 'The email provider did not answer, so it was not retried to avoid sending it twice.',
   recipient_suppressed: 'The recipient hard bounced, complained or was suppressed manually.',
   workspace_sending_paused: 'Sending is paused for this workspace.',
 };
@@ -23,7 +23,7 @@ const dotTone: Record<string, string> = {
 function describe(ev: { type: string; detail: Record<string, any> | null }) {
   const d = ev.detail || {};
   switch (ev.type) {
-    case 'sent': return `Handed to SES in ${ms(d.dispatch_ms)} (API call ${ms(d.send_ms)}, attempt ${d.attempts})`;
+    case 'sent': return `Handed off for delivery in ${ms(d.dispatch_ms)} (API call ${ms(d.send_ms)}, attempt ${d.attempts})`;
     case 'failed': return humanize(d.reason);
     case 'bounced': case 'soft_bounced': return [d.bounce_type, d.bounce_sub_type].filter(Boolean).join(' / ');
     case 'clicked': return d.url;
@@ -57,8 +57,8 @@ export default function TransactionalView() {
       />
       {m.status === 'failed' ? <div className="mb-5"><Callout tone="danger">{failureReasons[m.last_error || ''] || `Not sent: ${humanize(m.last_error || 'failed')}.`}</Callout></div> : null}
       {m.status === 'queued' && m.last_error ? <div className="mb-5"><Callout tone="warn">Waiting to retry: {humanize(m.last_error)}.</Callout></div> : null}
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Dispatch latency" value={ms(m.dispatch_ms)} hint="Accepted → handed to SES" />
+      <div className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-line shadow-card lg:grid-cols-4">
+        <Stat label="Dispatch latency" value={ms(m.dispatch_ms)} hint="Accepted → handed off for delivery" />
         <Stat label="Attempts" value={number(m.attempts)} />
         <Stat label="Opens" value={m.track_opens ? number(m.open_count) : 'Off'} hint={m.track_opens ? 'Estimate' : 'Tracking disabled'} />
         <Stat label="Clicks" value={m.track_clicks ? number(m.click_count) : 'Off'} hint={m.track_clicks ? ' ' : 'Tracking disabled'} />

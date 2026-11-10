@@ -38,7 +38,7 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
 }
 
 const messages: Record<string, string> = {
-  invalid_credentials: 'Incorrect email, username or password, or this Forke account is not an active admin.',
+  invalid_credentials: 'Incorrect email, username or password, or this account is not active.',
   email_taken: 'An account with this email already exists.',
   invalid_password: 'Password must be 8 to 72 characters.',
   invalid_email: 'Enter a valid email address.',
@@ -50,7 +50,7 @@ const messages: Record<string, string> = {
   workspace_sending_paused: 'Sending is paused for this workspace because of its bounce or complaint rate.',
   invalid_identity: 'Enter a valid domain such as mail.example.com, or a valid email address.',
   identity_taken: 'That domain or address is already registered.',
-  ses_request_failed: 'Amazon SES rejected the request. Check the server logs for details.',
+  ses_request_failed: 'The email provider rejected the request. Try again in a moment.',
   invalid_from_address: 'Enter a valid from address.',
   invalid_subject: 'Enter a subject.',
   missing_body: 'Write some content for your email.',

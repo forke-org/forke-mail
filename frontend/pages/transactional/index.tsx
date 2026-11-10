@@ -107,14 +107,14 @@ export default function Transactional() {
         description="One-to-one messages like sign-in codes, password resets and receipts. They always skip ahead of broadcasts."
         actions={<Button variant="primary" icon={Zap} onClick={() => setSending(true)}>Send test</Button>}
       />
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat icon={Timer} tone="accent" label="Dispatch p50" value={s ? ms(s.dispatch.p50_ms) : '—'} hint="Accepted → handed to SES, 24 h" />
+      <div className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-line shadow-card lg:grid-cols-4">
+        <Stat icon={Timer} tone="accent" label="Dispatch p50" value={s ? ms(s.dispatch.p50_ms) : '—'} hint="Accepted → handed off, last 24 h" />
         <Stat icon={Timer} tone="blue" label="Dispatch p95" value={s ? ms(s.dispatch.p95_ms) : '—'} hint={s ? `p99 ${ms(s.dispatch.p99_ms)}` : ' '} />
         <Stat icon={Send} tone="neutral" label="Sent, last 24 h" value={s ? number(s.sent) : '—'} hint={s ? `${number(s.failed)} failed · ${number(s.queued + s.sending)} in flight` : ' '} />
         <Stat icon={MailCheck} tone="green" label="Delivered" value={s ? percent(s.delivered, s.sent) : '—'} hint={s ? `${number(s.bounced)} bounced · ${number(s.complained)} complaints` : ' '} />
       </div>
       {s && (s.tracked_opens || s.tracked_clicks) ? (
-        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+        <div className="mb-5 grid gap-px overflow-hidden rounded-[8px] bg-line shadow-card sm:grid-cols-2">
           <Stat icon={Eye} tone="accent" label="Opened (estimate)" value={percent(s.opened, s.tracked_opens)} hint={`of ${number(s.tracked_opens)} tracked messages`} />
           <Stat icon={MousePointerClick} tone="accent" label="Clicked" value={percent(s.clicked, s.tracked_clicks)} hint={`of ${number(s.tracked_clicks)} tracked messages; link scanners ignored`} />
         </div>

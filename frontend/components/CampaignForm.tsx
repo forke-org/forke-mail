@@ -27,7 +27,7 @@ export default function CampaignForm({ campaign, onClose, onSaved }: { campaign?
   return (
     <Modal title={campaign ? 'Edit campaign' : 'New campaign'} description="A campaign groups related broadcasts, like the blog newsletter or the changelog." onClose={onClose}>
       <form className="flex flex-col gap-4" onSubmit={submit}>
-        <Field label="Name"><Input required autoFocus maxLength={200} placeholder="Forke changelog" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+        <Field label="Name"><Input required autoFocus maxLength={200} placeholder="Product changelog" value={name} onChange={(e) => setName(e.target.value)} /></Field>
         <Field label="Description" hint="Optional."><Textarea rows={3} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Monthly product updates for everyone on the list." /></Field>
         <FormError>{error}</FormError>
         <FormActions>

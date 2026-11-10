@@ -77,7 +77,7 @@ function KeyForm({ mode, keyRow, trial, onClose, onCreated }: { mode: 'create' |
       <form className="flex flex-col gap-4" onSubmit={submit}>
         {mode === 'create' ? (
           <>
-            <Field label="Name"><Input required autoFocus maxLength={100} placeholder="forke-web production" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+            <Field label="Name"><Input required autoFocus maxLength={100} placeholder="web-app production" value={name} onChange={(e) => setName(e.target.value)} /></Field>
             <div className="flex flex-col gap-2">
               <span className="text-[13px] font-medium text-ink-2">Permission</span>
               <ScopeOption checked={scope === 'sending_access'} onChange={() => setScope('sending_access')} title="Sending access" text="Send transactional email, import contacts, create and send broadcasts, read reports." />
@@ -148,12 +148,12 @@ export default function Keys() {
     },
   ], []);
 
-  if (!superAdmin) return <Card><Empty icon={KeyRound} title="Super admins only" hint="Ask a Forke super admin to create or rotate API keys." /></Card>;
+  if (!superAdmin) return <Card><Empty icon={KeyRound} title="Owners only" hint="Ask a workspace owner to create or rotate API keys." /></Card>;
 
   const createButton = <Button variant="primary" icon={Plus} onClick={() => setForm({ mode: 'create' })}>Create API key</Button>;
   return (
     <>
-      <PageHeader title="API keys" description="Send from Forke apps through the REST API. Keys are shown once, then only their prefix." actions={createButton} />
+      <PageHeader title="API keys" description="Send from your apps through the REST API. Each key is shown once, then only its prefix." actions={createButton} />
       <Card flush>
         <DataTable columns={columns} data={state.data ? state.data.keys : null} error={state.error} noun="keys" empty={{ title: 'No API keys yet', hint: 'Create a key to start using the API.', action: createButton }} />
       </Card>

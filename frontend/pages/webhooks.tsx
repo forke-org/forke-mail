@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Plus, RotateCw, Trash2, Webhook as WebhookIcon, Zap } from 'lucide-react';
+import { Plus, RotateCw, Trash2, Webhook as WebhookIcon } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 import DataTable, { Columns, Strong } from '../components/DataTable';
 import { FormActions, Modal, useConfirm } from '../components/Modal';
@@ -17,10 +17,6 @@ const eventGroups: [string, string[]][] = [
   ['Engagement', ['email.opened', 'email.clicked', 'email.unsubscribed']],
   ['Other', ['email.queued', 'workspace.sending_paused']],
 ];
-
-const presets = {
-  admin: { url: 'https://admin.forke.space/api/webhooks/forke-mail', events: ['contact.updated', 'contact.deleted'] },
-};
 
 function SecretReveal({ secret, onClose }: { secret: string; onClose: () => void }) {
   const toast = useToast();
@@ -41,8 +37,7 @@ function SecretReveal({ secret, onClose }: { secret: string; onClose: () => void
         <Button onClick={copy}>{copied ? 'Copied' : 'Copy'}</Button>
       </div>
       <p className="text-xs leading-relaxed text-muted">
-        For the Forke admin sync, set it as <code className="rounded bg-surface-3 px-1 font-mono">FORKE_MAIL_WEBHOOK_SECRET</code> in forke-admin&apos;s environment and restart it.
-        Requests are signed as <code className="rounded bg-surface-3 px-1 font-mono">v1=HMAC-SHA256(id.timestamp.body)</code> in the <code className="rounded bg-surface-3 px-1 font-mono">Webhook-Signature</code> header.
+        Store it as a secret in the receiving app and use it to verify every request. Requests are signed as <code className="rounded bg-surface-3 px-1 font-mono">v1=HMAC-SHA256(id.timestamp.body)</code> in the <code className="rounded bg-surface-3 px-1 font-mono">Webhook-Signature</code> header.
       </p>
     </Modal>
   );
@@ -66,21 +61,10 @@ function CreateWebhook({ onClose, onCreated }: { onClose: () => void; onCreated:
     }
   };
   return (
-    <Modal wide title="Add webhook" description="Forke Mail POSTs signed JSON to this URL when the chosen events happen." onClose={onClose}>
+    <Modal wide title="Add webhook" description="We POST signed JSON to this URL whenever one of the chosen events happens." onClose={onClose}>
       <form className="flex flex-col gap-5" onSubmit={submit}>
-        <button
-          type="button"
-          onClick={() => { setUrl(presets.admin.url); setEvents(presets.admin.events); }}
-          className="flex cursor-pointer items-start gap-3 rounded-xl bg-accent-soft p-3.5 text-left shadow-[inset_0_0_0_1px_var(--accent-line)] transition-opacity hover:opacity-90"
-        >
-          <Zap className="mt-0.5 size-4 shrink-0 text-accent" />
-          <div>
-            <div className="text-sm font-medium text-ink">Forke admin subscriber sync</div>
-            <div className="mt-0.5 text-xs text-muted">Mirrors unsubscribes, bounces, pauses and topic choices into Forke&apos;s subscribers table.</div>
-          </div>
-        </button>
         <Field label="Endpoint URL" hint="Public https only.">
-          <Input type="url" required autoFocus placeholder="https://example.com/webhooks/forke-mail" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <Input type="url" required autoFocus placeholder="https://example.com/webhooks/email" value={url} onChange={(e) => setUrl(e.target.value)} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           {eventGroups.map(([group, list]) => (
@@ -201,7 +185,7 @@ export default function Webhooks() {
             error={state.error}
             noun="webhooks"
             onRowClick={(h) => setOpenId(h.id === openId ? null : h.id)}
-            empty={{ title: 'No webhooks yet', hint: 'Add the Forke admin subscriber sync to keep the subscribers table in step with unsubscribes and bounces.', action: addButton }}
+            empty={{ title: 'No webhooks yet', hint: 'Add an endpoint to keep your own database in step with unsubscribes, bounces and contact changes.', action: addButton }}
           />
         </Card>
         {open ? <Deliveries key={open.id} webhook={open} /> : null}

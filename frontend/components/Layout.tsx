@@ -1,5 +1,6 @@
+import { AsciiReveal } from 'ascii-reveal';
 import clsx from 'clsx';
-import { BookOpen, ChevronsUpDown, LogOut, Menu, Search, X } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Menu, Search, Settings, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -8,7 +9,6 @@ import { useSession, useMe } from '../lib/session';
 import CommandMenu from './CommandMenu';
 import Logo from './Logo';
 import { currentItem, isActive, navGroups } from './nav';
-import ThemeToggle from './ThemeToggle';
 import { Badge, Button, Callout, Kbd, Meter } from './ui';
 
 const workspacePauseReasons: Record<string, string> = {
@@ -20,77 +20,90 @@ function initials(name: string) {
   return name.split(/\s+/).map((p) => p[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function WorkspaceSwitcher() {
+function Avatar({ name, className }: { name: string; className?: string }) {
+  return (
+    <span className={clsx('grid shrink-0 place-items-center rounded-[6px] bg-gradient-to-br from-[#ffb25c] to-accent font-semibold text-[#1a0a00]', className)}>
+      {initials(name)}
+    </span>
+  );
+}
+
+function Usage() {
+  const me = useMe();
+  const { trial, showUpgrade } = useSession();
+  const used = trial ? me.quota.trial_used : me.quota.sent_this_month;
+  const limit = trial ? me.quota.trial_limit : me.quota.monthly_limit;
+  return (
+    <div className="px-1">
+      <div className="mb-2 flex items-center justify-between text-xs">
+        <span className="font-mono text-[10.5px] tracking-[0.08em] text-faint uppercase">{trial ? 'Trial sends' : 'This month'}</span>
+        <span className="text-muted tabular-nums">{trial ? `${number(used)} / ${number(limit)}` : `${compact(used)}${limit > 0 ? ` / ${compact(limit)}` : ''}`}</span>
+      </div>
+      {limit > 0 ? <Meter value={used} max={limit} /> : <div className="text-[11px] text-muted">No monthly cap</div>}
+      {trial ? <Button size="xs" variant="primary" className="mt-3 w-full" onClick={() => showUpgrade()}>Upgrade plan</Button> : null}
+    </div>
+  );
+}
+
+function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
   const me = useMe();
   const { trial, logout } = useSession();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const name = me.user?.name || me.workspace.name;
   useEffect(() => {
     if (!open) return undefined;
     const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc); };
   }, [open]);
   return (
     <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-3"
-      >
-        <span className="grid size-7 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent to-[#ff4d00] text-[11px] font-semibold text-white">{initials(me.workspace.name)}</span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-medium text-ink">{me.workspace.name}</span>
-          <span className="block truncate text-[11px] text-muted">{trial ? 'Trial workspace' : 'Paid workspace'}</span>
-        </span>
-        <ChevronsUpDown className="size-3.5 text-muted" />
-      </button>
       {open ? (
-        <div className="absolute top-full right-0 left-0 z-50 mt-1 animate-pop rounded-xl bg-surface p-1.5 shadow-pop">
-          {me.user ? (
-            <div className="px-2.5 py-2">
-              <div className="truncate text-[13px] font-medium text-ink">{me.user.name}</div>
-              <div className="truncate text-xs text-muted">{me.user.email}</div>
-              <div className="mt-2"><Badge value={me.user.role} /></div>
+        <div className="absolute right-0 bottom-full left-0 z-50 mb-2 animate-pop overflow-hidden rounded-[8px] bg-surface shadow-pop">
+          <div className="flex items-center gap-3 border-b border-line bg-surface-2 px-3 py-3">
+            <Avatar name={name} className="size-9 text-xs" />
+            <div className="min-w-0">
+              <div className="truncate text-[13px] font-medium text-ink">{name}</div>
+              <div className="truncate text-xs text-muted">{me.user?.email || 'API key session'}</div>
             </div>
-          ) : null}
-          <div className="my-1 h-px bg-line" />
-          <button
-            type="button"
-            onClick={async () => { await logout(); router.push('/login/'); }}
-            className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-[13px] text-ink-2 hover:bg-surface-3 hover:text-ink"
-          >
-            <LogOut className="size-4" />Log out
-          </button>
+          </div>
+          <div className="flex flex-col gap-2 border-b border-line px-3 py-3 text-xs">
+            <div className="flex items-center justify-between gap-2"><span className="text-muted">Workspace</span><span className="truncate font-medium text-ink">{me.workspace.name}</span></div>
+            <div className="flex items-center justify-between gap-2"><span className="text-muted">Plan</span><Badge value={trial ? 'trial' : 'paid'} /></div>
+            {me.user ? <div className="flex items-center justify-between gap-2"><span className="text-muted">Role</span><Badge value={me.user.role} /></div> : null}
+          </div>
+          <div className="p-1">
+            <Link href="/settings/" onClick={() => { setOpen(false); onNavigate(); }} className="flex items-center gap-2 rounded-[5px] px-2.5 py-2 text-[13px] text-ink-2 hover:bg-surface-3 hover:text-ink">
+              <Settings className="size-4" />Settings
+            </Link>
+            <button
+              type="button"
+              onClick={async () => { await logout(); router.push('/login/'); }}
+              className="flex w-full cursor-pointer items-center gap-2 rounded-[5px] px-2.5 py-2 text-[13px] text-ink-2 hover:bg-surface-3 hover:text-ink"
+            >
+              <LogOut className="size-4" />Log out
+            </button>
+          </div>
         </div>
       ) : null}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={clsx('flex w-full cursor-pointer items-center gap-2.5 rounded-[6px] p-1.5 text-left transition-colors hover:bg-surface-3', open && 'bg-surface-3')}
+      >
+        <Avatar name={name} className="size-8 text-[11px]" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13px] font-medium text-ink">{name}</span>
+          <span className="block truncate text-[11.5px] text-muted">{me.workspace.name} · {trial ? 'Trial' : 'Paid'}</span>
+        </span>
+        <ChevronsUpDown className="size-3.5 shrink-0 text-muted" />
+      </button>
     </div>
-  );
-}
-
-function UsageCard() {
-  const me = useMe();
-  const { trial, showUpgrade } = useSession();
-  if (trial) {
-    const { trial_used: used, trial_limit: limit } = me.quota;
-    return (
-      <div className="rounded-xl border border-line bg-surface p-3">
-        <div className="mb-2 flex items-center justify-between text-xs"><span className="font-medium text-ink-2">Trial sends</span><span className="text-muted tabular-nums">{number(used)} / {number(limit)}</span></div>
-        <Meter value={used} max={limit} />
-        <Button size="xs" variant="primary" className="mt-3 w-full" onClick={() => showUpgrade()}>Upgrade</Button>
-      </div>
-    );
-  }
-  const { sent_this_month: sent, monthly_limit: limit } = me.quota;
-  return (
-    <Link href="/settings/" className="block rounded-xl border border-line bg-surface p-3 transition-colors hover:border-line-strong">
-      <div className="mb-2 flex items-center justify-between text-xs">
-        <span className="font-medium text-ink-2">This month</span>
-        <span className="text-muted tabular-nums">{compact(sent)}{limit > 0 ? ` / ${compact(limit)}` : ''}</span>
-      </div>
-      {limit > 0 ? <Meter value={sent} max={limit} /> : <div className="text-[11px] text-muted">No monthly cap</div>}
-    </Link>
   );
 }
 
@@ -98,27 +111,29 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
   const router = useRouter();
   const { superAdmin } = useSession();
   return (
-    <div className="flex h-full flex-col gap-3 px-3 py-4">
-      <div className="flex items-center justify-between px-2 pb-1">
+    <div className="flex h-full flex-col">
+      <div className="relative flex h-14 shrink-0 items-center px-5">
         <Link href="/" onClick={onNavigate}><Logo /></Link>
+        <span aria-hidden className="rail-x pointer-events-none absolute inset-x-0 bottom-0 h-px" />
       </div>
-      <WorkspaceSwitcher />
-      <button
-        type="button"
-        onClick={onSearch}
-        className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-[13px] text-muted transition-colors hover:border-line-strong hover:text-ink-2"
-      >
-        <Search className="size-3.5" />
-        <span className="flex-1 text-left">Quick search…</span>
-        <Kbd>⌘K</Kbd>
-      </button>
-      <nav className="no-scrollbar -mx-1 flex-1 overflow-y-auto px-1">
+      <div className="px-3 pt-3">
+        <button
+          type="button"
+          onClick={onSearch}
+          className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-[6px] bg-surface px-2.5 text-[13px] text-muted shadow-[inset_0_0_0_1px_var(--line)] transition-colors hover:text-ink-2 hover:shadow-[inset_0_0_0_1px_var(--line-strong)]"
+        >
+          <Search className="size-3.5" />
+          <span className="flex-1 text-left">Search</span>
+          <Kbd>⌘K</Kbd>
+        </button>
+      </div>
+      <nav className="no-scrollbar flex-1 overflow-y-auto px-3 py-3">
         {navGroups.map((group) => {
           const items = group.items.filter((i) => !i.superAdmin || superAdmin);
           if (!items.length) return null;
           return (
-            <div key={group.label || 'root'} className="mb-3">
-              {group.label ? <div className="px-2.5 pt-2 pb-1.5 text-[11px] font-medium tracking-wide text-faint uppercase">{group.label}</div> : null}
+            <div key={group.label || 'root'} className="mb-4 last:mb-0">
+              {group.label ? <div className="px-2.5 pb-1.5 font-mono text-[10.5px] tracking-[0.08em] text-faint uppercase">{group.label}</div> : null}
               <div className="flex flex-col gap-px">
                 {items.map((item) => {
                   const active = isActive(router.pathname, item);
@@ -128,12 +143,13 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
                       key={item.href}
                       href={item.href}
                       onClick={onNavigate}
+                      aria-current={active ? 'page' : undefined}
                       className={clsx(
-                        'group relative flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] transition-colors',
-                        active ? 'bg-accent-soft font-medium text-ink' : 'text-ink-2 hover:bg-surface-3 hover:text-ink',
+                        'group relative flex h-8 items-center gap-2.5 rounded-[6px] px-2.5 text-[13.5px] transition-colors',
+                        active ? 'bg-surface-3 font-medium text-ink' : 'text-ink-2 hover:bg-surface hover:text-ink',
                       )}
                     >
-                      {active ? <span className="absolute top-1.5 bottom-1.5 left-0 w-[3px] rounded-r-full bg-accent" /> : null}
+                      {active ? <span className="absolute top-2 bottom-2 -left-3 w-[2px] rounded-r-[2px] bg-accent" /> : null}
                       <Icon className={clsx('size-4', active ? 'text-accent' : 'text-muted group-hover:text-ink-2')} />
                       {item.label}
                     </Link>
@@ -144,28 +160,27 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
           );
         })}
       </nav>
-      <UsageCard />
+      <div className="relative flex flex-col gap-4 px-3 pt-4 pb-3">
+        <span aria-hidden className="rail-x pointer-events-none absolute inset-x-0 top-0 h-px" />
+        <Usage />
+        <AccountMenu onNavigate={onNavigate} />
+      </div>
     </div>
   );
 }
 
-function Topbar({ onMenu }: { onMenu: () => void }) {
-  const me = useMe();
+function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void }) {
   const router = useRouter();
   const current = currentItem(router.pathname);
   return (
-    <div className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-bg/80 px-4 backdrop-blur-md sm:px-6">
-      <button type="button" onClick={onMenu} aria-label="Open menu" className="-ml-1 grid size-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-surface-3 hover:text-ink lg:hidden"><Menu className="size-5" /></button>
-      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-[13px]">
-        <span className="hidden truncate text-muted sm:inline">{me.workspace.name}</span>
-        {current?.group ? <><span className="hidden text-faint sm:inline">/</span><span className="hidden text-muted sm:inline">{current.group}</span></> : null}
-        {current ? <><span className="hidden text-faint sm:inline">/</span><Link href={current.item.href} className="truncate font-medium text-ink">{current.item.label}</Link></> : null}
+    <div className="sticky top-0 z-30 flex h-14 items-center gap-2 bg-bg/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+      <span aria-hidden className="rail-x pointer-events-none absolute inset-x-0 bottom-0 h-px" />
+      <button type="button" onClick={onMenu} aria-label="Open menu" className="-ml-1.5 grid size-8 cursor-pointer place-items-center rounded-[6px] text-muted hover:bg-surface-3 hover:text-ink lg:hidden"><Menu className="size-[18px]" /></button>
+      <nav aria-label="Breadcrumb" className="ml-1 flex min-w-0 items-center gap-2 text-[13px] lg:ml-0">
+        {current?.group ? <><span className="hidden text-muted sm:inline">{current.group}</span><span className="hidden text-faint sm:inline">/</span></> : null}
+        {current ? <Link href={current.item.href} className="truncate font-medium text-ink">{current.item.label}</Link> : null}
       </nav>
-      <div className="ml-auto flex items-center gap-1">
-        <a href="https://github.com/forke-org/forke-mail#readme" target="_blank" rel="noreferrer" className="hidden h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] text-muted transition-colors hover:bg-surface-3 hover:text-ink sm:inline-flex"><BookOpen className="size-4" />Docs</a>
-        <ThemeToggle />
-        {me.user ? <span title={me.user.email} className="ml-1 grid size-8 place-items-center rounded-full bg-surface-3 text-[11px] font-semibold text-ink-2 ring-1 ring-line-strong">{initials(me.user.name)}</span> : null}
-      </div>
+      <button type="button" onClick={onSearch} aria-label="Search" className="ml-auto grid size-8 cursor-pointer place-items-center rounded-[6px] text-muted hover:bg-surface-3 hover:text-ink lg:hidden"><Search className="size-4" /></button>
     </div>
   );
 }
@@ -190,25 +205,35 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   useEffect(() => setDrawer(false), [router.asPath]);
 
+  useEffect(() => {
+    document.body.style.overflow = drawer ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [drawer]);
+
   const monthFull = me.quota.monthly_limit > 0 && me.quota.sent_this_month >= me.quota.monthly_limit;
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] border-r border-line bg-sidebar lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] bg-sidebar lg:block">
+        <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 right-0 w-px" />
         <Sidebar onNavigate={() => {}} onSearch={() => setSearch(true)} />
       </aside>
       {drawer ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} />
-          <aside className="absolute inset-y-0 left-0 w-[272px] animate-[fade-up_0.2s_ease] border-r border-line bg-sidebar">
-            <button type="button" onClick={() => setDrawer(false)} aria-label="Close menu" className="absolute top-4 right-3 grid size-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-surface-3"><X className="size-4" /></button>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={() => setDrawer(false)} />
+          <aside className="absolute inset-y-0 left-0 w-[min(280px,85vw)] animate-[fade-up_0.2s_ease] bg-sidebar shadow-pop">
+            <button type="button" onClick={() => setDrawer(false)} aria-label="Close menu" className="absolute top-3 right-3 z-10 grid size-8 cursor-pointer place-items-center rounded-[6px] text-muted hover:bg-surface-3"><X className="size-4" /></button>
             <Sidebar onNavigate={() => setDrawer(false)} onSearch={() => { setDrawer(false); setSearch(true); }} />
           </aside>
         </div>
       ) : null}
-      <div className="lg:pl-[248px]">
-        <Topbar onMenu={() => setDrawer(true)} />
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="lg:pl-[240px]">
+        <Topbar onMenu={() => setDrawer(true)} onSearch={() => setSearch(true)} />
+        <main className="relative mx-auto min-h-[calc(100vh-56px)] w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+          <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 left-0 hidden w-px min-[1480px]:block" />
+          <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 right-0 hidden w-px min-[1480px]:block" />
+          <span aria-hidden className="rail-square pointer-events-none absolute -top-[7px] -left-[7px] z-40 hidden min-[1480px]:block" />
+          <span aria-hidden className="rail-square pointer-events-none absolute -top-[7px] -right-[7px] z-40 hidden min-[1480px]:block" />
           <div className="mb-5 flex flex-col gap-3 empty:hidden">
             {me.workspace.sending_paused ? (
               <Callout tone="danger" title="Sending is paused for this workspace">
@@ -226,7 +251,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               </Callout>
             ) : null}
           </div>
-          {children}
+          <AsciiReveal key={router.pathname} lazy={false}>{children}</AsciiReveal>
         </main>
       </div>
       <CommandMenu open={search} onClose={() => setSearch(false)} />

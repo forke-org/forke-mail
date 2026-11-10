@@ -36,7 +36,7 @@ function AddIdentity({ onClose, onAdded }: { onClose: () => void; onAdded: (d: D
           label={kind === 'domain' ? 'Domain' : 'Email address'}
           hint={kind === 'domain'
             ? 'Send from any address on this domain once its DNS records are in place.'
-            : 'For sandbox testing. Amazon SES emails this address a link that must be clicked to verify it.'}
+            : 'Good for testing. We email this address a link that must be clicked to verify it.'}
         >
           <Input required autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={kind === 'domain' ? 'mail.example.com' : 'you@example.com'} />
         </Field>
@@ -66,7 +66,7 @@ function Records({ domain }: { domain: Domain }) {
     { accessorKey: 'value', header: 'Content', enableSorting: false, cell: ({ getValue }) => <Value value={getValue()} /> },
   ], []);
   if (domain.kind === 'email') {
-    return <p className="px-5 py-4 text-[13px] text-muted">{domain.status === 'verified' ? 'This address is verified.' : `Open the verification email Amazon SES sent to ${domain.name} and click the link, then press Verify.`}</p>;
+    return <p className="px-5 py-4 text-[13px] text-muted">{domain.status === 'verified' ? 'This address is verified.' : `Open the verification email we sent to ${domain.name} and click the link, then press Verify.`}</p>;
   }
   return (
     <>
@@ -110,7 +110,7 @@ export default function Domains() {
   };
 
   const remove = async (d: Domain) => {
-    if (!(await confirm('Remove identity', `Remove ${d.name}? It is also deleted from Amazon SES and emails can no longer be sent from it.`, 'Remove', true))) return;
+    if (!(await confirm('Remove identity', `Remove ${d.name}? It is also removed from the email provider and emails can no longer be sent from it.`, 'Remove', true))) return;
     try {
       await api('DELETE', `/api/domains/${d.id}`);
       toast('Identity removed.', 'success');
@@ -169,7 +169,7 @@ export default function Domains() {
         {open ? (
           <Card
             title={`DNS records · ${open.name}`}
-            description={open.ses_status ? `Amazon SES status: ${humanize(open.ses_status).toLowerCase()}` : undefined}
+            description={open.ses_status ? `Provider status: ${humanize(open.ses_status).toLowerCase()}` : undefined}
             flush
             actions={open.status !== 'verified' ? <Button size="sm" icon={RefreshCw} loading={busyId === open.id} onClick={() => verify(open)}>Verify now</Button> : <Badge value="verified" />}
           >

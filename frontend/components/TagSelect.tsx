@@ -17,7 +17,7 @@ export default function TagSelect({ tags, selected, onChange }: { tags: Tag[]; s
             aria-pressed={on}
             onClick={() => toggle(t.id)}
             className={clsx(
-              'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] transition-colors',
+              'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-[5px] px-3 text-[13px] transition-colors',
               on ? 'bg-accent-soft text-accent-ink shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'bg-surface-2 text-ink-2 shadow-[inset_0_0_0_1px_var(--line-strong)] hover:text-ink',
             )}
           >

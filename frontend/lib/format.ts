@@ -1,6 +1,10 @@
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
-  return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  const date = new Date(value);
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  const day = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: sameYear ? undefined : 'numeric' });
+  const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return `${day}, ${time}`;
 }
 
 export function timeAgo(value: string | null | undefined): string {

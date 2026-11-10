@@ -83,7 +83,7 @@ export default function Contacts() {
       accessorKey: 'email', header: 'Contact',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-surface-3 text-[11px] font-semibold text-ink-2 uppercase">{row.original.email.slice(0, 2)}</span>
+          <span className="grid size-8 shrink-0 place-items-center rounded-[6px] bg-surface-3 text-[11px] font-semibold text-ink-2 uppercase">{row.original.email.slice(0, 2)}</span>
           <Strong sub={fullName(row.original) === '—' ? undefined : fullName(row.original)}>{row.original.email}</Strong>
         </div>
       ),

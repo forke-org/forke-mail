@@ -4,9 +4,10 @@ import {
 } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
+import { AsciiReveal, AsciiSkeleton } from 'ascii-reveal';
 import { ReactNode, useMemo, useState } from 'react';
 import { number } from '../lib/format';
-import { Empty, Skeleton } from './ui';
+import { Empty } from './ui';
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData, TValue> {
@@ -91,30 +92,42 @@ export default function DataTable<T>({
   });
 
   if (error) return <Empty title="Something went wrong" hint={error} />;
-  if (!data) {
-    return (
-      <div className="divide-y divide-line">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="ml-auto h-4 w-24" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (!data.length) return <Empty title={empty?.title || 'Nothing here yet'} hint={empty?.hint} action={empty?.action} />;
+  return (
+    <AsciiReveal loading={!data}>
+      {!data ? (
+        <div role="status" className="divide-y divide-line">
+          <span className="sr-only">Loading {noun}…</span>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="flex items-center gap-6 px-4 py-3.5 md:px-5">
+              <AsciiSkeleton lines={1} widths={['100%']} seed={i * 3 + 1} className="block w-2/5 overflow-hidden text-faint" />
+              <AsciiSkeleton lines={1} widths={['100%']} seed={i * 3 + 2} className="block w-1/5 overflow-hidden text-faint" />
+              <AsciiSkeleton lines={1} widths={['100%']} seed={i * 3 + 3} className="ml-auto block w-1/6 overflow-hidden text-faint" />
+            </div>
+          ))}
+        </div>
+      ) : !data.length ? (
+        <Empty title={empty?.title || 'Nothing here yet'} hint={empty?.hint} action={empty?.action} />
+      ) : (
+        <Rows table={table} total={server ? server.total : table.getPrePaginationRowModel().rows.length} loading={loading} onRowClick={onRowClick} noun={noun} />
+      )}
+    </AsciiReveal>
+  );
+}
+
+function Rows<T>({ table, total, loading, onRowClick, noun }: {
+  table: ReturnType<typeof useReactTable<T>>; total: number; loading?: boolean; onRowClick?: (row: T) => void; noun: string;
+}) {
 
   const { pageIndex, pageSize: size } = table.getState().pagination;
-  const total = server ? server.total : table.getPrePaginationRowModel().rows.length;
   const first = pageIndex * size + 1;
   const last = Math.min(total, (pageIndex + 1) * size);
 
+  const rows = table.getRowModel().rows;
+
   return (
     <div className={clsx('transition-opacity', loading && 'opacity-60')}>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="overflow-x-auto overscroll-x-contain">
+        <table className="w-full min-w-max border-collapse text-sm">
           <thead>
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id} className="border-b border-line bg-surface-2">
@@ -123,7 +136,7 @@ export default function DataTable<T>({
                   const sorted = header.column.getIsSorted();
                   const label = header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext());
                   return (
-                    <th key={header.id} className={clsx('h-10 px-4 text-left text-xs font-medium whitespace-nowrap text-muted first:pl-5 last:pr-5', header.column.columnDef.meta?.className)}>
+                    <th key={header.id} className={clsx('h-10 px-4 text-left font-mono text-[11px] font-normal tracking-[0.06em] whitespace-nowrap text-muted uppercase first:pl-4 last:pr-4 md:first:pl-5 md:last:pr-5 [&_button]:uppercase', header.column.columnDef.meta?.className)}>
                       {sortable && label ? (
                         <button type="button" className="group inline-flex cursor-pointer items-center gap-1 hover:text-ink" onClick={header.column.getToggleSortingHandler()}>
                           {label}
@@ -137,7 +150,7 @@ export default function DataTable<T>({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
+            {rows.map((row) => (
               <tr
                 key={row.id}
                 className={clsx(
@@ -148,7 +161,7 @@ export default function DataTable<T>({
                 onClick={onRowClick ? () => onRowClick(row.original) : undefined}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className={clsx('h-12 px-4 align-middle text-ink-2 first:pl-5 last:pr-5', cell.column.columnDef.meta?.className)}>
+                  <td key={cell.id} className={clsx('h-12 px-4 align-middle whitespace-nowrap text-ink-2 first:pl-4 last:pr-4 md:first:pl-5 md:last:pr-5', cell.column.columnDef.meta?.className)}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -157,7 +170,7 @@ export default function DataTable<T>({
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-2.5">
+      <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5 md:px-5">
         <span className="text-xs text-muted tabular-nums">
           {total > size ? `Showing ${number(first)}–${number(last)} of ${number(total)} ${noun}` : `${number(total)} ${noun}`}
         </span>
@@ -176,8 +189,8 @@ export default function DataTable<T>({
 export function Strong({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
     <div className="min-w-0">
-      <div className="truncate font-medium text-ink">{children}</div>
-      {sub ? <div className="mt-0.5 max-w-md truncate text-xs text-muted">{sub}</div> : null}
+      <div className="max-w-[16rem] truncate font-medium text-ink md:max-w-md">{children}</div>
+      {sub ? <div className="mt-0.5 max-w-[16rem] truncate text-xs text-muted md:max-w-md">{sub}</div> : null}
     </div>
   );
 }

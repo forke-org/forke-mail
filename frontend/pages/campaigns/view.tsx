@@ -36,7 +36,7 @@ export default function CampaignView() {
         description={campaign.description || 'No description'}
         actions={<><Button icon={Pencil} onClick={() => setEditing(true)}>Edit</Button>{newEmail}</>}
       />
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-[8px] bg-line shadow-card sm:grid-cols-3">
         <Stat icon={Mail} tone="accent" label="Emails" value={number(campaign.emails)} />
         <Stat icon={Send} tone="green" label="Recipients" value={number(campaign.sent)} hint="Across all emails" />
         <Stat icon={CalendarClock} tone="blue" label="Last email" value={campaign.last_email_at ? timeAgo(campaign.last_email_at) : '—'} hint={campaign.last_email_at ? formatDate(campaign.last_email_at) : undefined} />

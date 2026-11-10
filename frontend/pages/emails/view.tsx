@@ -18,8 +18,8 @@ const pauseReasons: Record<string, string> = {
   trial_quota_exhausted: 'Sending stopped because your trial send limit is used up.',
   daily_limit_reached: 'Sending paused because the daily send limit was reached. Resume tomorrow.',
   monthly_limit_reached: 'Sending paused because the monthly sending cap was reached. Resume on the 1st, or raise the cap.',
-  ses_sending_paused: 'Amazon SES has paused sending for the account. Resume once sending is re-enabled in SES.',
-  identity_not_verified: 'Sending stopped because the from domain or address is not verified in Amazon SES. Verify it on the Domains page, then resume.',
+  ses_sending_paused: 'Our email provider paused sending. Resume once sending is re-enabled.',
+  identity_not_verified: 'Sending stopped because the from domain or address is not verified. Verify it on the Domains page, then resume.',
   reputation: 'Sending stopped because this workspace exceeded its bounce or complaint rate limit.',
 };
 

@@ -11,9 +11,9 @@ import type { ApiKey, Dashboard } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 
 const sendingModes = {
-  log: { label: 'Log sender', tone: 'blue' as const },
-  sandbox: { label: 'SES sandbox', tone: 'amber' as const },
-  production: { label: 'SES production', tone: 'green' as const },
+  log: { label: 'Test mode', tone: 'blue' as const },
+  sandbox: { label: 'Sandbox', tone: 'amber' as const },
+  production: { label: 'Live', tone: 'green' as const },
 };
 
 const breakdown: [string, string, string][] = [
@@ -41,7 +41,7 @@ function Checklist({ steps }: { steps: Step[] }) {
       <ol className="divide-y divide-line">
         {steps.map((s, i) => (
           <li key={s.label} className="flex items-center gap-4 px-5 py-3.5">
-            <span className={clsx('grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold', s.done ? 'bg-success-soft text-success' : 'bg-surface-3 text-ink-2')}>
+            <span className={clsx('grid size-7 shrink-0 place-items-center rounded-[5px] text-xs font-semibold', s.done ? 'bg-success-soft text-success' : 'bg-surface-3 text-ink-2')}>
               {s.done ? <Check className="size-3.5" /> : i + 1}
             </span>
             <div className="min-w-0 flex-1">
@@ -78,7 +78,7 @@ export default function Overview() {
     { label: 'Create a campaign', hint: 'Campaigns group related broadcasts, like the changelog.', done: d.campaigns > 0, href: '/campaigns/', cta: 'Create' },
     { label: 'Add contacts', hint: 'Import a CSV and tag contacts to target them later.', done: d.contacts > 0, href: '/contacts/', cta: 'Import' },
     { label: 'Send your first broadcast', hint: 'Write an email inside a campaign and send it.', done: d.emails_sent > 0, href: '/campaigns/', cta: 'Write' },
-    ...(superAdmin && keys ? [{ label: 'Create an API key', hint: 'Send from Forke apps with the REST API.', done: keys.keys.length > 0, href: '/keys/', cta: 'Create' }] : []),
+    ...(superAdmin && keys ? [{ label: 'Create an API key', hint: 'Send from your own apps with the REST API.', done: keys.keys.length > 0, href: '/keys/', cta: 'Create' }] : []),
   ] : [];
 
   const events = d?.events_last_7_days || {};
@@ -101,7 +101,7 @@ export default function Overview() {
         )}
       />
       {d ? <Checklist steps={steps} /> : null}
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-line shadow-card lg:grid-cols-4">
         <Stat icon={Users} tone="accent" label="Contacts" value={d ? number(d.contacts) : <Skeleton className="h-8 w-16" />} hint={d ? `${number(d.active_contacts)} active` : ' '} />
         <Stat icon={Send} tone="blue" label="Sent today" value={d ? number(d.sent_today) : <Skeleton className="h-8 w-16" />} hint={d ? `${number(d.sent_last_7_days)} in the last 7 days` : ' '} />
         <Stat icon={Megaphone} tone="green" label="Delivery rate" value={d ? percent(delivered, d.sent_last_7_days) : <Skeleton className="h-8 w-16" />} hint="Last 7 days" />
@@ -117,8 +117,8 @@ export default function Overview() {
               return (
                 <div key={key} className="grid grid-cols-[110px_minmax(0,1fr)_64px] items-center gap-3 text-[13px]">
                   <span className="text-ink-2">{label}</span>
-                  <div className="h-2 overflow-hidden rounded-full bg-surface-3">
-                    <div className={clsx('h-full rounded-full transition-[width] duration-700', color)} style={{ width: d ? `${Math.max(n ? 2 : 0, (n / maxEvent) * 100)}%` : '0%' }} />
+                  <div className="h-2 overflow-hidden rounded-[2px] bg-surface-3">
+                    <div className={clsx('h-full rounded-[2px] transition-[width] duration-700', color)} style={{ width: d ? `${Math.max(n ? 2 : 0, (n / maxEvent) * 100)}%` : '0%' }} />
                   </div>
                   <span className="text-right text-ink tabular-nums">{d ? number(n) : '—'}</span>
                 </div>

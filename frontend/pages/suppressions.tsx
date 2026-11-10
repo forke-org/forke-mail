@@ -25,7 +25,7 @@ const sources: Record<string, string> = {
 };
 
 const riskyRemoval: Record<string, string> = {
-  ses_bounce: 'This address hard bounced. Sending to it again will most likely bounce and hurts your bounce rate, which can pause sending for your whole workspace. Amazon SES may also still block it through its account-level suppression list.',
+  ses_bounce: 'This address hard bounced. Sending to it again will most likely bounce and hurts your bounce rate, which can pause sending for your whole workspace.',
   ses_complaint: 'This recipient marked your email as spam. Emailing them again risks another complaint, which can pause sending for your whole workspace.',
 };
 

@@ -9,8 +9,8 @@ import type { Reengagement } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 
 const reengagementStarter = `<p>Hi {{first_name}},</p>
-<p>We haven't heard from you in a while. Do you still want Forke updates?</p>
-<p><a href="https://forke.space">Yes, keep me subscribed</a></p>
+<p>We haven't heard from you in a while. Do you still want to hear from us?</p>
+<p><a href="https://example.com">Yes, keep me subscribed</a></p>
 <p>If we don't hear back, we'll stop emailing you in a few weeks.</p>`;
 
 function General() {
@@ -39,7 +39,7 @@ function General() {
             <div className="text-xs text-muted">API {me.rate_limits.api_per_second} requests / s</div>
           </div>
         </div>
-        {monthLimit > 0 ? <p className="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-muted">The monthly cap keeps Amazon SES spend under budget. Broadcasts that would not fit are refused before they start; transactional mail stops at the cap. It resets on the 1st.</p> : null}
+        {monthLimit > 0 ? <p className="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-muted">The monthly cap comes with your plan. Broadcasts that would not fit are refused before they start; transactional mail stops at the cap. It resets on the 1st.</p> : null}
       </Card>
       <Card title="Sending identities" icon={Globe} description="Send from any address on a verified domain, or from a verified address." actions={<ButtonLink size="sm" href="/domains/">Manage</ButtonLink>}>
         {me.domains.length ? me.domains.map((d) => (
@@ -52,7 +52,7 @@ function General() {
           <DefinitionRow label="Email">{me.user.email}</DefinitionRow>
           <DefinitionRow label="Role"><Badge value={me.user.role} /></DefinitionRow>
           <DefinitionRow label="Workspace">{me.workspace.name}</DefinitionRow>
-          <p className="mt-3 text-xs text-muted">Names, passwords and roles are managed in Forke admin.</p>
+          <p className="mt-3 text-xs text-muted">Names, passwords and roles are managed by your workspace owner.</p>
         </Card>
       ) : null}
     </div>
@@ -132,7 +132,7 @@ function ReengagementSettings() {
       <FormError>{error}</FormError>
       {canManage ? (
         <div className="flex justify-end"><Button variant="primary" type="submit" loading={busy}>Save re-engagement</Button></div>
-      ) : <p className="text-xs text-muted">Only super admins can change re-engagement.</p>}
+      ) : <p className="text-xs text-muted">Only workspace owners can change re-engagement.</p>}
     </form>
   );
 }
