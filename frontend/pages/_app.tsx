@@ -3,8 +3,8 @@ import { GeistSans } from 'geist/font/sans';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import ForkyLoader from '../components/ForkyLoader';
+import { useEffect, useState } from 'react';
+import ForkyLoader, { useLoaderMinimum } from '../components/ForkyLoader';
 import Layout from '../components/Layout';
 import { ConfirmProvider } from '../components/Modal';
 import UpgradeModal from '../components/UpgradeModal';
@@ -24,14 +24,21 @@ function Shell({ Component, pageProps }: AppProps) {
     if (status === 'signedIn' && isPublic) router.replace('/');
   }, [status, isPublic, router]);
 
-  if (status === 'loading') return <ForkyLoader fullScreen />;
-  if (isPublic) return status === 'signedOut' ? <Component {...pageProps} /> : null;
-  if (status !== 'signedIn') return null;
+  const minimum = useLoaderMinimum();
+  const [gate, setGate] = useState(true);
+  const loader = gate ? <ForkyLoader fullScreen exiting={status !== 'loading' && minimum} onExited={() => setGate(false)} /> : null;
+
+  if (status === 'loading') return loader;
+  if (isPublic) return <>{status === 'signedOut' ? <Component {...pageProps} /> : null}{loader}</>;
+  if (status !== 'signedIn') return loader;
   return (
-    <Layout>
-      <Component {...pageProps} />
-      <UpgradeModal />
-    </Layout>
+    <>
+      <Layout>
+        <Component {...pageProps} />
+        <UpgradeModal />
+      </Layout>
+      {loader}
+    </>
   );
 }
 

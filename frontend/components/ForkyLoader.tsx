@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LOADER_SHAPES } from './forky-loader-data';
 
 type Shape = (typeof LOADER_SHAPES)['mascot'] | (typeof LOADER_SHAPES)['word'];
@@ -16,6 +16,28 @@ const STEPS = [
   { shape: 'word', mode: 'erase', ms: 1100 },
 ] as const;
 const CYCLE = STEPS.reduce((total, s) => total + s.ms, 0);
+const EXIT_MS = 380;
+const MIN_MS = 1200;
+const RECENT_MS = 60000;
+const SHOWN_KEY = 'forky-loader-shown-at';
+
+export function useLoaderMinimum() {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    let wait = MIN_MS;
+    try {
+      const last = Number(sessionStorage.getItem(SHOWN_KEY));
+      if (last && Date.now() - last < RECENT_MS) wait = 0;
+      sessionStorage.setItem(SHOWN_KEY, String(Date.now()));
+    } catch {
+      wait = MIN_MS;
+    }
+    const timer = setTimeout(() => setDone(true), wait);
+    return () => clearTimeout(timer);
+  }, []);
+  return done;
+}
+
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 function viewBox(shape: Shape) {
@@ -79,21 +101,49 @@ function ShapeSvg({ shape, svgRef }: { shape: Shape; svgRef: React.RefObject<SVG
   );
 }
 
-export default function ForkyLoader({ label = 'Loading', fullScreen = false, className }: { label?: string; fullScreen?: boolean; className?: string }) {
+export default function ForkyLoader({ label = 'Loading', fullScreen = false, className, exiting = false, onExited }: {
+  label?: string; fullScreen?: boolean; className?: string; exiting?: boolean; onExited?: () => void;
+}) {
   const stage = useRef<HTMLDivElement>(null);
   const pen = useRef<HTMLSpanElement>(null);
   const mascotRef = useRef<SVGSVGElement>(null);
   const wordRef = useRef<SVGSVGElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const exitRef = useRef(exiting);
+  const exitedRef = useRef(onExited);
+  const doneRef = useRef(false);
+  exitRef.current = exiting;
+  exitedRef.current = onExited;
+
+  const finish = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    if (root.current) root.current.style.opacity = '0';
+    setTimeout(() => exitedRef.current?.(), 200);
+  };
+  const finishRef = useRef(finish);
+  finishRef.current = finish;
+
+  useEffect(() => {
+    if (!exiting) return undefined;
+    if (document.hidden) { finishRef.current(); return undefined; }
+    const fallback = setTimeout(() => finishRef.current(), EXIT_MS + 400);
+    return () => clearTimeout(fallback);
+  }, [exiting]);
 
   useEffect(() => {
     if (!mascotRef.current || !wordRef.current) return undefined;
     const shapes = { mascot: measure(mascotRef.current), word: measure(wordRef.current) };
+    const finish = () => finishRef.current();
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       paint(shapes.mascot, 1, false);
       shapes.mascot.svg.style.opacity = '1';
       shapes.mascot.frame.style.opacity = '1';
-      return undefined;
+      const wait = setInterval(() => { if (exitRef.current) { clearInterval(wait); finish(); } }, 50);
+      return () => clearInterval(wait);
     }
+    let exitAt = 0;
+    let frozen: number[] = [];
     const placePen = (shape: Built) => {
       const dot = pen.current;
       const box = stage.current?.getBoundingClientRect();
@@ -107,6 +157,18 @@ export default function ForkyLoader({ label = 'Loading', fullScreen = false, cla
     let raf = 0;
     const start = performance.now();
     const frame = (now: number) => {
+      if (exitRef.current) {
+        const visible = [shapes.mascot, shapes.word].find((s) => s.svg.style.opacity === '1') || shapes.mascot;
+        if (!exitAt) { exitAt = now; frozen = visible.lines.map((l) => l.k); }
+        const e = ease(Math.min(1, (now - exitAt) / EXIT_MS));
+        visible.lines.forEach((l, i) => { l.k = frozen[i] * (1 - e); l.el.style.strokeDashoffset = String(l.len * (1 - l.k)); });
+        visible.frame.style.opacity = String(1 - e);
+        visible.ticks.forEach((t) => { t.style.opacity = String(Math.min(Number(t.style.opacity || 0), 1 - e)); });
+        placePen(visible);
+        if (e >= 1) { if (pen.current) pen.current.style.opacity = '0'; finish(); return; }
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       let c = (now - start) % CYCLE;
       let step: (typeof STEPS)[number] = STEPS[0];
       for (const s of STEPS) { if (c < s.ms) { step = s; break; } c -= s.ms; }
@@ -131,10 +193,11 @@ export default function ForkyLoader({ label = 'Loading', fullScreen = false, cla
 
   return (
     <div
+      ref={root}
       role="status"
       aria-label={label}
       className={clsx(
-        'grid place-items-center bg-bg',
+        'grid place-items-center bg-bg transition-opacity duration-200',
         fullScreen ? 'fixed inset-0 z-[90]' : 'min-h-[320px] w-full',
         className,
       )}
