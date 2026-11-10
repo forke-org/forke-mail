@@ -18,21 +18,11 @@ const STEPS = [
 const CYCLE = STEPS.reduce((total, s) => total + s.ms, 0);
 const EXIT_MS = 380;
 const MIN_MS = 1200;
-const RECENT_MS = 60000;
-const SHOWN_KEY = 'forky-loader-shown-at';
 
 export function useLoaderMinimum() {
   const [done, setDone] = useState(false);
   useEffect(() => {
-    let wait = MIN_MS;
-    try {
-      const last = Number(sessionStorage.getItem(SHOWN_KEY));
-      if (last && Date.now() - last < RECENT_MS) wait = 0;
-      sessionStorage.setItem(SHOWN_KEY, String(Date.now()));
-    } catch {
-      wait = MIN_MS;
-    }
-    const timer = setTimeout(() => setDone(true), wait);
+    const timer = setTimeout(() => setDone(true), MIN_MS);
     return () => clearTimeout(timer);
   }, []);
   return done;
