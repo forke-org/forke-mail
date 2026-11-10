@@ -4,10 +4,10 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import ForkyLoader from '../components/ForkyLoader';
 import Layout from '../components/Layout';
 import { ConfirmProvider } from '../components/Modal';
 import UpgradeModal from '../components/UpgradeModal';
-import { Loading } from '../components/ui';
 import { SessionProvider, useSession } from '../lib/session';
 import { ToastProvider } from '../lib/toast';
 import '../styles/globals.css';
@@ -24,7 +24,7 @@ function Shell({ Component, pageProps }: AppProps) {
     if (status === 'signedIn' && isPublic) router.replace('/');
   }, [status, isPublic, router]);
 
-  if (status === 'loading') return <div className="grid min-h-screen place-items-center"><Loading /></div>;
+  if (status === 'loading') return <ForkyLoader fullScreen />;
   if (isPublic) return status === 'signedOut' ? <Component {...pageProps} /> : null;
   if (status !== 'signedIn') return null;
   return (
