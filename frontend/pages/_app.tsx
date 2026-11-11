@@ -26,7 +26,8 @@ function Shell({ Component, pageProps }: AppProps) {
 
   const minimum = useLoaderMinimum();
   const [gate, setGate] = useState(true);
-  const loader = gate ? <ForkyLoader fullScreen exiting={status !== 'loading' && minimum} onExited={() => setGate(false)} /> : null;
+  const redirecting = (status === 'signedOut' && !isPublic) || (status === 'signedIn' && isPublic);
+  const loader = gate ? <ForkyLoader fullScreen exiting={status !== 'loading' && !redirecting && minimum} onExited={() => setGate(false)} /> : null;
 
   if (status === 'loading') return loader;
   if (isPublic) return <>{status === 'signedOut' ? <Component {...pageProps} /> : null}{loader}</>;

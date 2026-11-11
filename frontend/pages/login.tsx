@@ -48,7 +48,7 @@ export default function Login() {
             </Button>
           </form>
         </div>
-        <p className="text-xs text-faint">© {new Date().getFullYear()} Forke Mail</p>
+        <p className="text-xs text-faint">© 2026 forke — all rights reserved</p>
       </div>
       <div className="relative hidden overflow-hidden bg-[radial-gradient(120%_90%_at_0%_50%,#1d1310_0%,#120c0a_45%,#0d0908_100%)] lg:block">
         <MailGlobe />
