@@ -7,6 +7,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { compact, number } from '../lib/format';
 import { useSession, useMe } from '../lib/session';
 import CommandMenu from './CommandMenu';
+import ScrollArea from './ScrollArea';
 import Logo from './Logo';
 import { currentItem, isActive, navGroups } from './nav';
 import { Badge, Button, Callout, Kbd, Meter } from './ui';
@@ -173,7 +174,7 @@ function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void
   const router = useRouter();
   const current = currentItem(router.pathname);
   return (
-    <div className="sticky top-0 z-30 flex h-14 items-center gap-2 bg-bg/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+    <div className="relative z-30 flex h-14 shrink-0 items-center gap-2 bg-bg px-4 sm:px-6 lg:px-8">
       <span aria-hidden className="rail-x pointer-events-none absolute inset-x-0 bottom-0 h-px" />
       <button type="button" onClick={onMenu} aria-label="Open menu" className="-ml-1.5 grid size-8 cursor-pointer place-items-center rounded-[6px] text-muted hover:bg-surface-3 hover:text-ink lg:hidden"><Menu className="size-[18px]" /></button>
       <nav aria-label="Breadcrumb" className="ml-1 flex min-w-0 items-center gap-2 text-[13px] lg:ml-0">
@@ -213,7 +214,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const monthFull = me.quota.monthly_limit > 0 && me.quota.sent_this_month >= me.quota.monthly_limit;
 
   return (
-    <div className="min-h-screen">
+    <div className="h-[100dvh] overflow-hidden">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] bg-sidebar lg:block">
         <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 right-0 w-px" />
         <Sidebar onNavigate={() => {}} onSearch={() => setSearch(true)} />
@@ -227,9 +228,10 @@ export default function Layout({ children }: { children: ReactNode }) {
           </aside>
         </div>
       ) : null}
-      <div className="lg:pl-[240px]">
+      <div className="flex h-full flex-col lg:pl-[240px]">
         <Topbar onMenu={() => setDrawer(true)} onSearch={() => setSearch(true)} />
-        <main className="relative mx-auto min-h-[calc(100vh-56px)] w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+        <ScrollArea className="flex-1">
+        <main className="relative mx-auto min-h-[calc(100dvh-56px)] w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
           <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 left-0 hidden w-px min-[1480px]:block" />
           <span aria-hidden className="rail-y pointer-events-none absolute inset-y-0 right-0 hidden w-px min-[1480px]:block" />
           <span aria-hidden className="rail-square pointer-events-none absolute -top-[7px] -left-[7px] z-40 hidden min-[1480px]:block" />
@@ -253,6 +255,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
           <AsciiReveal key={router.pathname} lazy={false}>{children}</AsciiReveal>
         </main>
+        </ScrollArea>
       </div>
       <CommandMenu open={search} onClose={() => setSearch(false)} />
     </div>
