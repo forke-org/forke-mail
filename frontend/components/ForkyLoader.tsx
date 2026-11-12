@@ -188,7 +188,7 @@ export default function ForkyLoader({ label = 'Loading', fullScreen = false, cla
       aria-label={label}
       className={clsx(
         'grid place-items-center bg-bg transition-opacity duration-200',
-        fullScreen ? 'fixed inset-0 z-[90]' : 'min-h-[320px] w-full',
+        fullScreen ? 'fixed inset-0 z-[9999]' : 'min-h-[320px] w-full',
         className,
       )}
     >

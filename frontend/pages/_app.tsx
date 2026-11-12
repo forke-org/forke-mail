@@ -3,7 +3,7 @@ import { GeistSans } from 'geist/font/sans';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import ForkyLoader, { useLoaderMinimum } from '../components/ForkyLoader';
 import Layout from '../components/Layout';
 import { ConfirmProvider } from '../components/Modal';
@@ -27,18 +27,25 @@ function Shell({ Component, pageProps }: AppProps) {
   const minimum = useLoaderMinimum();
   const [gate, setGate] = useState(true);
   const redirecting = (status === 'signedOut' && !isPublic) || (status === 'signedIn' && isPublic);
-  const loader = gate ? <ForkyLoader fullScreen exiting={status !== 'loading' && !redirecting && minimum} onExited={() => setGate(false)} /> : null;
+  const ready = status !== 'loading' && !redirecting;
 
-  if (status === 'loading') return loader;
-  if (isPublic) return <>{status === 'signedOut' ? <Component {...pageProps} /> : null}{loader}</>;
-  if (status !== 'signedIn') return loader;
-  return (
-    <>
+  // What the page shows once the session is known. Kept separate from the loader so the
+  // loader always sits at the same spot in the tree: if it moved between branches, React
+  // would remount it mid-drawing and the animation would jump back to the start.
+  let content: ReactNode = null;
+  if (ready && isPublic) content = <Component {...pageProps} />;
+  if (ready && !isPublic)
+    content = (
       <Layout>
         <Component {...pageProps} />
         <UpgradeModal />
       </Layout>
-      {loader}
+    );
+
+  return (
+    <>
+      {content}
+      {gate ? <ForkyLoader fullScreen exiting={ready && minimum} onExited={() => setGate(false)} /> : null}
     </>
   );
 }
