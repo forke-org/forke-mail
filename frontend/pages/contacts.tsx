@@ -84,11 +84,11 @@ export default function Contacts() {
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <span className="grid size-8 shrink-0 place-items-center rounded-[6px] bg-surface-3 text-[11px] font-semibold text-ink-2 uppercase">{row.original.email.slice(0, 2)}</span>
-          <Strong sub={fullName(row.original) === '—' ? undefined : fullName(row.original)}>{row.original.email}</Strong>
+          <Strong sub={fullName(row.original) === '-' ? undefined : fullName(row.original)}>{row.original.email}</Strong>
         </div>
       ),
     },
-    { accessorKey: 'tags', header: 'Tags', cell: ({ getValue }) => <div className="flex flex-wrap gap-1">{(getValue() as string[]).length ? (getValue() as string[]).map((t) => <Chip key={t}>{t}</Chip>) : <span className="text-faint">—</span>}</div> },
+    { accessorKey: 'tags', header: 'Tags', cell: ({ getValue }) => <div className="flex flex-wrap gap-1">{(getValue() as string[]).length ? (getValue() as string[]).map((t) => <Chip key={t}>{t}</Chip>) : <span className="text-faint">-</span>}</div> },
     { accessorKey: 'status', header: 'Status', cell: ({ getValue }) => <Badge value={getValue()} /> },
     { accessorKey: 'created_at', header: 'Added', cell: ({ getValue }) => <span className="text-muted">{formatDate(getValue())}</span> },
     {

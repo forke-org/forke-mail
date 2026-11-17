@@ -54,14 +54,14 @@ export default function Activity() {
         </span>
       ),
     },
-    { accessorKey: 'recipient', header: 'Recipient', cell: ({ getValue }) => (getValue() ? <span className="text-ink">{getValue()}</span> : <span className="text-faint">—</span>) },
+    { accessorKey: 'recipient', header: 'Recipient', cell: ({ getValue }) => (getValue() ? <span className="text-ink">{getValue()}</span> : <span className="text-faint">-</span>) },
     {
       accessorKey: 'subject', header: 'Email',
       cell: ({ row }) => {
         const ev = row.original;
         if (ev.email_id) return <Link href={`/emails/view/?id=${ev.email_id}`} className="hover:underline"><Strong sub={ev.campaign_name}>{ev.subject}</Strong></Link>;
         if (ev.message_id) return <Link href={`/transactional/view/?id=${ev.message_id}`} className="hover:underline"><Strong sub="Transactional">{ev.subject}</Strong></Link>;
-        return <span className="text-faint">—</span>;
+        return <span className="text-faint">-</span>;
       },
     },
     { accessorKey: 'created_at', header: 'Updated', cell: ({ getValue }) => <span className="text-muted" title={formatDate(getValue())}>{timeAgo(getValue())}</span> },

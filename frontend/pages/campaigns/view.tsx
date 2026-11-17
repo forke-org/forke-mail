@@ -18,7 +18,7 @@ export default function CampaignView() {
   const columns = useMemo<Columns<Email>>(() => [
     { accessorKey: 'subject', header: 'Email', cell: ({ row }) => <Strong sub={row.original.topic ? `Topic: ${row.original.topic}` : undefined}>{row.original.subject || 'Untitled draft'}</Strong> },
     { accessorKey: 'status', header: 'Status', cell: ({ getValue }) => <Badge value={getValue()} /> },
-    { id: 'progress', header: 'Progress', enableSorting: false, cell: ({ row }) => (row.original.status === 'draft' ? <span className="text-faint">—</span> : <Progress percent={row.original.recipients ? (row.original.processed / row.original.recipients) * 100 : 0} />) },
+    { id: 'progress', header: 'Progress', enableSorting: false, cell: ({ row }) => (row.original.status === 'draft' ? <span className="text-faint">-</span> : <Progress percent={row.original.recipients ? (row.original.processed / row.original.recipients) * 100 : 0} />) },
     { accessorKey: 'recipients', header: 'Recipients', meta: { className: 'text-right' }, cell: ({ getValue }) => <span className="tabular-nums">{number(getValue())}</span> },
     { accessorKey: 'created_at', header: 'Created', cell: ({ getValue }) => <span className="text-muted">{formatDate(getValue())}</span> },
   ], []);
@@ -39,7 +39,7 @@ export default function CampaignView() {
       <div className="mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-[8px] bg-line shadow-card sm:grid-cols-3">
         <Stat icon={Mail} tone="accent" label="Emails" value={number(campaign.emails)} />
         <Stat icon={Send} tone="green" label="Recipients" value={number(campaign.sent)} hint="Across all emails" />
-        <Stat icon={CalendarClock} tone="blue" label="Last email" value={campaign.last_email_at ? timeAgo(campaign.last_email_at) : '—'} hint={campaign.last_email_at ? formatDate(campaign.last_email_at) : undefined} />
+        <Stat icon={CalendarClock} tone="blue" label="Last email" value={campaign.last_email_at ? timeAgo(campaign.last_email_at) : '-'} hint={campaign.last_email_at ? formatDate(campaign.last_email_at) : undefined} />
       </div>
       <Card title="Emails" flush>
         <DataTable

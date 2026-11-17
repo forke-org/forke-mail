@@ -120,7 +120,7 @@ export default function Overview() {
                   <div className="h-2 overflow-hidden rounded-[2px] bg-surface-3">
                     <div className={clsx('h-full rounded-[2px] transition-[width] duration-700', color)} style={{ width: d ? `${Math.max(n ? 2 : 0, (n / maxEvent) * 100)}%` : '0%' }} />
                   </div>
-                  <span className="text-right text-ink tabular-nums">{d ? number(n) : '—'}</span>
+                  <span className="text-right text-ink tabular-nums">{d ? number(n) : '-'}</span>
                 </div>
               );
             })}

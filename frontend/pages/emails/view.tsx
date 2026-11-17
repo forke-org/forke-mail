@@ -49,10 +49,10 @@ function Recipients({ id, version }: { id: string; version: number }) {
   const columns = useMemo<Columns<Recipient>>(() => [
     { accessorKey: 'email', header: 'Recipient', cell: ({ getValue }) => <span className="font-medium text-ink">{getValue()}</span> },
     { accessorKey: 'status', header: 'Status', cell: ({ getValue }) => <Badge value={getValue()} /> },
-    { id: 'outcome', header: 'Outcome', accessorFn: outcome, cell: ({ getValue }) => (getValue() ? <Badge value={getValue()} /> : <span className="text-faint">—</span>) },
+    { id: 'outcome', header: 'Outcome', accessorFn: outcome, cell: ({ getValue }) => (getValue() ? <Badge value={getValue()} /> : <span className="text-faint">-</span>) },
     { accessorKey: 'attempts', header: 'Attempts', meta: { className: 'text-right' }, cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span> },
     { accessorKey: 'sent_at', header: 'Sent', cell: ({ getValue }) => <span className="text-muted">{formatDate(getValue())}</span> },
-    { accessorKey: 'last_error', header: 'Note', cell: ({ getValue }) => (getValue() ? <span className="block max-w-xs truncate text-xs text-muted">{humanize(getValue())}</span> : <span className="text-faint">—</span>) },
+    { accessorKey: 'last_error', header: 'Note', cell: ({ getValue }) => (getValue() ? <span className="block max-w-xs truncate text-xs text-muted">{humanize(getValue())}</span> : <span className="text-faint">-</span>) },
   ], []);
   return (
     <Card title="Recipients" description="The latest 200 recipients" flush>
@@ -119,7 +119,7 @@ function EmailReport({ email }: { email: Email }) {
         {funnel.map(({ key, label, base, tone }) => (
           <div key={key} className="rounded-xl bg-surface p-4 shadow-card">
             <div className="text-[13px] text-muted">{label}</div>
-            <div className={clsx('mt-1 text-2xl font-semibold tracking-tight tabular-nums', tone)}>{c ? number(c[key]) : '—'}</div>
+            <div className={clsx('mt-1 text-2xl font-semibold tracking-tight tabular-nums', tone)}>{c ? number(c[key]) : '-'}</div>
             <div className="mt-0.5 text-xs text-muted">{c && base ? `${percent(c[key], c[base])} of ${base}` : ' '}</div>
           </div>
         ))}
@@ -128,7 +128,7 @@ function EmailReport({ email }: { email: Email }) {
         {problems.map(({ key, label }) => (
           <div key={key} className="border-r border-b border-line px-4 py-3 last:border-r-0 sm:border-b-0">
             <div className="text-xs text-muted">{label}</div>
-            <div className="mt-0.5 text-lg font-semibold text-ink tabular-nums">{c ? number(c[key]) : '—'}</div>
+            <div className="mt-0.5 text-lg font-semibold text-ink tabular-nums">{c ? number(c[key]) : '-'}</div>
           </div>
         ))}
       </div>

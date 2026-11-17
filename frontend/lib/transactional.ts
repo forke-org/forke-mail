@@ -1,5 +1,5 @@
 export function ms(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '—';
+  if (value === null || value === undefined) return '-';
   if (value < 1000) return `${Math.round(value)} ms`;
   return `${(value / 1000).toFixed(1)} s`;
 }

@@ -1,5 +1,5 @@
 export function formatDate(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return '-';
   const date = new Date(value);
   const sameYear = date.getFullYear() === new Date().getFullYear();
   const day = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: sameYear ? undefined : 'numeric' });
@@ -25,7 +25,7 @@ export function compact(value: number): string {
 }
 
 export function fullName(contact: { first_name?: string; last_name?: string }): string {
-  return [contact.first_name, contact.last_name].filter(Boolean).join(' ') || '—';
+  return [contact.first_name, contact.last_name].filter(Boolean).join(' ') || '-';
 }
 
 export function plural(n: number, word: string, many = `${word}s`): string {
@@ -37,6 +37,6 @@ export function humanize(value: string | null | undefined): string {
 }
 
 export function percent(part: number, whole: number): string {
-  if (!whole) return '—';
+  if (!whole) return '-';
   return `${Math.round((part / whole) * 1000) / 10}%`;
 }

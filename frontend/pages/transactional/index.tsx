@@ -95,7 +95,7 @@ export default function Transactional() {
   const columns = useMemo<Columns<TransactionalMessage>>(() => [
     { accessorKey: 'to', header: 'Message', cell: ({ row }) => <Strong sub={row.original.subject}>{row.original.to}</Strong> },
     { accessorKey: 'status', header: 'Status', cell: ({ getValue }) => <Badge value={getValue()} /> },
-    { id: 'outcome', header: 'Outcome', accessorFn: outcome, cell: ({ getValue }) => (getValue() ? <Badge value={getValue()} /> : <span className="text-faint">—</span>) },
+    { id: 'outcome', header: 'Outcome', accessorFn: outcome, cell: ({ getValue }) => (getValue() ? <Badge value={getValue()} /> : <span className="text-faint">-</span>) },
     { accessorKey: 'dispatch_ms', header: 'Dispatch', meta: { className: 'text-right' }, cell: ({ getValue }) => <span className="font-mono text-xs tabular-nums">{ms(getValue())}</span> },
     { accessorKey: 'created_at', header: 'Created', cell: ({ getValue }) => <span className="text-muted">{formatDate(getValue())}</span> },
   ], []);
@@ -108,10 +108,10 @@ export default function Transactional() {
         actions={<Button variant="primary" icon={Zap} onClick={() => setSending(true)}>Send test</Button>}
       />
       <div className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-line shadow-card lg:grid-cols-4">
-        <Stat icon={Timer} tone="accent" label="Dispatch p50" value={s ? ms(s.dispatch.p50_ms) : '—'} hint="Accepted → handed off, last 24 h" />
-        <Stat icon={Timer} tone="blue" label="Dispatch p95" value={s ? ms(s.dispatch.p95_ms) : '—'} hint={s ? `p99 ${ms(s.dispatch.p99_ms)}` : ' '} />
-        <Stat icon={Send} tone="neutral" label="Sent, last 24 h" value={s ? number(s.sent) : '—'} hint={s ? `${number(s.failed)} failed · ${number(s.queued + s.sending)} in flight` : ' '} />
-        <Stat icon={MailCheck} tone="green" label="Delivered" value={s ? percent(s.delivered, s.sent) : '—'} hint={s ? `${number(s.bounced)} bounced · ${number(s.complained)} complaints` : ' '} />
+        <Stat icon={Timer} tone="accent" label="Dispatch p50" value={s ? ms(s.dispatch.p50_ms) : '-'} hint="Accepted → handed off, last 24 h" />
+        <Stat icon={Timer} tone="blue" label="Dispatch p95" value={s ? ms(s.dispatch.p95_ms) : '-'} hint={s ? `p99 ${ms(s.dispatch.p99_ms)}` : ' '} />
+        <Stat icon={Send} tone="neutral" label="Sent, last 24 h" value={s ? number(s.sent) : '-'} hint={s ? `${number(s.failed)} failed · ${number(s.queued + s.sending)} in flight` : ' '} />
+        <Stat icon={MailCheck} tone="green" label="Delivered" value={s ? percent(s.delivered, s.sent) : '-'} hint={s ? `${number(s.bounced)} bounced · ${number(s.complained)} complaints` : ' '} />
       </div>
       {s && (s.tracked_opens || s.tracked_clicks) ? (
         <div className="mb-5 grid gap-px overflow-hidden rounded-[8px] bg-line shadow-card sm:grid-cols-2">

@@ -93,9 +93,9 @@ function Deliveries({ webhook }: { webhook: Webhook }) {
   const [state, reload] = useLoad(() => (webhook ? api<{ deliveries: WebhookDelivery[] }>('GET', `/api/webhooks/${webhook.id}/deliveries?limit=50`) : never<{ deliveries: WebhookDelivery[] }>()), [webhook.id]);
   const columns = useMemo<Columns<WebhookDelivery>>(() => [
     { accessorKey: 'status', header: 'Status', cell: ({ getValue }) => <Badge value={getValue()} tone={getValue() === 'delivered' ? 'green' : getValue() === 'failed' ? 'red' : 'amber'} /> },
-    { accessorKey: 'response_code', header: 'Response', cell: ({ getValue }) => <span className="font-mono text-xs">{getValue() ?? '—'}</span> },
+    { accessorKey: 'response_code', header: 'Response', cell: ({ getValue }) => <span className="font-mono text-xs">{getValue() ?? '-'}</span> },
     { accessorKey: 'attempts', header: 'Attempts', meta: { className: 'text-right' }, cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span> },
-    { accessorKey: 'last_error', header: 'Error', cell: ({ getValue }) => (getValue() ? <span className="block max-w-xs truncate text-xs text-muted">{getValue()}</span> : <span className="text-faint">—</span>) },
+    { accessorKey: 'last_error', header: 'Error', cell: ({ getValue }) => (getValue() ? <span className="block max-w-xs truncate text-xs text-muted">{getValue()}</span> : <span className="text-faint">-</span>) },
     { accessorKey: 'created_at', header: 'Created', cell: ({ getValue }) => <span className="text-muted" title={formatDate(getValue())}>{timeAgo(getValue())}</span> },
   ], []);
   return (
