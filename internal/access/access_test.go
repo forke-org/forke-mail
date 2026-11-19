@@ -7,11 +7,13 @@ import (
 	"strings"
 	"testing"
 
+	"forkemail/internal/accounts"
 	"forkemail/internal/auth"
 	"forkemail/internal/db/dbtest"
 	"forkemail/internal/transactional"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 )
 
 type fakeMailer struct{ sent []transactional.Submission }
@@ -142,5 +144,54 @@ func TestReservedWorkspaceName(t *testing.T) {
 	r.ServeHTTP(w, req)
 	if w.Code != 422 || !strings.Contains(w.Body.String(), "workspace_name_reserved") {
 		t.Fatalf("reserved %d %s", w.Code, w.Body)
+	}
+}
+
+func TestPlatformLimitsMembersAndUsers(t *testing.T) {
+	pool := dbtest.Pool(t)
+	shared := dbtest.Workspace(t, pool, "trial", 100)
+	solo := dbtest.Workspace(t, pool, "trial", 100)
+	ctx := context.Background()
+	var owner, mate string
+	if err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		var err error
+		if owner, err = accounts.CreateUser(ctx, tx, shared, "Owner", "own-"+shared[:8]+"@example.com", "long-enough-password"); err != nil {
+			return err
+		}
+		if mate, err = accounts.CreateUser(ctx, tx, solo, "Mate", "mate-"+solo[:8]+"@example.com", "long-enough-password"); err != nil {
+			return err
+		}
+		_, err = tx.Exec(ctx, `INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'admin')`, shared, mate)
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	plat := &Platform{Pool: pool, Token: "secret-token"}
+	r := chi.NewRouter()
+	plat.Routes(r)
+	do := func(method, path, body string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(method, path, strings.NewReader(body))
+		req.Header.Set("Authorization", "Bearer secret-token")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		return w
+	}
+	if w := do("POST", "/api/platform/accounts/"+shared+"/limits", `{"plan":"paid","daily_limit":5000,"rate_limit_per_sec":10}`); w.Code != 200 {
+		t.Fatalf("limits %d %s", w.Code, w.Body)
+	}
+	if got := dbtest.QueryString(t, pool, `SELECT plan || ':' || daily_limit || ':' || rate_limit_per_sec FROM workspaces WHERE id = $1`, shared); got != "paid:5000:10" {
+		t.Fatalf("limits = %s", got)
+	}
+	if w := do("POST", "/api/platform/accounts/"+shared+"/limits", `{"plan":"gold","daily_limit":1,"rate_limit_per_sec":1}`); w.Code != 422 {
+		t.Fatalf("bad plan %d", w.Code)
+	}
+	if w := do("DELETE", "/api/platform/users/"+mate, ""); w.Code != 204 {
+		t.Fatalf("delete user %d %s", w.Code, w.Body)
+	}
+	if got := dbtest.QueryString(t, pool, `SELECT (SELECT COUNT(*) FROM workspaces WHERE id = $1)::text || ':' || (SELECT COUNT(*) FROM workspaces WHERE id = $2) || ':' || (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = $2)`, solo, shared); got != "0:1:1" {
+		t.Fatalf("after delete solo:shared:members = %s", got)
+	}
+	if w := do("DELETE", "/api/platform/accounts/"+shared+"/members/"+owner, ""); w.Code != 204 {
+		t.Fatalf("remove member %d", w.Code)
 	}
 }

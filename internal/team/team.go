@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"forkemail/internal/accounts"
 	"forkemail/internal/auth"
 	"forkemail/internal/contacts"
 	"forkemail/internal/httpx"
@@ -68,14 +69,16 @@ func newToken() (string, string) {
 
 func (h *Handler) forkeManaged(ctx context.Context, ws string) (bool, error) {
 	var managed bool
-	err := h.Pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE workspace_id = $1 AND forke_admin_id IS NOT NULL)`, ws).Scan(&managed)
+	err := h.Pool.QueryRow(ctx, `SELECT platform FROM workspaces WHERE id = $1`, ws).Scan(&managed)
 	return managed, err
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	id := auth.FromContext(r.Context())
 	rows, err := h.Pool.Query(r.Context(), `
-		SELECT id, name, email, username, role, created_at FROM users WHERE workspace_id = $1 ORDER BY created_at`, id.WorkspaceID)
+		SELECT u.id, u.name, u.email, u.username, m.role, m.created_at
+		FROM workspace_members m JOIN users u ON u.id = m.user_id
+		WHERE m.workspace_id = $1 ORDER BY m.created_at`, id.WorkspaceID)
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return
@@ -136,13 +139,21 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusConflict, "team_managed_by_forke")
 		return
 	}
-	var exists bool
-	if err := h.Pool.QueryRow(r.Context(), `SELECT EXISTS (SELECT 1 FROM users WHERE lower(email) = $1)`, email).Scan(&exists); err != nil {
+	var existing string
+	var member bool
+	err = h.Pool.QueryRow(r.Context(), `
+		SELECT u.id, EXISTS (SELECT 1 FROM workspace_members m WHERE m.user_id = u.id AND m.workspace_id = $2)
+		FROM users u WHERE lower(u.email) = $1`, email, id.WorkspaceID).Scan(&existing, &member)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		httpx.Internal(w, r, err)
 		return
 	}
-	if exists {
-		httpx.Error(w, http.StatusConflict, "email_taken")
+	if member {
+		httpx.Error(w, http.StatusConflict, "already_member")
+		return
+	}
+	if existing != "" {
+		h.addExisting(w, r, existing, email, body.Role)
 		return
 	}
 	token, hash := newToken()
@@ -188,6 +199,30 @@ func (h *Handler) send(ctx context.Context, inv Invite, token, workspace, invite
 	return err
 }
 
+func (h *Handler) addExisting(w http.ResponseWriter, r *http.Request, userID, email, role string) {
+	id := auth.FromContext(r.Context())
+	var workspace, inviter string
+	err := h.Pool.QueryRow(r.Context(), `
+		WITH ins AS (INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, $3) RETURNING workspace_id)
+		SELECT w.name, COALESCE((SELECT name FROM users WHERE id = NULLIF($4, '')::uuid), w.name) FROM ins JOIN workspaces w ON w.id = ins.workspace_id`,
+		id.WorkspaceID, userID, role, id.UserID).Scan(&workspace, &inviter)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	if h.Mail != nil && h.WorkspaceID != "" {
+		link := strings.TrimRight(h.AppURL, "/") + "/"
+		text := inviter + " added you to " + workspace + " on Forke Mail. Switch to it from the project menu after you log in:\n" + link + "\n"
+		body := `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#111;max-width:520px">` +
+			`<p>` + html.EscapeString(inviter) + ` added you to <b>` + html.EscapeString(workspace) + `</b> on Forke Mail. Switch to it from the project menu after you log in.</p>` +
+			`<p><a href="` + html.EscapeString(link) + `" style="color:#111">Open Forke Mail</a></p></div>`
+		_, _ = h.Mail.Accept(r.Context(), auth.Identity{WorkspaceID: h.WorkspaceID}, fmt.Sprintf("forke-added-%s-%s", id.WorkspaceID, userID), transactional.Submission{
+			To: email, FromName: "Forke Mail", FromAddress: h.From, Subject: inviter + " added you to " + workspace, HTML: body, Text: text, Tags: map[string]string{"category": "team_added"},
+		})
+	}
+	httpx.JSON(w, http.StatusCreated, map[string]any{"added": true, "email": email, "role": role})
+}
+
 func (h *Handler) RevokeInvite(w http.ResponseWriter, r *http.Request) {
 	invID, ok := httpx.PathID(w, r)
 	if !ok {
@@ -215,9 +250,10 @@ func (h *Handler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusConflict, "cannot_remove_yourself")
 		return
 	}
-	var role string
 	var forke bool
-	err := h.Pool.QueryRow(r.Context(), `SELECT role, forke_admin_id IS NOT NULL FROM users WHERE id = $1 AND workspace_id = $2`, userID, id.WorkspaceID).Scan(&role, &forke)
+	err := h.Pool.QueryRow(r.Context(), `
+		SELECT w.platform FROM workspace_members m JOIN workspaces w ON w.id = m.workspace_id
+		WHERE m.user_id = $1 AND m.workspace_id = $2`, userID, id.WorkspaceID).Scan(&forke)
 	if errors.Is(err, pgx.ErrNoRows) {
 		httpx.Error(w, http.StatusNotFound, "not_found")
 		return
@@ -230,7 +266,7 @@ func (h *Handler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusConflict, "team_managed_by_forke")
 		return
 	}
-	if _, err := h.Pool.Exec(r.Context(), `DELETE FROM users WHERE id = $1 AND workspace_id = $2`, userID, id.WorkspaceID); err != nil {
+	if err := pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error { return accounts.RemoveMember(r.Context(), tx, id.WorkspaceID, userID) }); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

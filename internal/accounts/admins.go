@@ -16,9 +16,12 @@ func ForkeWorkspace(ctx context.Context, tx pgx.Tx, name string) (string, error)
 		return "", err
 	}
 	var id string
-	err := tx.QueryRow(ctx, `SELECT id FROM workspaces WHERE name = $1 ORDER BY created_at LIMIT 1`, name).Scan(&id)
+	err := tx.QueryRow(ctx, `SELECT id FROM workspaces WHERE platform`).Scan(&id)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return CreateWorkspace(ctx, tx, NewWorkspace{Name: name, Plan: "paid", DailyLimit: 100000, RatePerSec: 14})
+		if id, err = CreateWorkspace(ctx, tx, NewWorkspace{Name: name, Plan: "paid", DailyLimit: 100000, RatePerSec: 14}); err != nil {
+			return "", err
+		}
+		_, err = tx.Exec(ctx, `UPDATE workspaces SET platform = true WHERE id = $1`, id)
 	}
 	return id, err
 }

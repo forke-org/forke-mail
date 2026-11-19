@@ -26,14 +26,13 @@ type Mailer interface {
 }
 
 type Platform struct {
-	Pool           *pgxpool.Pool
-	Token          string
-	Mail           Mailer
-	WorkspaceID    string
-	From           string
-	AppURL         string
-	ForkeWorkspace string
-	Identities     domains.Identities
+	Pool        *pgxpool.Pool
+	Token       string
+	Mail        Mailer
+	WorkspaceID string
+	From        string
+	AppURL      string
+	Identities  domains.Identities
 }
 
 type Request struct {
@@ -163,5 +162,8 @@ func (p *Platform) Routes(r chi.Router) {
 		g.Post("/api/platform/accounts/{id}/credits", p.AddCredits)
 		g.Post("/api/platform/accounts/{id}/status", p.SetStatus)
 		g.Delete("/api/platform/accounts/{id}", p.DeleteAccount)
+		g.Post("/api/platform/accounts/{id}/limits", p.SetLimits)
+		g.Delete("/api/platform/accounts/{id}/members/{user}", p.RemoveMember)
+		g.Delete("/api/platform/users/{id}", p.DeleteUser)
 	})
 }

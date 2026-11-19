@@ -132,6 +132,10 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		if svc.dispatcher != nil {
 			teamH.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
 		}
+		projectsH := &team.Projects{Pool: pool, MaxProjects: cfg.MaxProjects, Defaults: accounts.NewWorkspace{Plan: "trial", DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5, TrialSendLimit: cfg.ProjectSendLimit}}
+		api.Get("/api/projects", projectsH.List)
+		api.Post("/api/projects", projectsH.Create)
+		api.Post("/api/projects/switch", projectsH.Switch)
 		api.Get("/api/team", teamH.List)
 		api.Post("/api/team/invites", teamH.InviteMember)
 		api.Delete("/api/team/invites/{id}", teamH.RevokeInvite)
@@ -201,7 +205,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Get("/api/team/join", joinH.Lookup)
 		public.Post("/api/team/join", joinH.Accept)
 		if cfg.PlatformToken != "" {
-			platform := &access.Platform{Pool: pool, Token: cfg.PlatformToken, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL, ForkeWorkspace: cfg.ForkeWorkspace, Identities: svc.identities}
+			platform := &access.Platform{Pool: pool, Token: cfg.PlatformToken, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL, Identities: svc.identities}
 			if svc.dispatcher != nil {
 				platform.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
 			}

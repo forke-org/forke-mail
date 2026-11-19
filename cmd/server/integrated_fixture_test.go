@@ -1,8 +1,8 @@
 package main
 
 import (
-	"forkemail/internal/config"
 	"context"
+	"forkemail/internal/config"
 	"forkemail/internal/domains"
 	"forkemail/internal/feedback"
 	"forkemail/internal/ratelimit"

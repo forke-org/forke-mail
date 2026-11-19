@@ -56,10 +56,11 @@ func (a *Authenticator) identifySession(ctx context.Context, token string) (Iden
 	var status string
 	var adminID *string
 	err := a.Pool.QueryRow(ctx, `
-		SELECT u.id, u.workspace_id, u.role, u.forke_admin_id::text, w.plan, w.status
+		SELECT u.id, w.id, m.role, u.forke_admin_id::text, w.plan, w.status
 		FROM sessions s
 		JOIN users u ON u.id = s.user_id
-		JOIN workspaces w ON w.id = u.workspace_id
+		JOIN workspace_members m ON m.user_id = u.id AND m.workspace_id = COALESCE(s.workspace_id, u.workspace_id)
+		JOIN workspaces w ON w.id = m.workspace_id
 		WHERE s.token_hash = $1 AND s.expires_at > now()`, HashKey(token),
 	).Scan(&id.UserID, &id.WorkspaceID, &id.Role, &adminID, &id.Plan, &status)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && status != "active") {
@@ -69,7 +70,7 @@ func (a *Authenticator) identifySession(ctx context.Context, token string) (Iden
 		return Identity{}, err
 	}
 	if adminID != nil {
-		if id.Role, err = a.syncAdminRole(ctx, id, *adminID); err != nil {
+		if id.Role, err = a.syncAdminRole(ctx, id, *adminID, id.Role); err != nil {
 			return Identity{}, err
 		}
 	}
@@ -77,7 +78,7 @@ func (a *Authenticator) identifySession(ctx context.Context, token string) (Iden
 	return id, nil
 }
 
-func (a *Authenticator) syncAdminRole(ctx context.Context, id Identity, adminID string) (string, error) {
+func (a *Authenticator) syncAdminRole(ctx context.Context, id Identity, adminID, current string) (string, error) {
 	if a.Admins == nil {
 		return "", errUnauthorized
 	}
@@ -91,8 +92,15 @@ func (a *Authenticator) syncAdminRole(ctx context.Context, id Identity, adminID 
 	if err != nil {
 		return "", err
 	}
-	if role != id.Role {
-		if _, err := a.Pool.Exec(ctx, `UPDATE users SET role = $2 WHERE id = $1`, id.UserID, role); err != nil {
+	var platform bool
+	if err := a.Pool.QueryRow(ctx, `SELECT platform FROM workspaces WHERE id = $1`, id.WorkspaceID).Scan(&platform); err != nil {
+		return "", err
+	}
+	if !platform {
+		return current, nil
+	}
+	if role != current {
+		if _, err := a.Pool.Exec(ctx, `UPDATE workspace_members SET role = $3 WHERE user_id = $1 AND workspace_id = $2`, id.UserID, id.WorkspaceID, role); err != nil {
 			return "", err
 		}
 	}

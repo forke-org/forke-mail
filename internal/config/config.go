@@ -38,6 +38,8 @@ type Config struct {
 	PlatformToken       string
 	BetaSendLimit       int
 	BetaDailyLimit      int
+	ProjectSendLimit    int
+	MaxProjects         int
 	MaxComplaintRate    float64
 	ReputationMinSample int
 	SendRatePerSec      float64
@@ -102,6 +104,8 @@ func Load() (Config, error) {
 	c.PlatformToken = os.Getenv("PLATFORM_ADMIN_TOKEN")
 	c.BetaSendLimit = int(number(&errs, "BETA_SEND_LIMIT", 3000))
 	c.BetaDailyLimit = int(number(&errs, "BETA_DAILY_LIMIT", 300))
+	c.ProjectSendLimit = int(number(&errs, "PROJECT_SEND_LIMIT", 500))
+	c.MaxProjects = int(number(&errs, "MAX_PROJECTS", 5))
 
 	if c.DatabaseURL == "" {
 		errs = append(errs, errors.New("DATABASE_URL is required"))

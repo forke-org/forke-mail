@@ -7,6 +7,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { compact, number } from '../lib/format';
 import { useSession, useMe } from '../lib/session';
 import CommandMenu from './CommandMenu';
+import ProjectSwitcher from './ProjectSwitcher';
 import ScrollArea from './ScrollArea';
 import Logo from './Logo';
 import { currentItem, isActive, navGroups } from './nav';
@@ -117,7 +118,8 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
         <Link href="/" onClick={onNavigate}><Logo /></Link>
         <span aria-hidden className="rail-x pointer-events-none absolute inset-x-0 bottom-0 h-px" />
       </div>
-      <div className="px-3 pt-3">
+      <ProjectSwitcher />
+      <div className="px-3 pt-2">
         <button
           type="button"
           onClick={onSearch}

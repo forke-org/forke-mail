@@ -47,6 +47,8 @@ const messages: Record<string, string> = {
   cannot_remove_yourself: 'You cannot remove yourself.',
   invite_email_failed: 'The invite was saved but the email could not be sent. Try again.',
   invalid_role: 'Pick a role.',
+  too_many_projects: 'You have reached the project limit. Ask Forke to raise it.',
+  already_member: 'That person is already in this project.',
   invalid_username: 'Usernames are 3 to 32 characters: lowercase letters, numbers, dots, dashes or underscores.',
   username_taken: 'That username is taken. Try another.',
   invalid_workspace_name: 'Enter a workspace name.',
