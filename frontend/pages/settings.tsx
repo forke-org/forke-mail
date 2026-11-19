@@ -5,6 +5,7 @@ import { api, describeError } from '../lib/api';
 import { number } from '../lib/format';
 import { useMe, useSession } from '../lib/session';
 import { useToast } from '../lib/toast';
+import TeamSettings from '../components/TeamSettings';
 import type { AlertSettings, Reengagement } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 
@@ -203,12 +204,12 @@ function Alerts() {
 }
 
 export default function Settings() {
-  const [tab, setTab] = useState<'general' | 'reengagement' | 'alerts'>('general');
+  const [tab, setTab] = useState<'general' | 'team' | 'reengagement' | 'alerts'>('general');
   return (
     <>
       <PageHeader title="Settings" description="Plan, usage, sending identities and list hygiene for this workspace." />
-      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement']]} />
-      {tab === 'general' ? <General /> : tab === 'alerts' ? <Alerts /> : <ReengagementSettings />}
+      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['team', 'Team'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement']]} />
+      {tab === 'general' ? <General /> : tab === 'team' ? <TeamSettings /> : tab === 'alerts' ? <Alerts /> : <ReengagementSettings />}
     </>
   );
 }

@@ -4,6 +4,7 @@ import (
 	"forkemail/internal/access"
 	"forkemail/internal/alerts"
 	"forkemail/internal/deliveries"
+	"forkemail/internal/team"
 	"net/http"
 	"strings"
 
@@ -127,6 +128,14 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		alertsH := &alerts.Handler{Pool: pool, WarnBounceRate: cfg.WarnBounceRate, WarnComplaintRate: cfg.WarnComplaintRate, MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate}
 		api.Get("/api/settings/alerts", alertsH.Get)
 		api.Get("/api/deliveries", (&deliveries.Handler{Pool: pool}).List)
+		teamH := &team.Handler{Pool: pool, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL}
+		if svc.dispatcher != nil {
+			teamH.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
+		}
+		api.Get("/api/team", teamH.List)
+		api.Post("/api/team/invites", teamH.InviteMember)
+		api.Delete("/api/team/invites/{id}", teamH.RevokeInvite)
+		api.Delete("/api/team/members/{id}", teamH.RemoveMember)
 		api.Put("/api/settings/alerts", alertsH.Put)
 		api.Get("/api/topics", contactH.Topics)
 		api.Put("/api/topics/{key}", contactH.PutTopic)
@@ -188,6 +197,9 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Post("/api/access/request", accessH.Request)
 		public.Get("/api/access/invite", accessH.Invite)
 		public.Post("/api/access/invite", accessH.Accept)
+		joinH := &team.Join{Pool: pool, SecureCookies: secureCookies}
+		public.Get("/api/team/join", joinH.Lookup)
+		public.Post("/api/team/join", joinH.Accept)
 		if cfg.PlatformToken != "" {
 			platform := &access.Platform{Pool: pool, Token: cfg.PlatformToken, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL, ForkeWorkspace: cfg.ForkeWorkspace, Identities: svc.identities}
 			if svc.dispatcher != nil {

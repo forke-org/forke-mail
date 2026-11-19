@@ -1,6 +1,7 @@
 package main
 
 import (
+	"forkemail/internal/config"
 	"context"
 	"forkemail/internal/domains"
 	"forkemail/internal/feedback"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-func newIntegratedFixture(t *testing.T) (apiFixture, *webhooks.Vault) {
+func newIntegratedFixture(t *testing.T, configure ...func(*config.Config)) (apiFixture, *webhooks.Vault) {
 	t.Helper()
 	f := newAPIFixture(t)
 	v, err := webhooks.NewVault("a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=")
@@ -37,6 +38,9 @@ func newIntegratedFixture(t *testing.T) (apiFixture, *webhooks.Vault) {
 	cfg := testConfig("development")
 	cfg.PublicBaseURL = "http://localhost:8080"
 	cfg.UnsubscribeSecret = "local-test-signing-secret-32-characters"
+	for _, c := range configure {
+		c(&cfg)
+	}
 	f.router = newRouter(cfg, f.pool, lim, services{dispatcher: d, developer: &developerServices{hooks: &webhooks.Handler{Pool: f.pool, Vault: v, Network: webhooks.Network{Resolver: publicDNS{}}}}, feedback: p, identities: domains.Local{}, sendRate: w.GlobalRate})
 	return f, v
 }
