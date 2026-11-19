@@ -89,6 +89,10 @@ func (p *Public) Accept(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusUnprocessableEntity, code)
 		return
 	}
+	if p.ReservedName != "" && strings.EqualFold(body.Workspace, p.ReservedName) {
+		httpx.Error(w, http.StatusUnprocessableEntity, "workspace_name_reserved")
+		return
+	}
 	var userID string
 	err := pgx.BeginFunc(r.Context(), p.Pool, func(tx pgx.Tx) error {
 		requestID, email, err := p.lookup(r.Context(), tx, body.Token, true)

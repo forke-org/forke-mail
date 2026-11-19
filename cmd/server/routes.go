@@ -184,12 +184,12 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	r.Group(func(public chi.Router) {
 		public.Use(publicLimit)
 		public.Post("/api/auth/login", account.Login)
-		accessH := &access.Public{Pool: pool, SecureCookies: secureCookies, Workspace: access.WorkspaceDefaults{SendLimit: cfg.BetaSendLimit, DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5}}
+		accessH := &access.Public{Pool: pool, SecureCookies: secureCookies, ReservedName: cfg.ForkeWorkspace, Workspace: access.WorkspaceDefaults{SendLimit: cfg.BetaSendLimit, DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5}}
 		public.Post("/api/access/request", accessH.Request)
 		public.Get("/api/access/invite", accessH.Invite)
 		public.Post("/api/access/invite", accessH.Accept)
 		if cfg.PlatformToken != "" {
-			platform := &access.Platform{Pool: pool, Token: cfg.PlatformToken, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL}
+			platform := &access.Platform{Pool: pool, Token: cfg.PlatformToken, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL, ForkeWorkspace: cfg.ForkeWorkspace, Identities: svc.identities}
 			if svc.dispatcher != nil {
 				platform.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
 			}

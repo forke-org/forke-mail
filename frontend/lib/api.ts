@@ -46,6 +46,7 @@ const messages: Record<string, string> = {
   invalid_username: 'Usernames are 3 to 32 characters: lowercase letters, numbers, dots, dashes or underscores.',
   username_taken: 'That username is taken. Try another.',
   invalid_workspace_name: 'Enter a workspace name.',
+  workspace_name_reserved: 'That workspace name is reserved. Pick another.',
   weak_password: 'Use a password of at least 10 characters.',
   invalid_name: 'Enter a name.',
   incorrect_password: 'That password is incorrect.',

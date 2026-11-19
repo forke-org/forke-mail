@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"forkemail/internal/auth"
+	"forkemail/internal/domains"
 	"forkemail/internal/httpx"
 	"forkemail/internal/transactional"
 
@@ -25,12 +26,14 @@ type Mailer interface {
 }
 
 type Platform struct {
-	Pool        *pgxpool.Pool
-	Token       string
-	Mail        Mailer
-	WorkspaceID string
-	From        string
-	AppURL      string
+	Pool           *pgxpool.Pool
+	Token          string
+	Mail           Mailer
+	WorkspaceID    string
+	From           string
+	AppURL         string
+	ForkeWorkspace string
+	Identities     domains.Identities
 }
 
 type Request struct {
@@ -155,5 +158,10 @@ func (p *Platform) Routes(r chi.Router) {
 		g.Get("/api/platform/access", p.List)
 		g.Post("/api/platform/access/{id}/approve", p.Approve)
 		g.Post("/api/platform/access/{id}/reject", p.Reject)
+		g.Delete("/api/platform/access/{id}", p.DeleteRequest)
+		g.Get("/api/platform/accounts", p.Accounts)
+		g.Post("/api/platform/accounts/{id}/credits", p.AddCredits)
+		g.Post("/api/platform/accounts/{id}/status", p.SetStatus)
+		g.Delete("/api/platform/accounts/{id}", p.DeleteAccount)
 	})
 }

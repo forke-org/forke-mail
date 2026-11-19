@@ -97,4 +97,50 @@ func TestEarlyAccessFlow(t *testing.T) {
 	if !found {
 		t.Fatal("joined request missing from list")
 	}
+
+	ws := dbtest.QueryString(t, pool, `SELECT workspace_id::text FROM access_requests WHERE id = $1`, id)
+	var accounts struct{ Accounts []Account }
+	if err := json.Unmarshal(do("GET", "/api/platform/accounts", "", "secret-token").Body.Bytes(), &accounts); err != nil {
+		t.Fatal(err)
+	}
+	var mine *Account
+	for i := range accounts.Accounts {
+		if accounts.Accounts[i].ID == ws {
+			mine = &accounts.Accounts[i]
+		}
+	}
+	if mine == nil || mine.Credits != 3000 || len(mine.Members) != 1 || mine.Members[0].Email != email {
+		t.Fatalf("account %+v", mine)
+	}
+	if w := do("POST", "/api/platform/accounts/"+ws+"/credits", `{"amount":2000}`, "secret-token"); w.Code != 200 || !strings.Contains(w.Body.String(), "5000") {
+		t.Fatalf("credits %d %s", w.Code, w.Body)
+	}
+	if w := do("POST", "/api/platform/accounts/"+ws+"/status", `{"status":"paused"}`, "secret-token"); w.Code != 200 {
+		t.Fatalf("pause %d", w.Code)
+	}
+	if got := dbtest.QueryString(t, pool, `SELECT status || ':' || (SELECT COUNT(*) FROM sessions s JOIN users u ON u.id = s.user_id WHERE u.workspace_id = $1) FROM workspaces WHERE id = $1`, ws); got != "paused:0" {
+		t.Fatalf("paused = %s", got)
+	}
+	if w := do("DELETE", "/api/platform/accounts/"+ws, "", "secret-token"); w.Code != 204 {
+		t.Fatalf("delete %d %s", w.Code, w.Body)
+	}
+	if got := dbtest.QueryString(t, pool, `SELECT (SELECT COUNT(*) FROM workspaces WHERE id = $1) + (SELECT COUNT(*) FROM users WHERE lower(email) = $2) + (SELECT COUNT(*) FROM access_requests WHERE lower(email) = $2)`, ws, email); got != "0" {
+		t.Fatalf("leftovers %s", got)
+	}
+}
+
+func TestReservedWorkspaceName(t *testing.T) {
+	b := acceptBody{Token: "x", Name: "A", Username: "abc", Workspace: "forke", Password: "long-enough-password"}
+	if code := b.validate(); code != "" {
+		t.Fatal(code)
+	}
+	p := &Public{ReservedName: "Forke"}
+	r := chi.NewRouter()
+	r.Post("/", p.Accept)
+	req := httptest.NewRequest("POST", "/", strings.NewReader(`{"token":"x","name":"A","username":"abc","workspace":"FORKE","password":"long-enough-password"}`))
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != 422 || !strings.Contains(w.Body.String(), "workspace_name_reserved") {
+		t.Fatalf("reserved %d %s", w.Code, w.Body)
+	}
 }

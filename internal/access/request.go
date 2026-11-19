@@ -17,6 +17,7 @@ type Public struct {
 	Pool          *pgxpool.Pool
 	SecureCookies bool
 	Workspace     WorkspaceDefaults
+	ReservedName  string
 }
 
 type WorkspaceDefaults struct {
