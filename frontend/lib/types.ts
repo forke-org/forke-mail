@@ -8,6 +8,7 @@ export interface Me {
     name: string;
     plan: 'trial' | 'paid';
     status: string;
+    platform: boolean;
     sending_paused: boolean;
     pause_reason: string | null;
   };

@@ -34,6 +34,7 @@ type meWorkspace struct {
 	Status        string  `json:"status"`
 	SendingPaused bool    `json:"sending_paused"`
 	PauseReason   *string `json:"pause_reason"`
+	Platform      bool    `json:"platform"`
 }
 
 type meUser struct {
@@ -76,11 +77,11 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	}
 	var configuredRate int
 	err := h.Pool.QueryRow(r.Context(), `
-		SELECT w.id, w.name, w.plan, w.status, w.sending_paused, w.pause_reason, w.trial_sent_count, w.trial_send_limit, w.daily_limit, w.rate_limit_per_sec,
+		SELECT w.id, w.name, w.plan, w.status, w.sending_paused, w.pause_reason, w.platform, w.trial_sent_count, w.trial_send_limit, w.daily_limit, w.rate_limit_per_sec,
 			COALESCE((SELECT sent_count FROM usage_daily u WHERE u.workspace_id = w.id AND u.date = current_date), 0)
 		FROM workspaces w WHERE w.id = $1`, id.WorkspaceID,
 	).Scan(&resp.Workspace.ID, &resp.Workspace.Name, &resp.Workspace.Plan, &resp.Workspace.Status,
-		&resp.Workspace.SendingPaused, &resp.Workspace.PauseReason,
+		&resp.Workspace.SendingPaused, &resp.Workspace.PauseReason, &resp.Workspace.Platform,
 		&resp.Quota.TrialUsed, &resp.Quota.TrialLimit, &resp.Quota.DailyLimit, &configuredRate, &resp.Quota.SentToday)
 	if err != nil {
 		httpx.Internal(w, r, err)

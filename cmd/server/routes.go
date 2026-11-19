@@ -137,6 +137,17 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/projects", projectsH.List)
 		api.Post("/api/projects", projectsH.Create)
 		api.Post("/api/projects/switch", projectsH.Switch)
+		manageH := &team.Manage{Pool: pool, Identities: svc.identities}
+		api.Patch("/api/projects/current", manageH.Rename)
+		api.Post("/api/projects/current/reset", manageH.Reset)
+		api.Post("/api/projects/current/delete", manageH.Delete)
+		api.Post("/api/projects/current/leave", manageH.Leave)
+		api.Patch("/api/team/members/{id}", manageH.SetRole)
+		accountH := &team.Account{Manage: team.Manage{Pool: pool, Identities: svc.identities}, SecureCookies: secureCookies}
+		api.Get("/api/account", accountH.Get)
+		api.Patch("/api/account", accountH.Update)
+		api.Post("/api/account/password", accountH.Password)
+		api.Post("/api/account/delete", accountH.Delete)
 		templatesH := &templates.Handler{Pool: pool}
 		api.Get("/api/templates", templatesH.List)
 		api.Post("/api/templates", templatesH.Create)

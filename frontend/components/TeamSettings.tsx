@@ -85,7 +85,12 @@ export default function TeamSettings() {
               <div className="flex items-center gap-2">
                 <Badge value={m.role} />
                 {canInvite && !m.you ? (
-                  <Button size="sm" icon={UserMinus} onClick={() => act(() => api('DELETE', `/api/team/members/${m.id}`), `${m.name} removed.`)}>Remove</Button>
+                  <>
+                    <Button size="sm" onClick={() => act(() => api('PATCH', `/api/team/members/${m.id}`, { role: m.role === 'super_admin' ? 'admin' : 'super_admin' }), m.role === 'super_admin' ? `${m.name} is now an admin.` : `${m.name} is now an owner.`)}>
+                      {m.role === 'super_admin' ? 'Make admin' : 'Make owner'}
+                    </Button>
+                    <Button size="sm" icon={UserMinus} onClick={() => act(() => api('DELETE', `/api/team/members/${m.id}`), `${m.name} removed.`)}>Remove</Button>
+                  </>
                 ) : null}
               </div>
             </div>

@@ -42,3 +42,12 @@ func (p Passwords) Verify(ctx context.Context, userID, password string) (bool, e
 	}
 	return hash != nil && bcrypt.CompareHashAndPassword([]byte(*hash), []byte(password)) == nil, nil
 }
+
+func SetPassword(ctx context.Context, q db.Querier, userID, password string) error {
+	hash, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+	_, err = q.Exec(ctx, `UPDATE users SET password_hash = $2 WHERE id = $1 AND forke_admin_id IS NULL`, userID, hash)
+	return err
+}

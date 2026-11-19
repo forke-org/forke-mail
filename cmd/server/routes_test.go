@@ -15,7 +15,7 @@ func testConfig(env string) config.Config {
 	return config.Config{
 		Env: env, UnsubscribeSecret: strings.Repeat("u", 32), SeedToken: strings.Repeat("s", 32),
 		PublicRatePerSec: 100, PublicBurst: 100, AuthFailuresPerMin: 60, AuthFailureBurst: 10,
-		PaidRatePerSec: 20, PaidBurst: 40, TrialRatePerSec: 2, TrialBurst: 5,
+		PaidRatePerSec: 20, PaidBurst: 40, TrialRatePerSec: 2, TrialBurst: 5, MaxProjects: 5,
 	}
 }
 

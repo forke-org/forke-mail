@@ -5,6 +5,8 @@ import { api, describeError } from '../lib/api';
 import { number } from '../lib/format';
 import { useMe, useSession } from '../lib/session';
 import { useToast } from '../lib/toast';
+import AccountSettings from '../components/AccountSettings';
+import DangerZone, { ProjectCard } from '../components/DangerZone';
 import TeamSettings from '../components/TeamSettings';
 import type { AlertSettings, Reengagement } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
@@ -53,9 +55,11 @@ function General() {
           <DefinitionRow label="Email">{me.user.email}</DefinitionRow>
           <DefinitionRow label="Role"><Badge value={me.user.role} /></DefinitionRow>
           <DefinitionRow label="Workspace">{me.workspace.name}</DefinitionRow>
-          <p className="mt-3 text-xs text-muted">Names, passwords and roles are managed by your workspace owner.</p>
+          <p className="mt-3 text-xs text-muted">Change your name, username and password in the Account tab. Project owners manage roles in Team.</p>
         </Card>
       ) : null}
+      <ProjectCard />
+      <DangerZone />
     </div>
   );
 }
@@ -204,12 +208,12 @@ function Alerts() {
 }
 
 export default function Settings() {
-  const [tab, setTab] = useState<'general' | 'team' | 'reengagement' | 'alerts'>('general');
+  const [tab, setTab] = useState<'general' | 'team' | 'reengagement' | 'alerts' | 'account'>('general');
   return (
     <>
       <PageHeader title="Settings" description="Plan, usage, sending identities and list hygiene for this workspace." />
-      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['team', 'Team'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement']]} />
-      {tab === 'general' ? <General /> : tab === 'team' ? <TeamSettings /> : tab === 'alerts' ? <Alerts /> : <ReengagementSettings />}
+      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['team', 'Team'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement'], ['account', 'Account']]} />
+      {tab === 'general' ? <General /> : tab === 'team' ? <TeamSettings /> : tab === 'alerts' ? <Alerts /> : tab === 'account' ? <AccountSettings /> : <ReengagementSettings />}
     </>
   );
 }
