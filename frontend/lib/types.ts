@@ -246,3 +246,15 @@ export interface AlertSettings {
   recent: { kind: 'reputation_warning' | 'sending_paused'; subject: string; created_at: string; detail: Record<string, unknown> }[];
   thresholds: { warn_bounce_rate: number; warn_complaint_rate: number; pause_bounce_rate: number; pause_complaint_rate: number };
 }
+
+export interface Delivery {
+  kind: 'broadcast' | 'transactional';
+  id: string;
+  email_id: string | null;
+  to: string;
+  subject: string;
+  status: string;
+  reason: string | null;
+  at: string;
+  delivered_at: string | null;
+}

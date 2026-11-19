@@ -2,6 +2,7 @@ package main
 
 import (
 	"forkemail/internal/alerts"
+	"forkemail/internal/deliveries"
 	"net/http"
 	"strings"
 
@@ -124,6 +125,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Put("/api/settings/reengagement", lifecycleH.Put)
 		alertsH := &alerts.Handler{Pool: pool, WarnBounceRate: cfg.WarnBounceRate, WarnComplaintRate: cfg.WarnComplaintRate, MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate}
 		api.Get("/api/settings/alerts", alertsH.Get)
+		api.Get("/api/deliveries", (&deliveries.Handler{Pool: pool}).List)
 		api.Put("/api/settings/alerts", alertsH.Put)
 		api.Get("/api/topics", contactH.Topics)
 		api.Put("/api/topics/{key}", contactH.PutTopic)
