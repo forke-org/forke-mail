@@ -4,8 +4,11 @@ import (
 	"forkemail/internal/access"
 	"forkemail/internal/alerts"
 	"forkemail/internal/deliveries"
+	"forkemail/internal/segments"
 	"forkemail/internal/team"
 	"forkemail/internal/templates"
+	"forkemail/internal/track"
+	"forkemail/internal/workflows"
 	"net/http"
 	"strings"
 
@@ -154,6 +157,27 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/templates/{id}", templatesH.Get)
 		api.Put("/api/templates/{id}", templatesH.Update)
 		api.Delete("/api/templates/{id}", templatesH.Delete)
+		segmentsH := &segments.Handler{Pool: pool}
+		api.Get("/api/segments", segmentsH.List)
+		api.Post("/api/segments", segmentsH.Create)
+		api.Post("/api/segments/preview", segmentsH.Preview)
+		api.Get("/api/segments/{id}", segmentsH.Get)
+		api.Put("/api/segments/{id}", segmentsH.Update)
+		api.Delete("/api/segments/{id}", segmentsH.Delete)
+		api.Get("/api/segments/{id}/contacts", segmentsH.Contacts)
+		trackH := &track.Handler{Pool: pool}
+		api.Post("/api/events", trackH.Track)
+		api.Get("/api/contact-events", trackH.List)
+		api.Get("/api/data", trackH.Data)
+		api.Delete("/api/data/fields/{name}", trackH.DeleteField)
+		api.Delete("/api/data/events/{name}", trackH.DeleteEvent)
+		workflowsH := &workflows.Handler{Pool: pool}
+		api.Get("/api/workflows", workflowsH.List)
+		api.Post("/api/workflows", workflowsH.Create)
+		api.Get("/api/workflows/{id}", workflowsH.Get)
+		api.Put("/api/workflows/{id}", workflowsH.Update)
+		api.Delete("/api/workflows/{id}", workflowsH.Delete)
+		api.Get("/api/workflows/{id}/runs", workflowsH.Runs)
 		api.Get("/api/team", teamH.List)
 		api.Post("/api/team/invites", teamH.InviteMember)
 		api.Delete("/api/team/invites/{id}", teamH.RevokeInvite)

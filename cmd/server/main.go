@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"forkemail/internal/alerts"
+	"forkemail/internal/workflows"
 	"log/slog"
 	"net/http"
 	"os"
@@ -120,7 +121,7 @@ func run() error {
 	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, tracker)
 	notifier := &alerts.Notifier{Pool: pool, Mail: transactional.Service{Pool: pool, Dispatcher: svc.dispatcher},
 		WorkspaceID: cfg.AlertWorkspaceID, From: cfg.AlertFrom, AppURL: cfg.PublicBaseURL}
-	tasks = append(tasks, notifier.Run)
+	tasks = append(tasks, notifier.Run, workflows.Runner{Pool: pool, Mail: transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}}.Run)
 	if cfg.SMTP() {
 		quota := relay.Quota{Pool: pool, SendRate: cfg.SendRatePerSec, DailyLimit: cfg.Relay.DailyLimit, MonthlyLimit: cfg.Relay.MonthlyLimit, Apply: worker.SetLimits}
 		usage, err := quota.Refresh(ctx)

@@ -6,6 +6,7 @@ import (
 
 	"forkemail/internal/db"
 	"forkemail/internal/httpx"
+	"forkemail/internal/segments"
 )
 
 const (
@@ -17,6 +18,7 @@ type Audience struct {
 	All        bool     `json:"all"`
 	TagIDs     []string `json:"tag_ids"`
 	ContactIDs []string `json:"contact_ids"`
+	SegmentIDs []string `json:"segment_ids"`
 	Size       int      `json:"size"`
 }
 
@@ -28,6 +30,7 @@ const audienceMatch = `c.workspace_id = $1 AND c.status = 'active'
 		EXISTS (SELECT 1 FROM emails e WHERE e.id = $2 AND e.audience_all)
 		OR EXISTS (SELECT 1 FROM email_contacts ec WHERE ec.email_id = $2 AND ec.contact_id = c.id)
 		OR EXISTS (SELECT 1 FROM email_tags et JOIN contact_tags ct ON ct.tag_id = et.tag_id WHERE et.email_id = $2 AND ct.contact_id = c.id)
+		OR EXISTS (SELECT 1 FROM email_segments es JOIN segment_contacts sc ON sc.segment_id = es.segment_id WHERE es.email_id = $2 AND sc.contact_id = c.id)
 	)`
 
 func (a Audience) validate() string {
@@ -36,6 +39,8 @@ func (a Audience) validate() string {
 		return "invalid_tag_ids"
 	case len(a.ContactIDs) > maxAudienceContacts || !httpx.ValidIDs(a.ContactIDs):
 		return "invalid_contact_ids"
+	case len(a.SegmentIDs) > maxAudienceTags || !httpx.ValidIDs(a.SegmentIDs):
+		return "invalid_segment_ids"
 	}
 	return ""
 }
@@ -70,21 +75,41 @@ func saveAudience(ctx context.Context, q db.Querier, ws, emailID string, a Audie
 	if contacts.RowsAffected() != int64(len(contactIDs)) {
 		return invalidError{"invalid_contact_ids"}
 	}
+	segmentIDs := unique(a.SegmentIDs)
+	if _, err := q.Exec(ctx, `DELETE FROM email_segments WHERE email_id = $1`, emailID); err != nil {
+		return err
+	}
+	segs, err := q.Exec(ctx, `
+		INSERT INTO email_segments (email_id, segment_id)
+		SELECT $1, s.id FROM segments s WHERE s.workspace_id = $2 AND s.id = ANY($3::uuid[])`, emailID, ws, segmentIDs)
+	if err != nil {
+		return err
+	}
+	if segs.RowsAffected() != int64(len(segmentIDs)) {
+		return invalidError{"invalid_segment_ids"}
+	}
 	return nil
 }
 
 func loadAudience(ctx context.Context, q db.Querier, ws, emailID string) (Audience, error) {
 	var a Audience
+	if err := segments.RefreshForEmail(ctx, q, ws, emailID); err != nil {
+		return a, err
+	}
 	err := q.QueryRow(ctx, `
 		SELECT e.audience_all,
 			ARRAY(SELECT tag_id::text FROM email_tags WHERE email_id = $2 ORDER BY tag_id),
 			ARRAY(SELECT contact_id::text FROM email_contacts WHERE email_id = $2 ORDER BY contact_id),
+			ARRAY(SELECT segment_id::text FROM email_segments WHERE email_id = $2 ORDER BY segment_id),
 			(SELECT COUNT(*) FROM contacts c WHERE `+audienceMatch+`)
-		FROM emails e WHERE e.id = $2 AND e.workspace_id = $1`, ws, emailID).Scan(&a.All, &a.TagIDs, &a.ContactIDs, &a.Size)
+		FROM emails e WHERE e.id = $2 AND e.workspace_id = $1`, ws, emailID).Scan(&a.All, &a.TagIDs, &a.ContactIDs, &a.SegmentIDs, &a.Size)
 	return a, err
 }
 
 func Snapshot(ctx context.Context, q db.Querier, ws, emailID string) (int64, error) {
+	if err := segments.RefreshForEmail(ctx, q, ws, emailID); err != nil {
+		return 0, err
+	}
 	tag, err := q.Exec(ctx, `
 		INSERT INTO email_recipients (email_id, workspace_id, contact_id, email)
 		SELECT $2, $1, c.id, c.email FROM contacts c WHERE `+audienceMatch+`

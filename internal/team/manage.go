@@ -29,7 +29,7 @@ type Manage struct {
 	Identities domains.Identities
 }
 
-var resetTables = []string{"email_events", "message_logs", "campaigns", "transactional_messages", "contacts", "tags", "topics", "templates", "workspace_alerts"}
+var resetTables = []string{"workflows", "segments", "email_events", "message_logs", "campaigns", "transactional_messages", "contact_events", "contacts", "tags", "topics", "templates", "workspace_alerts"}
 
 func (m *Manage) project(ctx context.Context, q pgx.Tx, ws string) (string, bool, error) {
 	var name string

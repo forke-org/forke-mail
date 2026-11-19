@@ -125,6 +125,15 @@ Intern 3 extensions are registered in cmd/server/developer.go. Domain diagnostic
 
 **Report counts** come from `email_recipients`: status counts plus `COUNT(delivered_at)`, `COUNT(bounced_at)`, `COUNT(complained_at)` and `COUNT(unsubscribed_at)`. They do not come from `email_events`.
 
+## Projects, teams and automation
+
+- **Projects.** A user can belong to several workspaces through `workspace_members` (role per project). `users.workspace_id` is the home project and a trigger keeps its membership in sync. `sessions.workspace_id` holds the active project; `/api/projects/switch` changes it. `workspaces.platform` marks Forke's own project: only Forke admins land in it, and it cannot be renamed, reset, suspended or deleted. Never identify it by name.
+- **Danger zone.** `/api/projects/current` rename, `/reset` (keeps keys, domains, webhooks, team and suppressions), `/delete` (needs another project to move to), `/leave`. `/api/account` profile, password and delete (blocked while the user is the only owner of a shared project). `accounts.RemoveMember` and `accounts.DeleteWorkspace` re-home users whose home project goes away.
+- **Templates.** `templates` with `{{variables}}`; transactional sends accept `template_id` + `data` (HTML-escaped in the body).
+- **Events and contact data.** `POST /api/events` upserts the contact, merges `contacts.data` (max 100 keys), records `contact_events` and starts workflows.
+- **Segments.** Rules compile to parameterised SQL only in `internal/segments` (fields and operators are allow-listed). Membership is materialised in `segment_contacts` and refreshed on save and before an email's audience is sized or snapshotted; `email_segments` adds segments to broadcast audiences.
+- **Workflows.** Trigger event plus linear `wait` / `send` steps. `workflows.Runner` claims due `workflow_runs` with SKIP LOCKED and sends through `transactional.Service` with idempotency key `wf-<run>-<step>`.
+
 ## Core flows
 
 ### Request pipeline
