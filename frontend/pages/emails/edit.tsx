@@ -10,8 +10,8 @@ import { api, ApiError, describeError } from '../../lib/api';
 import { plural } from '../../lib/format';
 import { useMe, useSession } from '../../lib/session';
 import { useToast } from '../../lib/toast';
-import type { Audience, Campaign, Email, Tag, Topic } from '../../lib/types';
-import { useDebounced } from '../../lib/useLoad';
+import type { Audience, Campaign, Email, Segment, Tag, Topic } from '../../lib/types';
+import { useDebounced, useLoad } from '../../lib/useLoad';
 
 const sample: Record<string, string> = { first_name: 'Ada', email: 'ada@example.com' };
 
@@ -42,7 +42,7 @@ function fromAddress(local: string, identity: string) {
 }
 
 function audienceKey(a: Audience) {
-  return JSON.stringify([a.all, [...a.tag_ids].sort(), [...a.contact_ids].sort()]);
+  return JSON.stringify([a.all, [...a.tag_ids].sort(), [...a.contact_ids].sort(), [...(a.segment_ids || [])].sort()]);
 }
 
 type Form = { subject: string; from_name: string; from_local: string; from_identity: string; reply_to: string; topic: string; html: string; text: string };
@@ -73,7 +73,10 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
     all: existing ? existing.audience.all : true,
     tag_ids: existing?.audience.tag_ids || [],
     contact_ids: existing?.audience.contact_ids || [],
+    segment_ids: existing?.audience.segment_ids || [],
   }));
+  const [segmentsState] = useLoad(() => api<{ segments: Segment[] }>('GET', '/api/segments'), []);
+  const segmentChips = (segmentsState.data?.segments || []).map((s) => ({ id: s.id, name: s.name, contacts: s.size }));
   const [busy, setBusy] = useState('');
   const [modal, setModal] = useState<'pick' | 'import' | null>(null);
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
@@ -216,7 +219,11 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
               ) : (
                 <>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[13px] font-medium text-ink-2">Contacts with any of these tags</span>
+                    <span className="text-[13px] font-medium text-ink-2">Contacts in any of these segments</span>
+                    <TagSelect tags={segmentChips} selected={audience.segment_ids || []} onChange={(segment_ids) => setAudience((a) => ({ ...a, segment_ids }))} empty="No segments yet. Create one under Audience → Segments." />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[13px] font-medium text-ink-2">Plus contacts with any of these tags</span>
                     <TagSelect tags={tags} selected={audience.tag_ids} onChange={(tag_ids) => setAudience((a) => ({ ...a, tag_ids }))} />
                   </div>
                   <div className="flex flex-col gap-2">

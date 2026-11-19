@@ -28,8 +28,39 @@ export interface Audience {
   all: boolean;
   tag_ids: string[];
   contact_ids: string[];
+  segment_ids?: string[];
   size?: number;
 }
+
+export interface SegmentRule { field: string; op: string; value: string; days?: number }
+
+export interface Segment {
+  id: string;
+  name: string;
+  match: 'all' | 'any';
+  rules: SegmentRule[];
+  size: number;
+  refreshed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkflowStep { type: 'wait' | 'send'; minutes?: number; template_id?: string; from_address?: string; from_name?: string; reply_to?: string }
+
+export interface Workflow {
+  id: string;
+  name: string;
+  trigger_event: string;
+  steps: WorkflowStep[];
+  enabled: boolean;
+  allow_reentry: boolean;
+  running: number;
+  completed: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DataUsage { name: string; count: number; last_seen?: string; used_by: string[] }
 
 export interface Email {
   id: string;

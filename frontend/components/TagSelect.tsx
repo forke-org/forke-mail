@@ -3,8 +3,8 @@ import { Check } from 'lucide-react';
 import { number } from '../lib/format';
 import type { Tag } from '../lib/types';
 
-export default function TagSelect({ tags, selected, onChange }: { tags: Tag[]; selected: string[]; onChange: (ids: string[]) => void }) {
-  if (!tags.length) return <p className="text-xs text-muted">No tags yet. Add tags when importing contacts.</p>;
+export default function TagSelect({ tags, selected, onChange, empty }: { tags: Pick<Tag, 'id' | 'name' | 'contacts'>[]; selected: string[]; onChange: (ids: string[]) => void; empty?: string }) {
+  if (!tags.length) return <p className="text-xs text-muted">{empty || 'No tags yet. Add tags when importing contacts.'}</p>;
   const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
   return (
     <div className="flex flex-wrap gap-1.5">
