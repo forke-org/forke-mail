@@ -1,8 +1,9 @@
 import clsx from 'clsx';
-import { Check, Gauge, Megaphone, Send, Users, Zap } from 'lucide-react';
+import { Gauge, Megaphone, Send, Users, Zap } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import DataTable, { Columns, Strong } from '../components/DataTable';
+import { GoalPicker, QuickStart, useGoal } from '../components/QuickStart';
 import { Badge, ButtonLink, Card, Meter, PageHeader, Skeleton, Stat } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDate, number, percent } from '../lib/format';
@@ -25,37 +26,6 @@ const breakdown: [string, string, string][] = [
   ['complained', 'Complained', 'bg-danger'],
 ];
 
-type Step = { label: string; hint: string; done: boolean; href: string; cta: string };
-
-function Checklist({ steps }: { steps: Step[] }) {
-  const done = steps.filter((s) => s.done).length;
-  if (done === steps.length) return null;
-  return (
-    <Card
-      title="Get started"
-      description={`${done} of ${steps.length} complete`}
-      actions={<Meter value={done} max={steps.length} tone="accent" className="w-28" />}
-      flush
-      className="mb-6"
-    >
-      <ol className="divide-y divide-line">
-        {steps.map((s, i) => (
-          <li key={s.label} className="flex items-center gap-4 px-5 py-3.5">
-            <span className={clsx('grid size-7 shrink-0 place-items-center rounded-[5px] text-xs font-semibold', s.done ? 'bg-success-soft text-success' : 'bg-surface-3 text-ink-2')}>
-              {s.done ? <Check className="size-3.5" /> : i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className={clsx('text-sm font-medium', s.done ? 'text-muted line-through' : 'text-ink')}>{s.label}</div>
-              <div className="text-xs text-muted">{s.hint}</div>
-            </div>
-            {s.done ? null : <ButtonLink size="sm" href={s.href}>{s.cta}</ButtonLink>}
-          </li>
-        ))}
-      </ol>
-    </Card>
-  );
-}
-
 export default function Overview() {
   const router = useRouter();
   const me = useMe();
@@ -73,13 +43,7 @@ export default function Overview() {
     { accessorKey: 'created_at', header: 'Created', cell: ({ getValue }) => <span className="text-muted">{formatDate(getValue())}</span> },
   ], []);
 
-  const steps: Step[] = d ? [
-    { label: 'Verify a sending domain', hint: 'Add a domain and publish its DNS records.', done: me.domains.length > 0, href: '/domains/', cta: 'Add domain' },
-    { label: 'Create a campaign', hint: 'Campaigns group related broadcasts, like the changelog.', done: d.campaigns > 0, href: '/campaigns/', cta: 'Create' },
-    { label: 'Add contacts', hint: 'Import a CSV and tag contacts to target them later.', done: d.contacts > 0, href: '/contacts/', cta: 'Import' },
-    { label: 'Send your first broadcast', hint: 'Write an email inside a campaign and send it.', done: d.emails_sent > 0, href: '/campaigns/', cta: 'Write' },
-    ...(superAdmin && keys ? [{ label: 'Create an API key', hint: 'Send from your own apps with the REST API.', done: keys.keys.length > 0, href: '/keys/', cta: 'Create' }] : []),
-  ] : [];
+  const [goal, setGoal] = useGoal(me.workspace.id);
 
   const events = d?.events_last_7_days || {};
   const delivered = events.delivered || 0;
@@ -100,7 +64,11 @@ export default function Overview() {
           </>
         )}
       />
-      {d ? <Checklist steps={steps} /> : null}
+      {d && !goal && (me.domains.length === 0 || d.emails_sent === 0) ? <GoalPicker onPick={setGoal} /> : null}
+      {d && goal ? (
+        <QuickStart goal={goal} domains={me.domains} hasKey={Boolean(keys && keys.keys.length)} canKeys={superAdmin} contacts={d.contacts}
+          sent={d.sent_last_7_days + d.emails_sent} campaigns={d.campaigns} email={me.user?.email || 'you@example.com'} onChange={() => setGoal(null)} />
+      ) : null}
       <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-line shadow-card lg:grid-cols-4">
         <Stat icon={Users} tone="accent" label="Contacts" value={d ? number(d.contacts) : <Skeleton className="h-8 w-16" />} hint={d ? `${number(d.active_contacts)} active` : ' '} />
         <Stat icon={Send} tone="blue" label="Sent today" value={d ? number(d.sent_today) : <Skeleton className="h-8 w-16" />} hint={d ? `${number(d.sent_last_7_days)} in the last 7 days` : ' '} />
