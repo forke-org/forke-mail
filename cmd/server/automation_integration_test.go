@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"forkemail/internal/db/dbtest"
-	"forkemail/internal/workflows"
 	"forkemail/internal/transactional"
+	"forkemail/internal/workflows"
 )
 
 func TestSegmentsEventsAndWorkflows(t *testing.T) {
