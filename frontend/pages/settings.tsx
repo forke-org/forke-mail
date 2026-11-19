@@ -1,11 +1,11 @@
-import { CalendarClock, CreditCard, Globe, HeartPulse, UserRound } from 'lucide-react';
+import { BellRing, CalendarClock, CreditCard, Globe, HeartPulse, History, UserRound } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Badge, Button, ButtonLink, Callout, Card, Checkbox, DefinitionRow, EmailFrame, Field, FormError, Input, Loading, Meter, PageHeader, Tabs, Textarea } from '../components/ui';
 import { api, describeError } from '../lib/api';
 import { number } from '../lib/format';
 import { useMe, useSession } from '../lib/session';
 import { useToast } from '../lib/toast';
-import type { Reengagement } from '../lib/types';
+import type { AlertSettings, Reengagement } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 
 const reengagementStarter = `<p>Hi {{first_name}},</p>
@@ -137,13 +137,78 @@ function ReengagementSettings() {
   );
 }
 
+const percent = (v: number) => `${Number((v * 100).toFixed(2))}%`;
+
+function Alerts() {
+  const { canManage } = useSession();
+  const toast = useToast();
+  const [state, reload] = useLoad(() => api<AlertSettings>('GET', '/api/settings/alerts'), []);
+  const [emails, setEmails] = useState(true);
+  const [slack, setSlack] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (state.data) {
+      setEmails(state.data.emails);
+      setSlack(state.data.slack_url);
+    }
+  }, [state.data]);
+
+  if (!state.data) return <Loading />;
+  const t = state.data.thresholds;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await api<AlertSettings>('PUT', '/api/settings/alerts', { emails, slack_url: slack });
+      toast('Alert settings saved.', 'success');
+      reload();
+    } catch (err) {
+      setError(describeError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-5">
+      <Callout tone="accent" title="Warnings come before the pause">
+        You get a warning when the last 30 days pass {percent(t.warn_bounce_rate)} bounces or {percent(t.warn_complaint_rate)} spam reports, at most once a day.
+        Sending pauses automatically at {percent(t.pause_bounce_rate)} bounces or {percent(t.pause_complaint_rate)} spam reports, which protects your domain. Webhooks also receive workspace.reputation_warning and workspace.sending_paused.
+      </Callout>
+      <Card title="Where to send alerts" icon={BellRing}>
+        <div className="flex flex-col gap-4">
+          <Checkbox label="Email everyone in this workspace" checked={emails} disabled={!canManage} onChange={(e) => setEmails(e.target.checked)} />
+          <Field label="Slack incoming webhook" hint="Optional. In Slack, add the Incoming Webhooks app to a channel and paste its link here.">
+            <Input placeholder="https://hooks.slack.com/services/..." value={slack} disabled={!canManage} onChange={(e) => setSlack(e.target.value)} />
+          </Field>
+        </div>
+      </Card>
+      <Card title="Recent alerts" icon={History}>
+        {state.data.recent.length ? state.data.recent.map((a, i) => (
+          <DefinitionRow key={i} label={<span className="text-ink">{a.subject}</span>}>
+            <span className="flex items-center gap-3"><span className="text-xs text-muted tabular-nums">{new Date(a.created_at).toLocaleString()}</span><Badge value={a.kind} /></span>
+          </DefinitionRow>
+        )) : <p className="text-[13px] text-muted">No alerts yet. Your bounce and spam report rates are within the safe range.</p>}
+      </Card>
+      <FormError>{error}</FormError>
+      {canManage ? (
+        <div className="flex justify-end"><Button variant="primary" type="submit" loading={busy}>Save alerts</Button></div>
+      ) : <p className="text-xs text-muted">Only workspace owners can change alerts.</p>}
+    </form>
+  );
+}
+
 export default function Settings() {
-  const [tab, setTab] = useState<'general' | 'reengagement'>('general');
+  const [tab, setTab] = useState<'general' | 'reengagement' | 'alerts'>('general');
   return (
     <>
       <PageHeader title="Settings" description="Plan, usage, sending identities and list hygiene for this workspace." />
-      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['reengagement', 'Re-engagement']]} />
-      {tab === 'general' ? <General /> : <ReengagementSettings />}
+      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement']]} />
+      {tab === 'general' ? <General /> : tab === 'alerts' ? <Alerts /> : <ReengagementSettings />}
     </>
   );
 }

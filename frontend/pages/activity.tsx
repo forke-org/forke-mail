@@ -10,7 +10,7 @@ import type { EventRow } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 
 const stage: Record<string, number> = {
-  queued: 0, sending_paused: 1, delayed: 1, sent: 2, delivered: 3, opened: 4, clicked: 5,
+  queued: 0, sending_paused: 1, reputation_warning: 1, delayed: 1, sent: 2, delivered: 3, opened: 4, clicked: 5,
   soft_bounced: 6, unsubscribed: 6, rejected: 7, failed: 7, bounced: 7, complained: 8,
 };
 
@@ -31,7 +31,7 @@ function latestPerMessage(events: EventRow[]): Thread[] {
   return [...threads.values()].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
-const types = ['sent', 'delivered', 'opened', 'clicked', 'bounced', 'soft_bounced', 'complained', 'unsubscribed', 'rejected', 'delayed', 'failed', 'queued', 'sending_paused'];
+const types = ['sent', 'delivered', 'opened', 'clicked', 'bounced', 'soft_bounced', 'complained', 'unsubscribed', 'rejected', 'delayed', 'failed', 'queued', 'reputation_warning', 'sending_paused'];
 
 export default function Activity() {
   const router = useRouter();

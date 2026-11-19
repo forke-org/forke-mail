@@ -53,6 +53,7 @@ const messages: Record<string, string> = {
   ses_request_failed: 'The email provider rejected the request. Try again in a moment.',
   invalid_from_address: 'Enter a valid from address.',
   invalid_subject: 'Enter a subject.',
+  invalid_slack_url: 'Paste a Slack incoming webhook link. It starts with https://hooks.slack.com/.',
   missing_body: 'Write some content for your email.',
   trial_cannot_create_full_access_key: 'Trial workspaces can only create sending access keys.',
   last_full_access_key: 'You cannot revoke the last full access key.',

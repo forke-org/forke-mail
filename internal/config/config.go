@@ -30,6 +30,10 @@ type Config struct {
 	Relay               relay.Config
 	SESTestEmail        string
 	MaxBounceRate       float64
+	WarnBounceRate      float64
+	WarnComplaintRate   float64
+	AlertWorkspaceID    string
+	AlertFrom           string
 	MaxComplaintRate    float64
 	ReputationMinSample int
 	SendRatePerSec      float64
@@ -86,6 +90,10 @@ func Load() (Config, error) {
 	c.MaxBounceRate = fraction(&errs, "MAX_BOUNCE_RATE", 0.05)
 	c.MaxComplaintRate = fraction(&errs, "MAX_COMPLAINT_RATE", 0.001)
 	c.ReputationMinSample = int(number(&errs, "REPUTATION_MIN_SAMPLE", 100))
+	c.WarnBounceRate = fraction(&errs, "WARN_BOUNCE_RATE", 0.02)
+	c.WarnComplaintRate = fraction(&errs, "WARN_COMPLAINT_RATE", 0.0005)
+	c.AlertWorkspaceID = os.Getenv("ALERT_WORKSPACE_ID")
+	c.AlertFrom = orDefault(os.Getenv("ALERT_FROM"), "alerts@forke.space")
 
 	if c.DatabaseURL == "" {
 		errs = append(errs, errors.New("DATABASE_URL is required"))

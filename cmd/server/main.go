@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"forkemail/internal/alerts"
 	"log/slog"
 	"net/http"
 	"os"
@@ -80,6 +81,7 @@ func run() error {
 	lim := limiters{public: ratelimit.NewStore(), keys: ratelimit.NewStore(), failures: ratelimit.NewStore()}
 	processor := &feedback.Processor{Pool: pool, Reputation: feedback.Thresholds{
 		MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate, MinSample: cfg.ReputationMinSample,
+		WarnBounceRate: cfg.WarnBounceRate, WarnComplaintRate: cfg.WarnComplaintRate,
 	}}
 	svc := services{identities: domains.Local{}, feedback: processor, sendingMode: func() string { return "log" }, admins: admins}
 	var tasks []func(context.Context)
@@ -116,6 +118,9 @@ func run() error {
 	tracker := tracking.NewTracker([]byte(cfg.UnsubscribeSecret), cfg.PublicBaseURL)
 	worker.Tracker = &tracker
 	svc.dispatcher = transactional.NewDispatcher(pool, mailer, worker, tracker)
+	notifier := &alerts.Notifier{Pool: pool, Mail: transactional.Service{Pool: pool, Dispatcher: svc.dispatcher},
+		WorkspaceID: cfg.AlertWorkspaceID, From: cfg.AlertFrom, AppURL: cfg.PublicBaseURL}
+	tasks = append(tasks, notifier.Run)
 	if cfg.SMTP() {
 		quota := relay.Quota{Pool: pool, SendRate: cfg.SendRatePerSec, DailyLimit: cfg.Relay.DailyLimit, MonthlyLimit: cfg.Relay.MonthlyLimit, Apply: worker.SetLimits}
 		usage, err := quota.Refresh(ctx)

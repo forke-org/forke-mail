@@ -59,3 +59,48 @@ func TestReputationGuardPausesWorkspace(t *testing.T) {
 		t.Fatalf("sending_paused events = %s", got)
 	}
 }
+
+func TestWarn(t *testing.T) {
+	th := Thresholds{MaxBounceRate: 0.05, WarnBounceRate: 0.02, MaxComplaintRate: 0.001, WarnComplaintRate: 0.0005, MinSample: 100}
+	cases := []struct {
+		s    Stats
+		want string
+	}{
+		{Stats{Sent: 50, Bounced: 5}, ""},
+		{Stats{Sent: 100, Bounced: 2}, ""},
+		{Stats{Sent: 100, Bounced: 3}, "bounce_rate_high"},
+		{Stats{Sent: 2000, Complained: 1}, ""},
+		{Stats{Sent: 2000, Complained: 2}, "complaint_rate_high"},
+	}
+	for _, c := range cases {
+		if got := th.Warn(c.s); got != c.want {
+			t.Errorf("%+v = %q, want %q", c.s, got, c.want)
+		}
+	}
+}
+
+func TestReputationWarningBeforePause(t *testing.T) {
+	f := setup(t)
+	f.p.Reputation = Thresholds{MaxBounceRate: 0.5, WarnBounceRate: 0.05, MaxComplaintRate: 0.5, MinSample: 20}
+	var ids, mids []string
+	for i := 0; i < 20; i++ {
+		rid, mid := f.recipient(t, fmt.Sprintf("w%d@x.io", i))
+		ids, mids = append(ids, rid), append(mids, mid)
+	}
+	for i := 0; i < 3; i++ {
+		f.handle(t, "", f.event("Bounce", mids[i], ids[i], bounce("Permanent", "General")))
+	}
+	if got := f.count(t, `SELECT sending_paused::text || ':' || (reputation_warned_at IS NOT NULL)::text FROM workspaces WHERE id = $1`, f.ws); got != "false:true" {
+		t.Fatalf("workspace = %s", got)
+	}
+	if got := f.count(t, `SELECT COUNT(*)::text || ':' || MIN(kind) || ':' || MIN(detail->>'reason') FROM workspace_alerts WHERE workspace_id = $1`, f.ws); got != "1:reputation_warning:bounce_rate_high" {
+		t.Fatalf("alerts = %s", got)
+	}
+	if got := f.count(t, `SELECT COUNT(*)::text FROM email_events WHERE workspace_id = $1 AND type = 'reputation_warning'`, f.ws); got != "1" {
+		t.Fatalf("warning events = %s", got)
+	}
+	f.handle(t, "", f.event("Bounce", mids[5], ids[5], bounce("Permanent", "General")))
+	if got := f.count(t, `SELECT COUNT(*)::text FROM workspace_alerts WHERE workspace_id = $1`, f.ws); got != "1" {
+		t.Fatalf("warned twice in a day: %s", got)
+	}
+}

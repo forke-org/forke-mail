@@ -71,6 +71,8 @@ var routeScopes = map[string][]string{
 	"DELETE /api/suppressions/{id}":                            manage,
 	"GET /api/settings/reengagement":                           workspace,
 	"PUT /api/settings/reengagement":                           manage,
+	"GET /api/settings/alerts":                                 workspace,
+	"PUT /api/settings/alerts":                                 manage,
 	"GET /api/topics":                                          workspace,
 	"PUT /api/topics/{key}":                                    workspace,
 	"POST /api/forke-mail/emails":                              anyone,

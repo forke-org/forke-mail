@@ -113,7 +113,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
   - `quota_day`/`quota_trial` record the reservation so failures can release it.
   - Outcomes: `sent_at`, `delivered_at`, `bounced_at`, `bounce_type`, `complained_at`, `opened_at`/`open_count`, `clicked_at`/`click_count`. `html` is stored unmodified; tracking is applied at render time.
 - **`email_events`**: an append-only log.
-  - `type`: `queued`, `sent`, `delivered`, `bounced`, `soft_bounced`, `complained`, `unsubscribed`, `failed`, `rejected`, `delayed`, `sending_paused`, `opened`, `clicked`.
+  - `type`: `queued`, `sent`, `delivered`, `bounced`, `soft_bounced`, `complained`, `unsubscribed`, `failed`, `rejected`, `delayed`, `sending_paused`, `reputation_warning`, `opened`, `clicked`.
   - Either `email_id` + `recipient_id` (broadcast) or `message_id` (transactional). Also `detail` jsonb, `ses_message_id`.
 - **`message_logs`**: rendered messages written by `LogSender`. Exactly one of `recipient_id` or `message_id` is set.
 - **`usage_daily`**: `(workspace_id, date, sent_count)` for daily limits.
@@ -241,6 +241,8 @@ The webhook returns 200 for every verified message, including duplicates, unknow
 - record a workspace-level `sending_paused` event.
 
 Clearing the pause is manual (SQL).
+
+Below the pause limits, `Thresholds.Warn` (`WARN_BOUNCE_RATE`, default 2%; `WARN_COMPLAINT_RATE`, default 0.05%) sets `workspaces.reputation_warned_at` at most once per 24 h and records a `reputation_warning` event. Both warnings and pauses insert a `workspace_alerts` row. `internal/alerts.Notifier` sends each pending row by email to the workspace's users (as a transactional message from `ALERT_WORKSPACE_ID`, `ALERT_FROM`) and to `workspaces.alert_slack_url` (only `https://hooks.slack.com/` links), then sets `notified_at`. `GET/PUT /api/settings/alerts` manages the settings. Workspace webhook events carry the alert detail in `data`.
 
 ### Suppression checkpoints
 

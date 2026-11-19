@@ -275,13 +275,13 @@ const toneClass: Record<Tone, string> = {
 const badgeTones: Record<string, Tone> = {
   active: 'green', sent: 'green', delivered: 'green', done: 'green', verified: 'green', paid: 'accent', production: 'green',
   sending: 'blue', queued: 'blue', scheduled: 'blue', sending_access: 'blue', draft: 'neutral',
-  trial: 'amber', pending: 'amber', delayed: 'amber', soft_bounced: 'amber', paused: 'amber', skipped: 'amber', unsubscribed: 'amber', sandbox: 'amber',
+  trial: 'amber', pending: 'amber', delayed: 'amber', soft_bounced: 'amber', paused: 'amber', skipped: 'amber', unsubscribed: 'amber', sandbox: 'amber', reputation_warning: 'amber',
   bounced: 'red', complained: 'red', failed: 'red', invalid: 'red', revoked: 'red', rejected: 'red', sending_paused: 'red',
   full_access: 'accent', opened: 'accent', clicked: 'accent', super_admin: 'accent', admin: 'blue',
 };
 
 const badgeLabels: Record<string, string> = {
-  done: 'sent', full_access: 'full access', sending_access: 'sending access', soft_bounced: 'soft bounce', super_admin: 'owner',
+  done: 'sent', full_access: 'full access', sending_access: 'sending access', soft_bounced: 'soft bounce', reputation_warning: 'reputation warning', sending_paused: 'sending paused', super_admin: 'owner',
 };
 
 export function Badge({ value, tone, dot = true, children }: { value?: string; tone?: Tone; dot?: boolean; children?: ReactNode }) {

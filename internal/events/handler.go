@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var types = []string{"queued", "sent", "delivered", "bounced", "soft_bounced", "complained", "unsubscribed", "failed", "rejected", "delayed", "sending_paused", "opened", "clicked"}
+var types = []string{"queued", "sent", "delivered", "bounced", "soft_bounced", "complained", "unsubscribed", "failed", "rejected", "delayed", "sending_paused", "reputation_warning", "opened", "clicked"}
 
 type Handler struct {
 	Pool        *pgxpool.Pool

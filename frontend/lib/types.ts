@@ -239,3 +239,10 @@ export interface WebhookDelivery {
   created_at: string;
   finished_at: string | null;
 }
+
+export interface AlertSettings {
+  emails: boolean;
+  slack_url: string;
+  recent: { kind: 'reputation_warning' | 'sending_paused'; subject: string; created_at: string; detail: Record<string, unknown> }[];
+  thresholds: { warn_bounce_rate: number; warn_complaint_rate: number; pause_bounce_rate: number; pause_complaint_rate: number };
+}
