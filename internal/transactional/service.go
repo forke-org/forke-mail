@@ -2,7 +2,9 @@ package transactional
 
 import (
 	"context"
+	"errors"
 	"forkemail/internal/auth"
+	"forkemail/internal/templates"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,6 +26,24 @@ func isValidation(err error) bool        { _, ok := err.(*validationError); retu
 func (s Service) Accept(ctx context.Context, who auth.Identity, key string, req Submission) (Acceptance, error) {
 	if key != "" && !validIdempotencyKey(key) {
 		return Acceptance{}, &validationError{"invalid_idempotency_key", 400}
+	}
+	if req.TemplateID != "" {
+		if len(req.Data) > 100 {
+			return Acceptance{}, &validationError{"too_many_variables", 422}
+		}
+		subject, html, text, err := templates.Render(ctx, s.Pool, who.WorkspaceID, req.TemplateID, req.Data)
+		if errors.Is(err, templates.ErrNotFound) {
+			return Acceptance{}, &validationError{"template_not_found", 404}
+		}
+		if err != nil {
+			return Acceptance{}, err
+		}
+		if req.Subject == "" {
+			req.Subject = subject
+		}
+		if req.HTML == "" && req.Text == "" {
+			req.HTML, req.Text = html, text
+		}
 	}
 	req.normalize()
 	if code := req.validate(); code != "" {

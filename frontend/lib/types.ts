@@ -258,3 +258,15 @@ export interface Delivery {
   at: string;
   delivered_at: string | null;
 }
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  kind: 'transactional' | 'marketing';
+  subject: string;
+  html: string;
+  text: string;
+  variables: string[];
+  created_at: string;
+  updated_at: string;
+}

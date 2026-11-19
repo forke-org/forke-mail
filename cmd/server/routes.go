@@ -5,6 +5,7 @@ import (
 	"forkemail/internal/alerts"
 	"forkemail/internal/deliveries"
 	"forkemail/internal/team"
+	"forkemail/internal/templates"
 	"net/http"
 	"strings"
 
@@ -136,6 +137,12 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/projects", projectsH.List)
 		api.Post("/api/projects", projectsH.Create)
 		api.Post("/api/projects/switch", projectsH.Switch)
+		templatesH := &templates.Handler{Pool: pool}
+		api.Get("/api/templates", templatesH.List)
+		api.Post("/api/templates", templatesH.Create)
+		api.Get("/api/templates/{id}", templatesH.Get)
+		api.Put("/api/templates/{id}", templatesH.Update)
+		api.Delete("/api/templates/{id}", templatesH.Delete)
 		api.Get("/api/team", teamH.List)
 		api.Post("/api/team/invites", teamH.InviteMember)
 		api.Delete("/api/team/invites/{id}", teamH.RevokeInvite)

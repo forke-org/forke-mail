@@ -1,5 +1,5 @@
 import {
-  Activity, Ban, MailSearch, Globe, Hash, KeyRound, Webhook, LayoutDashboard, Megaphone, Settings, Users, Zap, type LucideIcon,
+  Activity, Ban, FileText, MailSearch, Globe, Hash, KeyRound, Webhook, LayoutDashboard, Megaphone, Settings, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -18,6 +18,7 @@ export const navGroups: { label: string | null; items: NavItem[] }[] = [
     items: [
       { href: '/campaigns/', label: 'Broadcasts', icon: Megaphone, match: ['/campaigns', '/emails'], keywords: 'campaigns emails newsletter' },
       { href: '/transactional/', label: 'Transactional', icon: Zap, keywords: 'api messages otp receipts' },
+      { href: '/templates/', label: 'Templates', icon: FileText, keywords: 'reusable layouts variables editor' },
       { href: '/deliveries/', label: 'Deliveries', icon: MailSearch, keywords: 'search failed bounced spam logs delivery' },
       { href: '/activity/', label: 'Activity', icon: Activity, keywords: 'events logs delivered bounced' },
     ],

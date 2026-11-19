@@ -32,6 +32,8 @@ type request struct {
 	Tags        map[string]string `json:"tags"`
 	TrackOpens  bool              `json:"track_opens"`
 	TrackClicks bool              `json:"track_clicks"`
+	TemplateID  string            `json:"template_id"`
+	Data        map[string]string `json:"data"`
 }
 
 func (r *request) normalize() {
