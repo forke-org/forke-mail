@@ -34,6 +34,10 @@ type Config struct {
 	WarnComplaintRate   float64
 	AlertWorkspaceID    string
 	AlertFrom           string
+	InviteFrom          string
+	PlatformToken       string
+	BetaSendLimit       int
+	BetaDailyLimit      int
 	MaxComplaintRate    float64
 	ReputationMinSample int
 	SendRatePerSec      float64
@@ -94,6 +98,10 @@ func Load() (Config, error) {
 	c.WarnComplaintRate = fraction(&errs, "WARN_COMPLAINT_RATE", 0.0005)
 	c.AlertWorkspaceID = os.Getenv("ALERT_WORKSPACE_ID")
 	c.AlertFrom = orDefault(os.Getenv("ALERT_FROM"), "alerts@forke.space")
+	c.InviteFrom = orDefault(os.Getenv("INVITE_FROM"), "hello@forke.space")
+	c.PlatformToken = os.Getenv("PLATFORM_ADMIN_TOKEN")
+	c.BetaSendLimit = int(number(&errs, "BETA_SEND_LIMIT", 3000))
+	c.BetaDailyLimit = int(number(&errs, "BETA_DAILY_LIMIT", 300))
 
 	if c.DatabaseURL == "" {
 		errs = append(errs, errors.New("DATABASE_URL is required"))

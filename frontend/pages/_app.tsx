@@ -12,7 +12,7 @@ import { SessionProvider, useSession } from '../lib/session';
 import { ToastProvider } from '../lib/toast';
 import '../styles/globals.css';
 
-const publicPaths = ['/login'];
+const publicPaths = ['/login', '/welcome'];
 
 function Shell({ Component, pageProps }: AppProps) {
   const { status } = useSession();

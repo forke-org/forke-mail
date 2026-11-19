@@ -1,6 +1,7 @@
 package main
 
 import (
+	"forkemail/internal/access"
 	"forkemail/internal/alerts"
 	"forkemail/internal/deliveries"
 	"net/http"
@@ -183,6 +184,17 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	r.Group(func(public chi.Router) {
 		public.Use(publicLimit)
 		public.Post("/api/auth/login", account.Login)
+		accessH := &access.Public{Pool: pool, SecureCookies: secureCookies, Workspace: access.WorkspaceDefaults{SendLimit: cfg.BetaSendLimit, DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5}}
+		public.Post("/api/access/request", accessH.Request)
+		public.Get("/api/access/invite", accessH.Invite)
+		public.Post("/api/access/invite", accessH.Accept)
+		if cfg.PlatformToken != "" {
+			platform := &access.Platform{Pool: pool, Token: cfg.PlatformToken, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL}
+			if svc.dispatcher != nil {
+				platform.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
+			}
+			platform.Routes(public)
+		}
 		public.Get("/unsubscribe/{token}", unsubH.Confirm)
 		public.Post("/unsubscribe/{token}", unsubH.Unsubscribe)
 		public.Post("/preferences/{token}", unsubH.Update)

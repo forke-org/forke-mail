@@ -65,6 +65,9 @@ func (h *Handler) authenticate(ctx context.Context, login, password string) (str
 		return localLogin(ctx, h.Pool, login, password)
 	}
 	admin, err := h.Admins.Authenticate(ctx, login, password)
+	if errors.Is(err, forke.ErrInvalidCredentials) {
+		return localLogin(ctx, h.Pool, login, password)
+	}
 	if err != nil {
 		return "", err
 	}
@@ -85,7 +88,8 @@ func localLogin(ctx context.Context, pool *pgxpool.Pool, login, password string)
 	var hash *string
 	err := pool.QueryRow(ctx, `
 		SELECT u.id, u.password_hash, w.status FROM users u JOIN workspaces w ON w.id = u.workspace_id
-		WHERE lower(u.email) = $1`, contacts.NormalizeEmail(login)).Scan(&userID, &hash, &status)
+		WHERE u.forke_admin_id IS NULL AND (lower(u.email) = $1 OR lower(u.username) = $1)
+		ORDER BY lower(u.email) = $1 DESC LIMIT 1`, contacts.NormalizeEmail(login)).Scan(&userID, &hash, &status)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return "", err
 	}

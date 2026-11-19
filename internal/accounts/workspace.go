@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var errEmailTaken = errors.New("email_taken")
+var ErrEmailTaken = errors.New("email_taken")
 
 type NewWorkspace struct {
 	Name           string
@@ -49,7 +49,7 @@ func CreateUser(ctx context.Context, tx pgx.Tx, workspaceID, name, email, passwo
 		INSERT INTO users (workspace_id, name, email, password_hash) VALUES ($1, $2, lower($3), $4)
 		ON CONFLICT (lower(email)) DO NOTHING RETURNING id`, workspaceID, name, email, hash).Scan(&id)
 	if err == pgx.ErrNoRows {
-		return "", errEmailTaken
+		return "", ErrEmailTaken
 	}
 	return id, err
 }
