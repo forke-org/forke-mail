@@ -182,6 +182,9 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Post("/preferences/{token}", unsubH.Update)
 		public.Get("/t/o/{token}", trackH.Open)
 		public.Get("/t/c/{token}", trackH.Click)
+		public.Method(http.MethodGet, "/api/public/status", &events.PublicStatus{Pool: pool, MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate})
+		public.Get("/status", redirectTo(cfg.StatusPageURL+"/#mail"))
+		public.Get("/status/", redirectTo(cfg.StatusPageURL+"/#mail"))
 		if cfg.Development() {
 			seedH := &seed.Handler{Pool: pool, Token: cfg.SeedToken, Failures: failures, SES: cfg.SES(), SESTestEmail: cfg.SESTestEmail}
 			public.Post("/dev/seed", seedH.Seed)
@@ -190,4 +193,10 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Handle("/*", frontend.Handler())
 	})
 	return r
+}
+
+func redirectTo(target string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, target, http.StatusFound)
+	}
 }

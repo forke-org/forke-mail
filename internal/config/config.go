@@ -21,6 +21,7 @@ type Config struct {
 	ForkeDatabaseURL    string
 	ForkeWorkspace      string
 	PublicBaseURL       string
+	StatusPageURL       string
 	UnsubscribeSecret   string
 	SeedToken           string
 	TrustedProxy        netip.Prefix
@@ -65,6 +66,7 @@ func Load() (Config, error) {
 		ForkeDatabaseURL:  os.Getenv("FORKE_DATABASE_URL"),
 		ForkeWorkspace:    strings.TrimSpace(get("FORKE_WORKSPACE_NAME", "Forke")),
 		PublicBaseURL:     os.Getenv("PUBLIC_BASE_URL"),
+		StatusPageURL:     orDefault(os.Getenv("STATUS_PAGE_URL"), "https://status.forke.space"),
 		UnsubscribeSecret: os.Getenv("UNSUBSCRIBE_SECRET"),
 		SeedToken:         os.Getenv("SEED_TOKEN"),
 		SenderDriver:      get("SENDER_DRIVER", "log"),
@@ -223,4 +225,11 @@ func parsePrefix(raw string) (netip.Prefix, error) {
 		return netip.Prefix{}, err
 	}
 	return netip.PrefixFrom(addr, addr.BitLen()), nil
+}
+
+func orDefault(v, fallback string) string {
+	if strings.TrimSpace(v) == "" {
+		return fallback
+	}
+	return strings.TrimSpace(v)
 }
