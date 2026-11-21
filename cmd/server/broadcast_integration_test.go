@@ -127,3 +127,36 @@ func TestBroadcastAPIToSignedWebhook(t *testing.T) {
 		t.Fatal("broadcast notification missing")
 	}
 }
+
+func TestWarmupCapsBroadcasts(t *testing.T) {
+	f := newAPIFixture(t)
+	domain := f.ws + ".warmup.test"
+	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified')`, f.ws, domain)
+	dbtest.Exec(t, f.pool, `UPDATE workspaces SET warmup_until = now() + interval '14 days' WHERE id = $1`, f.ws)
+	dbtest.Exec(t, f.pool, `INSERT INTO contacts (workspace_id, email) SELECT $1, 'w' || g || '@example.com' FROM generate_series(1, 250) g`, f.ws)
+	var me struct {
+		Warmup struct {
+			Active bool
+			Day    int
+			Cap    int
+		}
+	}
+	json.Unmarshal(f.request("GET", "/api/me", "", "").Body.Bytes(), &me)
+	if !me.Warmup.Active || me.Warmup.Day != 1 || me.Warmup.Cap != 200 {
+		t.Fatalf("warmup %+v", me.Warmup)
+	}
+	w := f.request("POST", "/api/campaigns", `{"name":"Warm"}`, "")
+	var campaign struct{ ID string }
+	json.Unmarshal(w.Body.Bytes(), &campaign)
+	w = f.request("POST", "/api/campaigns/"+campaign.ID+"/emails", `{"subject":"Hi","from_address":"me@`+domain+`","text":"Hello","audience":{"all":true}}`, "")
+	var email struct{ ID string }
+	json.Unmarshal(w.Body.Bytes(), &email)
+	w = f.request("POST", "/api/emails/"+email.ID+"/send", "", "")
+	if w.Code != 409 || !strings.Contains(w.Body.String(), `"warmup_limit"`) || !strings.Contains(w.Body.String(), `"remaining":200`) {
+		t.Fatalf("warmup not enforced %d %s", w.Code, w.Body)
+	}
+	dbtest.Exec(t, f.pool, `UPDATE workspaces SET warmup_until = NULL WHERE id = $1`, f.ws)
+	if w := f.request("POST", "/api/emails/"+email.ID+"/send", "", ""); w.Code != 200 && w.Code != 202 {
+		t.Fatalf("send after warmup %d %s", w.Code, w.Body)
+	}
+}

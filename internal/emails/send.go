@@ -21,6 +21,15 @@ func (e *quotaError) Error() string {
 	return fmt.Sprintf("trial quota exceeded: %d remaining, %d required", e.remaining, e.required)
 }
 
+type warmupError struct {
+	warmup   workspaces.Warmup
+	required int64
+}
+
+func (e *warmupError) Error() string {
+	return fmt.Sprintf("warm-up limit: %d remaining today, %d required", e.warmup.Remaining(), e.required)
+}
+
 type monthlyError struct {
 	remaining int64
 	required  int64
@@ -93,6 +102,13 @@ func Launch(ctx context.Context, tx pgx.Tx, ws, id string) (int64, error) {
 	}
 	if plan == "trial" && n > int64(remaining) {
 		return 0, &quotaError{remaining: remaining, required: n}
+	}
+	warmup, err := workspaces.LoadWarmup(ctx, tx, ws)
+	if err != nil {
+		return 0, err
+	}
+	if warmup.Active && n > int64(warmup.Remaining()) {
+		return 0, &warmupError{warmup: warmup, required: n}
 	}
 	if err := checkMonthlyRoom(ctx, tx, n); err != nil {
 		return 0, err

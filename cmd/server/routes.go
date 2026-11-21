@@ -139,7 +139,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		if svc.dispatcher != nil {
 			teamH.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
 		}
-		projectsH := &team.Projects{Pool: pool, MaxProjects: cfg.MaxProjects, Defaults: accounts.NewWorkspace{Plan: "trial", DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5}}
+		projectsH := &team.Projects{Pool: pool, MaxProjects: cfg.MaxProjects, Defaults: accounts.NewWorkspace{Plan: "trial", DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5, Warmup: true}}
 		api.Get("/api/projects", projectsH.List)
 		api.Post("/api/projects", projectsH.Create)
 		api.Post("/api/projects/switch", projectsH.Switch)

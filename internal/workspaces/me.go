@@ -25,6 +25,7 @@ type meResponse struct {
 	Domains    []string     `json:"domains"`
 	Quota      meQuota      `json:"quota"`
 	RateLimits meRateLimits `json:"rate_limits"`
+	Warmup     Warmup       `json:"warmup"`
 }
 
 type meWorkspace struct {
@@ -84,6 +85,10 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		&resp.Workspace.SendingPaused, &resp.Workspace.PauseReason, &resp.Workspace.Platform,
 		&resp.Quota.TrialUsed, &resp.Quota.TrialLimit, &resp.Quota.DailyLimit, &configuredRate, &resp.Quota.SentToday)
 	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	if resp.Warmup, err = LoadWarmup(r.Context(), h.Pool, id.WorkspaceID); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

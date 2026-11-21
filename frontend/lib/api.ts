@@ -131,6 +131,9 @@ export function describeError(err: unknown): string {
   if (err.message === 'trial_quota_exceeded') {
     return `This email needs ${err.body.required} sends but your trial has ${err.body.remaining} left.`;
   }
+  if (err.message === 'warmup_limit') {
+    return `New projects warm up for 14 days to protect deliverability. Today (day ${err.body.day}) you can send ${Number(err.body.remaining).toLocaleString()} more broadcast emails, and this one needs ${Number(err.body.required).toLocaleString()}. Send it to a smaller segment today, or tomorrow when the limit grows.`;
+  }
   if (err.message === 'monthly_limit_insufficient') {
     return `This email needs ${Number(err.body.required).toLocaleString()} sends but only ${Number(err.body.remaining).toLocaleString()} are left this month.`;
   }

@@ -107,7 +107,7 @@ func (p *Public) Accept(w http.ResponseWriter, r *http.Request) {
 			return errUsernameTaken
 		}
 		ws, err := accounts.CreateWorkspace(r.Context(), tx, accounts.NewWorkspace{
-			Name: body.Workspace, Plan: "trial", DailyLimit: p.Workspace.DailyLimit, RatePerSec: p.Workspace.RatePerSec, TrialSendLimit: p.Workspace.SendLimit,
+			Name: body.Workspace, Plan: "trial", DailyLimit: p.Workspace.DailyLimit, RatePerSec: p.Workspace.RatePerSec, TrialSendLimit: p.Workspace.SendLimit, Warmup: true,
 		})
 		if err != nil {
 			return err

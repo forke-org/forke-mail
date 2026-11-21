@@ -35,6 +35,7 @@ type Account struct {
 	CreditsUsed   int        `json:"credits_used"`
 	DailyLimit    int        `json:"daily_limit"`
 	RatePerSec    int        `json:"rate_limit_per_sec"`
+	WarmupUntil   *time.Time `json:"warmup_until"`
 	Sent30d       int        `json:"sent_30d"`
 	SentTotal     int        `json:"sent_total"`
 	Contacts      int        `json:"contacts"`
@@ -47,7 +48,7 @@ type Account struct {
 
 func (p *Platform) Accounts(w http.ResponseWriter, r *http.Request) {
 	rows, err := p.Pool.Query(r.Context(), `
-		SELECT w.id, w.name, w.plan, w.status, w.platform, w.trial_send_limit, w.trial_sent_count, w.daily_limit, w.rate_limit_per_sec, w.sending_paused, w.created_at,
+		SELECT w.id, w.name, w.plan, w.status, w.platform, w.trial_send_limit, w.trial_sent_count, w.daily_limit, w.rate_limit_per_sec, CASE WHEN w.warmup_until > now() THEN w.warmup_until END, w.sending_paused, w.created_at,
 			COALESCE(s.sent_30d, 0), COALESCE(s.sent_total, 0), s.last_sent_at,
 			(SELECT COUNT(*) FROM contacts c WHERE c.workspace_id = w.id),
 			COALESCE((SELECT array_agg(d.name ORDER BY d.name) FROM domains d WHERE d.workspace_id = w.id AND d.status = 'verified'), '{}'),
@@ -70,7 +71,7 @@ func (p *Platform) Accounts(w http.ResponseWriter, r *http.Request) {
 	}
 	list, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (Account, error) {
 		var a Account
-		return a, row.Scan(&a.ID, &a.Name, &a.Plan, &a.Status, &a.Forke, &a.Credits, &a.CreditsUsed, &a.DailyLimit, &a.RatePerSec, &a.SendingPaused, &a.CreatedAt,
+		return a, row.Scan(&a.ID, &a.Name, &a.Plan, &a.Status, &a.Forke, &a.Credits, &a.CreditsUsed, &a.DailyLimit, &a.RatePerSec, &a.WarmupUntil, &a.SendingPaused, &a.CreatedAt,
 			&a.Sent30d, &a.SentTotal, &a.LastSentAt, &a.Contacts, &a.Domains, &a.Members)
 	})
 	if err != nil {
@@ -218,6 +219,7 @@ func (p *Platform) SetLimits(w http.ResponseWriter, r *http.Request) {
 		Plan       string `json:"plan"`
 		DailyLimit int    `json:"daily_limit"`
 		RatePerSec int    `json:"rate_limit_per_sec"`
+		EndWarmup  bool   `json:"end_warmup"`
 	}
 	if !httpx.Decode(w, r, &body) {
 		return
@@ -233,7 +235,9 @@ func (p *Platform) SetLimits(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_rate")
 		return
 	}
-	tag, err := p.Pool.Exec(r.Context(), `UPDATE workspaces SET plan = $2, daily_limit = $3, rate_limit_per_sec = $4 WHERE id = $1`, id, body.Plan, body.DailyLimit, body.RatePerSec)
+	tag, err := p.Pool.Exec(r.Context(), `
+		UPDATE workspaces SET plan = $2, daily_limit = $3, rate_limit_per_sec = $4, warmup_until = CASE WHEN $5 THEN NULL ELSE warmup_until END
+		WHERE id = $1`, id, body.Plan, body.DailyLimit, body.RatePerSec, body.EndWarmup)
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return

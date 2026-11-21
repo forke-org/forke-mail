@@ -69,6 +69,13 @@ export default function Overview() {
         <QuickStart goal={goal} domains={me.domains} hasKey={Boolean(keys && keys.keys.length)} canKeys={superAdmin} contacts={d.contacts}
           sent={d.sent_last_7_days + d.emails_sent} campaigns={d.campaigns} email={me.user?.email || 'you@example.com'} onChange={() => setGoal(null)} />
       ) : null}
+      {me.warmup.active ? (
+        <Card title={`Warm-up · day ${me.warmup.day} of 14`} className="mb-6" description="New projects start with a growing daily broadcast limit so inbox providers learn to trust your domain. Transactional email is never limited by warm-up."
+          actions={<span className="text-[13px] text-muted tabular-nums">{number(me.warmup.used_today)} / {number(me.warmup.cap)} today</span>}>
+          <Meter value={me.warmup.used_today} max={me.warmup.cap} tone="accent" />
+          <p className="mt-3 text-xs text-muted">Limit grows 200 → 500 → 1,000 → 2,000 → 5,000 a day{me.warmup.ends_at ? `, and ends on ${formatDate(me.warmup.ends_at)}` : ''}.</p>
+        </Card>
+      ) : null}
       <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-line shadow-card lg:grid-cols-4">
         <Stat icon={Users} tone="accent" label="Contacts" value={d ? number(d.contacts) : <Skeleton className="h-8 w-16" />} hint={d ? `${number(d.active_contacts)} active` : ' '} />
         <Stat icon={Send} tone="blue" label="Sent today" value={d ? number(d.sent_today) : <Skeleton className="h-8 w-16" />} hint={d ? `${number(d.sent_last_7_days)} in the last 7 days` : ' '} />

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"forkemail/internal/workspaces"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -17,14 +18,15 @@ type NewWorkspace struct {
 	DailyLimit     int
 	RatePerSec     int
 	TrialSendLimit int
+	Warmup         bool
 }
 
 func CreateWorkspace(ctx context.Context, tx pgx.Tx, ws NewWorkspace) (string, error) {
 	var id string
 	err := tx.QueryRow(ctx, `
-		INSERT INTO workspaces (name, plan, daily_limit, rate_limit_per_sec, trial_send_limit)
-		VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		ws.Name, ws.Plan, ws.DailyLimit, ws.RatePerSec, ws.TrialSendLimit).Scan(&id)
+		INSERT INTO workspaces (name, plan, daily_limit, rate_limit_per_sec, trial_send_limit, warmup_until)
+		VALUES ($1, $2, $3, $4, $5, CASE WHEN $6 THEN now() + make_interval(days => $7) END) RETURNING id`,
+		ws.Name, ws.Plan, ws.DailyLimit, ws.RatePerSec, ws.TrialSendLimit, ws.Warmup, workspaces.WarmupDays).Scan(&id)
 	return id, err
 }
 

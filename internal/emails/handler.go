@@ -166,6 +166,7 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 	var invalid invalidError
 	var quota *quotaError
 	var monthly *monthlyError
+	var warmup *warmupError
 	switch {
 	case err == nil:
 		return false
@@ -182,6 +183,11 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 	case errors.As(err, &monthly):
 		httpx.JSON(w, http.StatusConflict, map[string]any{
 			"error": "monthly_limit_insufficient", "remaining": monthly.remaining, "required": monthly.required,
+		})
+	case errors.As(err, &warmup):
+		httpx.JSON(w, http.StatusConflict, map[string]any{
+			"error": "warmup_limit", "remaining": warmup.warmup.Remaining(), "required": warmup.required,
+			"cap": warmup.warmup.Cap, "day": warmup.warmup.Day, "ends_at": warmup.warmup.EndsAt,
 		})
 	case errors.As(err, &quota):
 		httpx.JSON(w, http.StatusPaymentRequired, map[string]any{

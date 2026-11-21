@@ -22,6 +22,7 @@ export interface Me {
     monthly_limit: number;
   };
   rate_limits: { api_per_second: number; api_burst: number; send_per_second: number };
+  warmup: { active: boolean; day: number; cap: number; used_today: number; ends_at: string | null };
 }
 
 export interface Audience {
