@@ -47,6 +47,8 @@ const messages: Record<string, string> = {
   cannot_remove_yourself: 'You cannot remove yourself.',
   invite_email_failed: 'The invite was saved but the email could not be sent. Try again.',
   invalid_role: 'Pick a role.',
+  not_enough_credits: 'This project does not have that many credits left.',
+  invalid_amount: 'Enter a whole number of credits.',
   segment_name_taken: 'A segment with this name already exists.',
   invalid_field: 'One of the rules uses a field that does not exist.',
   invalid_op: 'One of the rules uses a condition that does not fit its field.',

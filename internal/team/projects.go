@@ -136,3 +136,67 @@ func switchSession(r *http.Request, tx pgx.Tx, userID, workspaceID string) error
 	_, err = tx.Exec(r.Context(), `UPDATE sessions SET workspace_id = $3 WHERE token_hash = $1 AND user_id = $2`, auth.HashKey(c.Value), userID, workspaceID)
 	return err
 }
+
+var errNotEnough = errors.New("not_enough_credits")
+
+func (p *Projects) MoveCredits(w http.ResponseWriter, r *http.Request) {
+	id := auth.FromContext(r.Context())
+	var body struct {
+		To     string `json:"to"`
+		Amount int    `json:"amount"`
+	}
+	if !httpx.Decode(w, r, &body) {
+		return
+	}
+	if !httpx.ValidID(body.To) || body.To == id.WorkspaceID {
+		httpx.Error(w, http.StatusNotFound, "not_found")
+		return
+	}
+	if body.Amount < 1 || body.Amount > 10_000_000 {
+		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_amount")
+		return
+	}
+	err := pgx.BeginFunc(r.Context(), p.Pool, func(tx pgx.Tx) error {
+		rows, err := tx.Query(r.Context(), `
+			SELECT w.id, w.trial_send_limit - w.trial_sent_count FROM workspaces w
+			JOIN workspace_members m ON m.workspace_id = w.id AND m.user_id = $1 AND m.role = 'super_admin'
+			WHERE w.id = ANY($2::uuid[]) AND w.plan = 'trial' AND NOT w.platform AND w.status = 'active'
+			ORDER BY w.id FOR UPDATE OF w`, id.UserID, []string{id.WorkspaceID, body.To})
+		if err != nil {
+			return err
+		}
+		left := map[string]int{}
+		for rows.Next() {
+			var ws string
+			var n int
+			if err := rows.Scan(&ws, &n); err != nil {
+				return err
+			}
+			left[ws] = n
+		}
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		if len(left) != 2 {
+			return pgx.ErrNoRows
+		}
+		if left[id.WorkspaceID] < body.Amount {
+			return errNotEnough
+		}
+		if _, err := tx.Exec(r.Context(), `UPDATE workspaces SET trial_send_limit = trial_send_limit - $2 WHERE id = $1`, id.WorkspaceID, body.Amount); err != nil {
+			return err
+		}
+		_, err = tx.Exec(r.Context(), `UPDATE workspaces SET trial_send_limit = trial_send_limit + $2 WHERE id = $1`, body.To, body.Amount)
+		return err
+	})
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		httpx.Error(w, http.StatusNotFound, "not_found")
+	case errors.Is(err, errNotEnough):
+		httpx.Error(w, http.StatusUnprocessableEntity, "not_enough_credits")
+	case err != nil:
+		httpx.Internal(w, r, err)
+	default:
+		w.WriteHeader(http.StatusNoContent)
+	}
+}

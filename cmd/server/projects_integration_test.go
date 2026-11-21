@@ -27,7 +27,6 @@ func TestProjectsCreateSwitchAndShare(t *testing.T) {
 		c.AlertWorkspaceID = sender
 		c.InviteFrom = "hello@" + sender + ".projects.test"
 		c.MaxProjects = 2
-		c.ProjectSendLimit = 250
 	})
 	w := f.request("POST", "/api/projects", `{"name":"Side project"}`, "")
 	if w.Code != 201 {
@@ -52,8 +51,24 @@ func TestProjectsCreateSwitchAndShare(t *testing.T) {
 	if me.Workspace.ID != created.ID {
 		t.Fatalf("session still on %s", me.Workspace.ID)
 	}
-	if got := dbtest.QueryString(t, pool, `SELECT plan || ':' || trial_send_limit FROM workspaces WHERE id = $1`, created.ID); got != "trial:250" {
+	if got := dbtest.QueryString(t, pool, `SELECT plan || ':' || trial_send_limit FROM workspaces WHERE id = $1`, created.ID); got != "trial:0" {
 		t.Fatalf("defaults %s", got)
+	}
+	if w := f.request("POST", "/api/projects/switch", `{"id":"`+f.ws+`"}`, ""); w.Code != 204 {
+		t.Fatalf("switch home %d", w.Code)
+	}
+	dbtest.Exec(t, pool, `UPDATE workspaces SET plan = 'trial', trial_send_limit = 100, trial_sent_count = 10 WHERE id = $1`, f.ws)
+	if w := f.request("POST", "/api/projects/credits", `{"to":"`+created.ID+`","amount":91}`, ""); w.Code != 422 {
+		t.Fatalf("moved more than left %d", w.Code)
+	}
+	if w := f.request("POST", "/api/projects/credits", `{"to":"`+created.ID+`","amount":40}`, ""); w.Code != 204 {
+		t.Fatalf("move %d %s", w.Code, w.Body)
+	}
+	if got := dbtest.QueryString(t, pool, `SELECT (SELECT trial_send_limit FROM workspaces WHERE id = $1) || ':' || (SELECT trial_send_limit FROM workspaces WHERE id = $2)`, f.ws, created.ID); got != "60:40" {
+		t.Fatalf("after move %s", got)
+	}
+	if w := f.request("POST", "/api/projects/credits", `{"to":"`+sender+`","amount":1}`, ""); w.Code != 404 {
+		t.Fatalf("moved into a foreign project %d", w.Code)
 	}
 	if w := f.request("POST", "/api/projects", `{"name":"Third"}`, ""); w.Code != 409 {
 		t.Fatalf("limit not enforced %d", w.Code)

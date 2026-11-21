@@ -25,7 +25,7 @@ function NewProject({ onClose }: { onClose: () => void }) {
     }
   };
   return (
-    <Modal title="New project" description="A separate workspace with its own domains, contacts, keys and team. You can switch between projects any time." onClose={onClose}>
+    <Modal title="New project" description="A separate workspace with its own domains, contacts, keys and team. It starts with no credits: move some from another project you own in Settings → General." onClose={onClose}>
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <Field label="Project name"><Input required autoFocus maxLength={100} value={name} onChange={(e) => setName(e.target.value)} /></Field>
         <FormError>{error}</FormError>

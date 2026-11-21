@@ -9,6 +9,7 @@ import AccountSettings from '../components/AccountSettings';
 import DataSettings from '../components/DataSettings';
 import SmtpSettings from '../components/SmtpSettings';
 import DangerZone, { ProjectCard } from '../components/DangerZone';
+import MoveCredits from '../components/MoveCredits';
 import TeamSettings from '../components/TeamSettings';
 import type { AlertSettings, Reengagement } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
@@ -61,6 +62,7 @@ function General() {
         </Card>
       ) : null}
       <ProjectCard />
+      <MoveCredits />
       <DangerZone />
     </div>
   );

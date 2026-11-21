@@ -102,6 +102,7 @@ var routeScopes = map[string][]string{
 	"DELETE /api/templates/{id}":                               workspace,
 	"POST /api/projects":                                       sessions,
 	"POST /api/projects/switch":                                sessions,
+	"POST /api/projects/credits":                               superAdminOnly,
 	"PATCH /api/projects/current":                              superAdminOnly,
 	"POST /api/projects/current/reset":                         superAdminOnly,
 	"POST /api/projects/current/delete":                        superAdminOnly,
