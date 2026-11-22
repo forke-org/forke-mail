@@ -74,6 +74,7 @@ var routeScopes = map[string][]string{
 	"GET /api/settings/alerts":                                 workspace,
 	"GET /api/deliveries":                                      workspace,
 	"GET /api/analytics":                                       workspace,
+	"GET /api/settings/smtp":                                   workspace,
 	"GET /api/team":                                            sessions,
 	"GET /api/projects":                                        sessions,
 	"GET /api/segments":                                        workspace,

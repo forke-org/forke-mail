@@ -9,6 +9,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.47.9
 	github.com/aws/aws-sdk-go-v2/service/sts v1.51.8
 	github.com/aws/smithy-go v1.28.8
+	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
+	github.com/emersion/go-smtp v0.26.0
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/jackc/pgx/v5 v5.12.0
 	github.com/pressly/goose/v3 v3.29.0

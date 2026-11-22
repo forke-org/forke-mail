@@ -134,6 +134,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Get("/api/settings/alerts", alertsH.Get)
 		api.Get("/api/deliveries", (&deliveries.Handler{Pool: pool}).List)
 		api.Get("/api/analytics", (&analytics.Handler{Pool: pool}).Get)
+		api.Get("/api/settings/smtp", cfg.SMTPServer.Settings)
 		teamH := &team.Handler{Pool: pool, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL}
 		if svc.dispatcher != nil {
 			teamH.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}

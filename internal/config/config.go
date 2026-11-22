@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"forkemail/internal/smtpserver"
 	"net/netip"
 	"net/url"
 	"os"
@@ -36,6 +37,7 @@ type Config struct {
 	AlertFrom           string
 	InviteFrom          string
 	PlatformToken       string
+	SMTPServer          smtpserver.Config
 	BetaSendLimit       int
 	BetaDailyLimit      int
 	ProjectSendLimit    int
@@ -102,6 +104,13 @@ func Load() (Config, error) {
 	c.AlertFrom = orDefault(os.Getenv("ALERT_FROM"), "alerts@forke.space")
 	c.InviteFrom = orDefault(os.Getenv("INVITE_FROM"), "hello@forke.space")
 	c.PlatformToken = os.Getenv("PLATFORM_ADMIN_TOKEN")
+	c.SMTPServer = smtpserver.Config{
+		Hostname: orDefault(os.Getenv("SMTP_SERVER_HOSTNAME"), "smtp.mail.forke.space"),
+		Addr:     os.Getenv("SMTP_SERVER_ADDR"),
+		TLSAddr:  os.Getenv("SMTP_SERVER_TLS_ADDR"),
+		CertFile: os.Getenv("SMTP_SERVER_CERT"),
+		KeyFile:  os.Getenv("SMTP_SERVER_KEY"),
+	}
 	c.BetaSendLimit = int(number(&errs, "BETA_SEND_LIMIT", 3000))
 	c.BetaDailyLimit = int(number(&errs, "BETA_DAILY_LIMIT", 300))
 	c.ProjectSendLimit = int(number(&errs, "PROJECT_SEND_LIMIT", 500))

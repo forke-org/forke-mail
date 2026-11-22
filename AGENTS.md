@@ -132,6 +132,8 @@ Intern 3 extensions are registered in cmd/server/developer.go. Domain diagnostic
 - **Templates.** `templates` with `{{variables}}`; transactional sends accept `template_id` + `data` (HTML-escaped in the body).
 - **Events and contact data.** `POST /api/events` upserts the contact, merges `contacts.data` (max 100 keys), records `contact_events` and starts workflows.
 - **Segments.** Rules compile to parameterised SQL only in `internal/segments` (fields and operators are allow-listed). Membership is materialised in `segment_contacts` and refreshed on save and before an email's audience is sized or snapshotted; `email_segments` adds segments to broadcast audiences.
+- **Analytics.** `GET /api/analytics?days=1|7|30|90&stream=all|transactional|broadcast` counts by `sent_at` over `email_recipients` and `transactional_messages`, with the previous period, a daily series and a by-stream split.
+- **SMTP submission.** `internal/smtpserver` (emersion/go-smtp) listens on `SMTP_SERVER_ADDR` (STARTTLS) and `SMTP_SERVER_TLS_ADDR` (implicit TLS) only when `SMTP_SERVER_CERT`/`SMTP_SERVER_KEY` are set; the certificate is reloaded when the file changes. Username `forke`, password an API key whose scope may `POST /api/transactional`; login is refused before TLS and failures are rate limited per IP. Each message (max 1 MB, 50 recipients, no attachments) is parsed and accepted through `transactional.Service` per recipient with idempotency key `smtp-<sha256>-<to>`.
 - **Workflows.** Trigger event plus linear `wait` / `send` steps. `workflows.Runner` claims due `workflow_runs` with SKIP LOCKED and sends through `transactional.Service` with idempotency key `wf-<run>-<step>`.
 
 ## Core flows

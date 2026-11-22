@@ -455,7 +455,7 @@ export function Callout({ tone = 'info', title, children, action }: { tone?: key
   );
 }
 
-export function CopyButton({ value, label }: { value: string; label?: string }) {
+export function CopyButton({ value, label, boxed }: { value: string; label?: string; boxed?: boolean }) {
   const [copied, setCopied] = useState(false);
   const copy = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -468,7 +468,7 @@ export function CopyButton({ value, label }: { value: string; label?: string }) 
     }
   };
   return (
-    <button type="button" onClick={copy} aria-label={label || 'Copy'} title={copied ? 'Copied' : 'Copy'} className="inline-grid size-7 shrink-0 cursor-pointer place-items-center rounded-[5px] text-muted transition-colors hover:bg-surface-3 hover:text-ink">
+    <button type="button" onClick={copy} aria-label={label || 'Copy'} title={copied ? 'Copied' : 'Copy'} className={clsx('inline-grid shrink-0 cursor-pointer place-items-center text-muted transition-colors hover:bg-surface-3 hover:text-ink', boxed ? 'size-9 rounded-[6px] bg-surface-2 shadow-[inset_0_0_0_1px_var(--line)]' : 'size-7 rounded-[5px]')}>
       {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
     </button>
   );

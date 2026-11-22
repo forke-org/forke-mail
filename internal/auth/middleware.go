@@ -92,3 +92,7 @@ func (a *Authenticator) identifyKey(ctx context.Context, header string) (Identit
 	}
 	return id, nil
 }
+
+func (a *Authenticator) IdentifyKey(ctx context.Context, plain string) (Identity, error) {
+	return a.identifyKey(ctx, "Bearer "+plain)
+}

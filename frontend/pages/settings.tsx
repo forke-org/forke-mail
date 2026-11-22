@@ -7,6 +7,7 @@ import { useMe, useSession } from '../lib/session';
 import { useToast } from '../lib/toast';
 import AccountSettings from '../components/AccountSettings';
 import DataSettings from '../components/DataSettings';
+import SmtpSettings from '../components/SmtpSettings';
 import DangerZone, { ProjectCard } from '../components/DangerZone';
 import TeamSettings from '../components/TeamSettings';
 import type { AlertSettings, Reengagement } from '../lib/types';
@@ -209,12 +210,12 @@ function Alerts() {
 }
 
 export default function Settings() {
-  const [tab, setTab] = useState<'general' | 'team' | 'reengagement' | 'alerts' | 'data' | 'account'>('general');
+  const [tab, setTab] = useState<'general' | 'team' | 'reengagement' | 'alerts' | 'smtp' | 'data' | 'account'>('general');
   return (
     <>
       <PageHeader title="Settings" description="Plan, usage, sending identities and list hygiene for this workspace." />
-      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['team', 'Team'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement'], ['data', 'Data'], ['account', 'Account']]} />
-      {tab === 'general' ? <General /> : tab === 'team' ? <TeamSettings /> : tab === 'alerts' ? <Alerts /> : tab === 'account' ? <AccountSettings /> : tab === 'data' ? <DataSettings /> : <ReengagementSettings />}
+      <Tabs className="mb-5" value={tab} onChange={setTab} options={[['general', 'General'], ['team', 'Team'], ['alerts', 'Alerts'], ['reengagement', 'Re-engagement'], ['smtp', 'SMTP'], ['data', 'Data'], ['account', 'Account']]} />
+      {tab === 'general' ? <General /> : tab === 'team' ? <TeamSettings /> : tab === 'alerts' ? <Alerts /> : tab === 'account' ? <AccountSettings /> : tab === 'data' ? <DataSettings /> : tab === 'smtp' ? <SmtpSettings /> : <ReengagementSettings />}
     </>
   );
 }
