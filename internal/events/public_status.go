@@ -17,6 +17,7 @@ type PublicStatus struct {
 	TTL              time.Duration
 	MaxBounceRate    float64
 	MaxComplaintRate float64
+	SMTPEnabled      bool
 
 	mu      sync.Mutex
 	cached  []byte
@@ -47,7 +48,8 @@ type statusReport struct {
 		MaxBounceRate    float64 `json:"max_bounce_rate"`
 		MaxComplaintRate float64 `json:"max_complaint_rate"`
 	} `json:"limits"`
-	Infrastructure string `json:"infrastructure"`
+	Infrastructure string      `json:"infrastructure"`
+	Components     []Component `json:"components"`
 }
 
 const windowQuery = `
@@ -106,6 +108,11 @@ func (p *PublicStatus) build(ctx context.Context) ([]byte, error) {
 	).Scan(&rep.Queue.BroadcastPending, &rep.Queue.TransactionalQueued); err != nil {
 		return nil, err
 	}
+	list, err := p.components(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rep.Components, rep.Status = list, worst(list)
 	return json.Marshal(rep)
 }
 

@@ -36,6 +36,8 @@ type Config struct {
 	AlertWorkspaceID    string
 	AlertFrom           string
 	InviteFrom          string
+	StatusFrom          string
+	StatusSourceURL     string
 	PlatformToken       string
 	SpamdAddr           string
 	SpamBlockScore      float64
@@ -106,6 +108,8 @@ func Load() (Config, error) {
 	c.AlertWorkspaceID = os.Getenv("ALERT_WORKSPACE_ID")
 	c.AlertFrom = orDefault(os.Getenv("ALERT_FROM"), "alerts@forke.space")
 	c.InviteFrom = orDefault(os.Getenv("INVITE_FROM"), "hello@forke.space")
+	c.StatusFrom = orDefault(os.Getenv("STATUS_FROM"), "status@forke.space")
+	c.StatusSourceURL = os.Getenv("STATUS_SOURCE_URL")
 	c.PlatformToken = os.Getenv("PLATFORM_ADMIN_TOKEN")
 	c.SpamdAddr = os.Getenv("SPAMD_ADDR")
 	c.SpamBlockScore = number(&errs, "SPAM_BLOCK_SCORE", 5)

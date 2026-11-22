@@ -265,7 +265,11 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		public.Post("/preferences/{token}", unsubH.Update)
 		public.Get("/t/o/{token}", trackH.Open)
 		public.Get("/t/c/{token}", trackH.Click)
-		public.Method(http.MethodGet, "/api/public/status", &events.PublicStatus{Pool: pool, MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate})
+		public.Method(http.MethodGet, "/api/public/status", &events.PublicStatus{Pool: pool, MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate, SMTPEnabled: cfg.SMTPServer.Enabled()})
+		statusH := statusMail(cfg, pool, svc.dispatcher)
+		public.Post("/api/public/status/subscribe", statusH.Subscribe)
+		public.Get("/status/confirm/{token}", statusH.Confirm)
+		public.Get("/status/unsubscribe/{token}", statusH.Unsubscribe)
 		public.Get("/status", redirectTo(cfg.StatusPageURL+"/#mail"))
 		public.Get("/status/", redirectTo(cfg.StatusPageURL+"/#mail"))
 		if cfg.Development() {

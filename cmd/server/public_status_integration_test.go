@@ -16,6 +16,10 @@ func TestPublicStatus(t *testing.T) {
 	if !ok || windows["24h"] == nil || windows["7d"] == nil || windows["30d"] == nil {
 		t.Fatalf("windows missing: %s", w.Body)
 	}
+	components, _ := body["components"].([]any)
+	if len(components) != 6 {
+		t.Fatalf("components: %s", w.Body)
+	}
 	if body["infrastructure"] != "Amazon SES" || w.Header().Get("Access-Control-Allow-Origin") != "*" {
 		t.Fatalf("headers or body: %v %s", w.Header(), w.Body)
 	}
