@@ -3,6 +3,7 @@ package main
 import (
 	"forkemail/internal/access"
 	"forkemail/internal/alerts"
+	"forkemail/internal/analytics"
 	"forkemail/internal/deliveries"
 	"forkemail/internal/segments"
 	"forkemail/internal/team"
@@ -132,6 +133,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		alertsH := &alerts.Handler{Pool: pool, WarnBounceRate: cfg.WarnBounceRate, WarnComplaintRate: cfg.WarnComplaintRate, MaxBounceRate: cfg.MaxBounceRate, MaxComplaintRate: cfg.MaxComplaintRate}
 		api.Get("/api/settings/alerts", alertsH.Get)
 		api.Get("/api/deliveries", (&deliveries.Handler{Pool: pool}).List)
+		api.Get("/api/analytics", (&analytics.Handler{Pool: pool}).Get)
 		teamH := &team.Handler{Pool: pool, WorkspaceID: cfg.AlertWorkspaceID, From: cfg.InviteFrom, AppURL: cfg.PublicBaseURL}
 		if svc.dispatcher != nil {
 			teamH.Mail = transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}
