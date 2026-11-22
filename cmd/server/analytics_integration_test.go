@@ -24,8 +24,8 @@ func TestAnalytics(t *testing.T) {
 	var out struct {
 		Current, Previous struct{ Sent, Delivered, Bounced int }
 		Daily             []struct {
-			Date string
-			Sent int
+			Date                           string
+			Sent, Transactional, Broadcast int
 		}
 		Streams []struct {
 			Stream string
@@ -40,11 +40,15 @@ func TestAnalytics(t *testing.T) {
 	if out.Current.Sent != 3 || out.Current.Delivered != 2 || out.Current.Bounced != 1 || out.Previous.Sent != 1 {
 		t.Fatalf("totals %+v %+v", out.Current, out.Previous)
 	}
-	total := 0
+	total, tx := 0, 0
 	for _, d := range out.Daily {
 		total += d.Sent
+		tx += d.Transactional
+		if d.Broadcast+d.Transactional != d.Sent {
+			t.Fatalf("split does not add up %+v", d)
+		}
 	}
-	if len(out.Daily) != 30 || total != 3 {
+	if len(out.Daily) != 30 || total != 3 || tx != 3 {
 		t.Fatalf("daily %d days, %d sent", len(out.Daily), total)
 	}
 	if len(out.Streams) != 1 || out.Streams[0].Stream != "transactional" {

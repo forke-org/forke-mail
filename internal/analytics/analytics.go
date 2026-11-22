@@ -31,11 +31,13 @@ type Totals struct {
 }
 
 type Day struct {
-	Date      string `json:"date"`
-	Sent      int    `json:"sent"`
-	Delivered int    `json:"delivered"`
-	Opened    int    `json:"opened"`
-	Bounced   int    `json:"bounced"`
+	Date          string `json:"date"`
+	Sent          int    `json:"sent"`
+	Delivered     int    `json:"delivered"`
+	Opened        int    `json:"opened"`
+	Bounced       int    `json:"bounced"`
+	Broadcast     int    `json:"broadcast"`
+	Transactional int    `json:"transactional"`
 }
 
 type Stream struct {
@@ -91,7 +93,8 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rows, err := h.Pool.Query(r.Context(), base+`
-		SELECT to_char(d, 'YYYY-MM-DD'), COUNT(m.sent_at)::int, COUNT(m.delivered_at)::int, COUNT(m.opened_at)::int, COUNT(m.bounced_at)::int
+		SELECT to_char(d, 'YYYY-MM-DD'), COUNT(m.sent_at)::int, COUNT(m.delivered_at)::int, COUNT(m.opened_at)::int, COUNT(m.bounced_at)::int,
+			COUNT(m.sent_at) FILTER (WHERE m.stream = 'broadcast')::int, COUNT(m.sent_at) FILTER (WHERE m.stream = 'transactional')::int
 		FROM generate_series($2::timestamptz, $3::timestamptz - interval '1 second', interval '1 day') d
 		LEFT JOIN m ON m.sent_at >= d AND m.sent_at < d + interval '1 day'
 		GROUP BY d ORDER BY d`, ws, from, to, stream)

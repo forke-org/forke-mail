@@ -6,7 +6,7 @@ import { number } from '../lib/format';
 import { useLoad } from '../lib/useLoad';
 
 type Totals = { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number; unsubscribed: number };
-type Report = { days: number; stream: string; current: Totals; previous: Totals; daily: { date: string; sent: number; delivered: number; opened: number; bounced: number }[]; streams: (Totals & { stream: string })[] };
+type Report = { days: number; stream: string; current: Totals; previous: Totals; daily: { date: string; sent: number; delivered: number; opened: number; bounced: number; broadcast: number; transactional: number }[]; streams: (Totals & { stream: string })[] };
 
 const ratio = (n: number, d: number) => (d ? n / d : null);
 const pct = (v: number | null, digits = 1) => (v == null ? '—' : `${(v * 100).toFixed(digits).replace(/\.0+$/, '')}%`);
@@ -33,33 +33,57 @@ function Delta({ now, before, rate, good }: { now: number | null; before: number
   );
 }
 
-function Chart({ daily }: { daily: Report['daily'] }) {
+type Daily = Report['daily'];
+
+const fmtDay = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+function Swatch({ color }: { color: string }) {
+  return <span className="size-2.5 shrink-0 rounded-[2px]" style={{ background: color }} />;
+}
+
+function Bars({ daily, series, height, empty }: {
+  daily: Daily; series: { key: 'broadcast' | 'transactional'; label: string; color: string }[]; height: string; empty: string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
-  const max = Math.max(1, ...daily.map((d) => d.sent));
-  if (!daily.some((d) => d.sent)) return <div className="grid h-56 place-items-center text-[13px] text-muted">No emails were sent in this period.</div>;
+  const total = (d: Daily[number]) => series.reduce((n, s) => n + d[s.key], 0);
+  const max = Math.max(1, ...daily.map(total));
+  if (!daily.some((d) => total(d) > 0)) return <div className={clsx('grid place-items-center text-[13px] text-muted', height)}>{empty}</div>;
   const h = hover == null ? null : daily[hover];
   return (
     <div>
-      <div className="mb-3 flex h-5 items-center gap-4 text-xs text-muted">
-        {h ? <><span className="text-ink">{new Date(h.date + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span><span>{number(h.sent)} sent</span><span>{number(h.delivered)} delivered</span><span>{number(h.opened)} opened</span><span>{number(h.bounced)} bounced</span></>
-          : <><span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-[2px] bg-accent" />Delivered</span><span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-[2px] bg-surface-3 shadow-[inset_0_0_0_1px_var(--line-strong)]" />Sent, not yet delivered or failed</span></>}
+      <div className="mb-3 flex min-h-5 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+        {h ? (
+          <>
+            <span className="text-ink">{fmtDay(h.date)}</span>
+            {series.map((s) => <span key={s.key} className="inline-flex items-center gap-1.5"><Swatch color={s.color} />{s.label} <span className="text-ink tabular-nums">{number(h[s.key])}</span></span>)}
+            {series.length > 1 ? <span>Total <span className="text-ink tabular-nums">{number(total(h))}</span></span> : null}
+          </>
+        ) : series.map((s) => <span key={s.key} className="inline-flex items-center gap-1.5"><Swatch color={s.color} />{s.label}</span>)}
       </div>
-      <div className="flex h-56 items-end gap-[3px]" onMouseLeave={() => setHover(null)}>
-        {daily.map((d, i) => (
-          <div key={d.date} className="flex h-full flex-1 cursor-default flex-col justify-end" onMouseEnter={() => setHover(i)}>
-            <div className={clsx('flex flex-col justify-end overflow-hidden rounded-t-[2px] transition-opacity', hover != null && hover !== i && 'opacity-50')} style={{ height: `${(d.sent / max) * 100}%`, minHeight: d.sent ? 2 : 0 }}>
-              <div className="bg-surface-3 shadow-[inset_0_0_0_1px_var(--line-strong)]" style={{ flexGrow: Math.max(0, d.sent - d.delivered) }} />
-              <div className="bg-accent" style={{ flexGrow: d.delivered }} />
+      <div className={clsx('relative flex items-end gap-[3px] border-b border-line', height)} onMouseLeave={() => setHover(null)}>
+        {daily.map((d, i) => {
+          const t = total(d);
+          const shown = series.filter((s) => d[s.key] > 0);
+          return (
+            <div key={d.date} className="flex h-full flex-1 cursor-default flex-col justify-end" onMouseEnter={() => setHover(i)}>
+              <div className={clsx('flex flex-col-reverse gap-[2px] transition-opacity', hover != null && hover !== i && 'opacity-45')} style={{ height: `${(t / max) * 100}%`, minHeight: t ? 3 : 0 }}>
+                {shown.map((s, j) => (
+                  <div key={s.key} className={j === shown.length - 1 ? 'rounded-t-[4px]' : ''} style={{ flexGrow: d[s.key], flexBasis: 0, minHeight: 2, background: s.color }} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div className="mt-2 flex justify-between text-[11px] text-faint tabular-nums">
-        <span>{daily[0].date}</span><span>{daily[daily.length - 1].date}</span>
+        <span>{fmtDay(daily[0].date)}</span><span>max {number(max)} / day</span><span>{fmtDay(daily[daily.length - 1].date)}</span>
       </div>
     </div>
   );
 }
+
+const broadcastSeries = { key: 'broadcast' as const, label: 'Broadcasts', color: 'var(--series-broadcast)' };
+const transactionalSeries = { key: 'transactional' as const, label: 'Transactional', color: 'var(--series-transactional)' };
 
 export default function Analytics() {
   const [days, setDays] = useState<'1' | '7' | '30' | '90'>('30');
@@ -98,7 +122,15 @@ export default function Analytics() {
               );
             })}
           </div>
-          <Card title="Sent by day" className="mb-5"><Chart daily={r.daily} /></Card>
+          <Card title="Sent by day" className="mb-5" description="Broadcasts stacked on transactional mail. Hover a day for the numbers.">
+            <Bars daily={r.daily} height="h-56" empty="No emails were sent in this period."
+              series={stream === 'broadcast' ? [broadcastSeries] : stream === 'transactional' ? [transactionalSeries] : [transactionalSeries, broadcastSeries]} />
+          </Card>
+          {stream === 'all' ? (
+            <Card title="Transactional by day" className="mb-5" description="Its own scale, so sign-in codes and receipts stay readable next to big broadcasts.">
+              <Bars daily={r.daily} height="h-28" empty="No transactional emails in this period." series={[transactionalSeries]} />
+            </Card>
+          ) : null}
           <Card title="By stream" description="Transactional mail should sit well above broadcasts on every line." flush>
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
