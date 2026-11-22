@@ -15,7 +15,7 @@ export default function AuthFrame({ eyebrow, title, description, children }: { e
           <p className="mt-2 text-sm text-muted">{description}</p>
           {children}
         </div>
-        <p className="text-xs text-faint">© 2026 forke &middot; sends through Amazon SES</p>
+        <p className="text-xs text-faint">© 2026 forke &middot; sends through Amazon SES &middot; <a href="https://status.forke.space" target="_blank" rel="noreferrer" className="transition-colors hover:text-ink">Status</a></p>
       </div>
       <div className="relative hidden overflow-hidden bg-[radial-gradient(120%_90%_at_0%_50%,#1d1310_0%,#120c0a_45%,#0d0908_100%)] lg:block">
         <MailGlobe />
