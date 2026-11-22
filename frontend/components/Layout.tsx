@@ -1,6 +1,16 @@
+/**
+ * @fileoverview Forke Platform
+ * @copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+ *
+ * Source-Available License (Non-Commercial / Fair Source).
+ * This source code is open for inspection, learning, and personal development.
+ * Commercial use, hosting, or resale as a paid service without an explicit
+ * commercial license from Forke Inc. is strictly prohibited.
+ */
+
 import { AsciiReveal } from 'ascii-reveal';
 import clsx from 'clsx';
-import { ArrowUpRight, ChevronsUpDown, HeartPulse, LogOut, Menu, Search, Settings, X } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Menu, Search, Settings, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -165,11 +175,6 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
       </nav>
       <div className="relative flex flex-col gap-4 px-3 pt-4 pb-3">
         <span aria-hidden className="rail-x pointer-events-none absolute inset-x-0 top-0 h-px" />
-        <a href="https://status.forke.space" target="_blank" rel="noreferrer" className="group -mb-2 flex h-8 items-center gap-2.5 rounded-[6px] px-2.5 text-[13.5px] text-ink-2 transition-colors hover:bg-surface hover:text-ink">
-          <HeartPulse className="size-4 text-muted group-hover:text-ink-2" />
-          System status
-          <ArrowUpRight className="ml-auto size-3.5 text-faint" />
-        </a>
         <Usage />
         <AccountMenu onNavigate={onNavigate} />
       </div>

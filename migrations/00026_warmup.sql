@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+-- Source-Available License (Non-Commercial / Fair Source).
+-- Open for inspection, learning, and non-commercial development.
+-- Commercial use, hosting, or resale without authorization is strictly prohibited.
+
 -- +goose Up
 ALTER TABLE workspaces ADD COLUMN warmup_until timestamptz;
 CREATE INDEX emails_workspace_started_idx ON emails (workspace_id, started_at) WHERE started_at IS NOT NULL;

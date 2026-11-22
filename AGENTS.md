@@ -39,7 +39,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 
 ## Hard rules (project conventions)
 
-1. **No comments anywhere.** This covers `.go`, `.js`, `.css`, `.html` and `.sql`. The only exceptions are tool directives: `//go:embed` and goose's `-- +goose Up/Down`. Make code self-explanatory with names instead.
+1. **No comments anywhere.** This covers `.go`, `.js`, `.css`, `.html` and `.sql`. The only exceptions are the license header at the top of every file (copy it from any existing file in the same language) and tool directives: `//go:embed` and goose's `-- +goose Up/Down`. Make code self-explanatory with names instead.
 2. **Keep it simple.** Do not add an ORM, Redis, message brokers or new frameworks. Use plain SQL through pgx v5, chi for routing, `x/time/rate` for limiters, and goose for migrations.
 3. **Never edit existing migrations.** Every schema change goes in a new `migrations/0000N_name.sql` with both Up and Down. Postgres auto-names constraints `<table>_<column>_check`; drop and re-add them by those names.
 4. **Fix root causes.** No dead code, no speculative abstractions, small files, one concept per file. `deadcode -test ./...` must stay clean.

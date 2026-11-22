@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+
+# Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+# Source-Available License (Non-Commercial / Fair Source).
+# Open for inspection, learning, and non-commercial development.
+# Commercial use, hosting, or resale without authorization is strictly prohibited.
+
 set -euo pipefail
 APP=/opt/forke/forke-mail
 id forkemail >/dev/null 2>&1 || sudo useradd --system --no-create-home --shell /usr/sbin/nologin forkemail

@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+-- Source-Available License (Non-Commercial / Fair Source).
+-- Open for inspection, learning, and non-commercial development.
+-- Commercial use, hosting, or resale without authorization is strictly prohibited.
+
 -- +goose Up
 ALTER TABLE email_recipients ADD COLUMN claim_token uuid, ADD COLUMN provider_started_at timestamptz;
 ALTER TABLE transactional_messages ADD COLUMN claim_token uuid, ADD COLUMN provider_started_at timestamptz;

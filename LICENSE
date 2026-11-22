@@ -1,0 +1,42 @@
+Forke Source-Available License
+Copyright (c) 2026 Ayushman Mohapatra / Forke. All rights reserved.
+
+This source code is made publicly visible for transparency, evaluation, and
+reference ONLY. It is NOT open-source software under the Open Source Initiative
+definition, and no open-source license is granted.
+
+1. GRANT (what you MAY do)
+   You may view, read, and fork this repository on the hosting platform (e.g.
+   GitHub) where it is published, solely for the purpose of reading the code,
+   evaluating it, or proposing contributions back to this project via pull
+   request.
+
+2. RESTRICTIONS (what you MAY NOT do without prior written permission)
+   Except as expressly permitted in Section 1, you may NOT, in whole or in part:
+   (a) use, run, host, deploy, or operate the Software or any derivative of it,
+       whether for personal, internal, commercial, or production use;
+   (b) copy, reproduce, republish, mirror, or redistribute the Software outside
+       the hosting platform's native fork mechanism;
+   (c) modify, adapt, translate, or create derivative works for any purpose
+       other than submitting a contribution back to this project;
+   (d) sell, sublicense, rent, lease, or otherwise commercialize the Software;
+   (e) remove or alter this license, the copyright notices, or any branding.
+
+3. CONTRIBUTIONS
+   By submitting a contribution (e.g. a pull request), you grant the copyright
+   holder a perpetual, worldwide, irrevocable, royalty-free license to use,
+   modify, and relicense your contribution as part of the Software.
+
+4. NO TRADEMARK LICENSE
+   This license does not grant any rights to the "Forke" name, logo, or brand.
+
+5. PERMISSIONS
+   To request rights beyond this license (including any use, deployment, or
+   commercial use), contact the copyright holder for written permission.
+
+6. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.

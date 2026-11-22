@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+-- Source-Available License (Non-Commercial / Fair Source).
+-- Open for inspection, learning, and non-commercial development.
+-- Commercial use, hosting, or resale without authorization is strictly prohibited.
+
 -- +goose Up
 ALTER TABLE workspaces ADD COLUMN platform boolean NOT NULL DEFAULT false;
 CREATE UNIQUE INDEX workspaces_platform_key ON workspaces (platform) WHERE platform;

@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+
+# Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+# Source-Available License (Non-Commercial / Fair Source).
+# Open for inspection, learning, and non-commercial development.
+# Commercial use, hosting, or resale without authorization is strictly prohibited.
+
 set -euo pipefail
 export VERIFY_EXPECTED_ADVIK="${VERIFY_EXPECTED_ADVIK:-a7d4f0c626369a3241aa168d241cdb2499e0f08d}"
 export VERIFY_EXPECTED_DIYA="${VERIFY_EXPECTED_DIYA:-f704c79db0313f15b81c86986653fb284accaf94}"

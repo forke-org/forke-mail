@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+-- Source-Available License (Non-Commercial / Fair Source).
+-- Open for inspection, learning, and non-commercial development.
+-- Commercial use, hosting, or resale without authorization is strictly prohibited.
+
 -- +goose Up
 CREATE TABLE templates (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
