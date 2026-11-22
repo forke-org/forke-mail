@@ -57,6 +57,30 @@ function RuleRow({ rule, fields, tags, events, onChange, onRemove }: {
   );
 }
 
+function GroupRow({ rule, fields, tags, events, onChange, onRemove }: {
+  rule: SegmentRule; fields: { value: string; label: string }[]; tags: Tag[]; events: DataUsage[]; onChange: (r: SegmentRule) => void; onRemove: () => void;
+}) {
+  const rules = rule.rules || [];
+  const set = (next: SegmentRule[]) => onChange({ ...rule, rules: next });
+  return (
+    <div className="flex flex-col gap-2 rounded-[6px] p-3 shadow-[inset_0_0_0_1px_var(--line-strong)]">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-[13px] text-ink-2">
+          Matches
+          <Tabs value={rule.op as 'any' | 'all'} onChange={(op) => onChange({ ...rule, op })} options={[['any', 'any of'], ['all', 'all of']]} />
+          these
+        </div>
+        <Button size="sm" variant="ghost" icon={X} aria-label="Remove group" onClick={onRemove} />
+      </div>
+      {rules.map((r, i) => (
+        <RuleRow key={i} rule={r} fields={fields} tags={tags} events={events}
+          onChange={(next) => set(rules.map((x, j) => (j === i ? next : x)))} onRemove={() => set(rules.filter((_, j) => j !== i))} />
+      ))}
+      <div><Button size="sm" icon={Plus} onClick={() => set([...rules, { field: 'email', op: 'contains', value: '' }])}>Add rule to group</Button></div>
+    </div>
+  );
+}
+
 export default function SegmentEditor() {
   const router = useRouter();
   const toast = useToast();
@@ -73,7 +97,7 @@ export default function SegmentEditor() {
   const tags = meta.data ? meta.data[0].tags : [];
   const data = meta.data ? meta.data[1] : { fields: [], events: [] };
   const fields = [...baseFields, ...data.fields.map((f) => ({ value: `data.${f.name}`, label: `Field: ${f.name}`, kind: 'data' as const }))];
-  rules.forEach((r) => { if (!fields.some((f) => f.value === r.field)) fields.push({ value: r.field, label: `Field: ${r.field.replace(/^data\./, '')}`, kind: 'data' }); });
+  rules.flatMap((r) => (r.field === 'group' ? r.rules || [] : [r])).forEach((r) => { if (!fields.some((f) => f.value === r.field)) fields.push({ value: r.field, label: `Field: ${r.field.replace(/^data\./, '')}`, kind: 'data' }); });
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -113,14 +137,18 @@ export default function SegmentEditor() {
           <div className="flex flex-col gap-4">
             <Field label="Name"><Input required maxLength={100} placeholder="Active in the last 30 days" value={name} onChange={(e) => setName(e.target.value)} /></Field>
             <div className="flex flex-col gap-2">
-              {rules.map((r, i) => (
-                <RuleRow key={i} rule={r} fields={fields} tags={tags} events={data.events}
-                  onChange={(next) => setRules((rs) => rs.map((x, j) => (j === i ? next : x)))} onRemove={() => setRules((rs) => rs.filter((_, j) => j !== i))} />
-              ))}
+              {rules.map((r, i) => {
+                const change = (next: SegmentRule) => setRules((rs) => rs.map((x, j) => (j === i ? next : x)));
+                const remove = () => setRules((rs) => rs.filter((_, j) => j !== i));
+                return r.field === 'group'
+                  ? <GroupRow key={i} rule={r} fields={fields} tags={tags} events={data.events} onChange={change} onRemove={remove} />
+                  : <RuleRow key={i} rule={r} fields={fields} tags={tags} events={data.events} onChange={change} onRemove={remove} />;
+              })}
               {!rules.length ? <p className="text-[13px] text-muted">No rules: every contact matches.</p> : null}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" icon={Plus} onClick={() => setRules((rs) => [...rs, { field: 'email', op: 'contains', value: '' }])}>Add rule</Button>
+              <Button size="sm" icon={Plus} onClick={() => setRules((rs) => [...rs, { field: 'group', op: 'any', value: '', rules: [{ field: 'last_engaged_at', op: 'within_days', value: '', days: 90 }] }])}>Add group</Button>
               <span className="text-xs text-faint">or a custom field:</span>
               <div className="w-40"><Input placeholder="plan" value={customField} onChange={(e) => setCustomField(e.target.value.replace(/[^A-Za-z0-9_]/g, ''))} /></div>
               <Button size="sm" disabled={!customField} onClick={() => { setRules((rs) => [...rs, { field: `data.${customField}`, op: 'equals', value: '' }]); setCustomField(''); }}>Add</Button>

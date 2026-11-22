@@ -33,7 +33,7 @@ export interface Audience {
   size?: number;
 }
 
-export interface SegmentRule { field: string; op: string; value: string; days?: number }
+export interface SegmentRule { field: string; op: string; value: string; days?: number; rules?: SegmentRule[] }
 
 export interface Segment {
   id: string;

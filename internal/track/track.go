@@ -192,8 +192,8 @@ type usage struct {
 func (h *Handler) usedBy(ctx context.Context, ws, kind, name string) ([]string, error) {
 	rows, err := h.Pool.Query(ctx, `
 		SELECT 'segment: ' || s.name FROM segments s WHERE s.workspace_id = $1 AND CASE WHEN $2 = 'event'
-			THEN jsonb_path_exists(s.rules, '$[*] ? (@.field == "event" && @.value == $v)', jsonb_build_object('v', $3::text))
-			ELSE jsonb_path_exists(s.rules, '$[*] ? (@.field == $f)', jsonb_build_object('f', 'data.' || $3)) END
+			THEN jsonb_path_exists(s.rules, '$.** ? (@.field == "event" && @.value == $v)', jsonb_build_object('v', $3::text))
+			ELSE jsonb_path_exists(s.rules, '$.** ? (@.field == $f)', jsonb_build_object('f', 'data.' || $3)) END
 		UNION ALL
 		SELECT 'workflow: ' || w.name FROM workflows w WHERE w.workspace_id = $1 AND $2 = 'event' AND w.trigger_event = $3`, ws, kind, name)
 	if err != nil {

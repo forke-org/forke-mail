@@ -18,6 +18,31 @@ type Rule struct {
 	Op    string `json:"op"`
 	Value string `json:"value"`
 	Days  int    `json:"days,omitempty"`
+	Rules []Rule `json:"rules,omitempty"`
+}
+
+const maxGroupRules = 10
+
+func (r Rule) group(b *builder) (string, error) {
+	if (r.Op != "all" && r.Op != "any") || len(r.Rules) == 0 || len(r.Rules) > maxGroupRules {
+		return "", fmt.Errorf("invalid_group")
+	}
+	parts := make([]string, 0, len(r.Rules))
+	for _, inner := range r.Rules {
+		if inner.Field == "group" {
+			return "", fmt.Errorf("invalid_group")
+		}
+		s, err := inner.sql(b)
+		if err != nil {
+			return "", err
+		}
+		parts = append(parts, "("+s+")")
+	}
+	join := " AND "
+	if r.Op == "any" {
+		join = " OR "
+	}
+	return "(" + strings.Join(parts, join) + ")", nil
 }
 
 var textColumns = map[string]string{"email": "c.email", "first_name": "c.first_name", "last_name": "c.last_name"}
@@ -59,6 +84,9 @@ func days(r Rule) (int, error) {
 }
 
 func (r Rule) sql(b *builder) (string, error) {
+	if r.Field == "group" {
+		return r.group(b)
+	}
 	if len(r.Value) > 500 {
 		return "", fmt.Errorf("invalid_value")
 	}

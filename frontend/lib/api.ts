@@ -47,6 +47,7 @@ const messages: Record<string, string> = {
   cannot_remove_yourself: 'You cannot remove yourself.',
   invite_email_failed: 'The invite was saved but the email could not be sent. Try again.',
   invalid_role: 'Pick a role.',
+  invalid_group: 'Each group needs at least one rule, up to 10, and groups can’t contain groups.',
   invalid_exit_event: 'The stop event must be a valid event name and different from the trigger.',
   platform_protection: 'Forke Mail is protecting deliverability across all senders right now, so broadcasts from new projects are on hold for a short while. Transactional email still sends. Try again later.',
   content_flagged: 'This email looks like spam to filters. Open Spam check to see why.',
