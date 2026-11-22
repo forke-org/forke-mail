@@ -30,8 +30,8 @@ const componentQuery = `
 	SELECT
 		(SELECT EXTRACT(EPOCH FROM now() - MIN(LEAST(next_attempt_at, COALESCE(claimed_at, next_attempt_at))))
 			FROM transactional_messages WHERE status IN ('queued', 'sending') AND next_attempt_at <= now()),
-		(SELECT EXTRACT(EPOCH FROM now() - GREATEST(MIN(r.next_attempt_at),
-				(SELECT MAX(sent_at) FROM email_recipients WHERE sent_at >= now() - interval '1 day')))
+		(SELECT CASE WHEN MIN(r.next_attempt_at) IS NOT NULL THEN EXTRACT(EPOCH FROM now() - GREATEST(MIN(r.next_attempt_at),
+				(SELECT MAX(sent_at) FROM email_recipients WHERE sent_at >= now() - interval '1 day'))) END
 			FROM email_recipients r JOIN emails e ON e.id = r.email_id JOIN workspaces w ON w.id = e.workspace_id
 			WHERE r.status = 'pending' AND r.next_attempt_at <= now() AND e.status = 'sending'
 				AND w.status = 'active' AND NOT w.sending_paused AND NOT workspace_held(w.id)),
