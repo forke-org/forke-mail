@@ -90,6 +90,14 @@ func Render(ctx context.Context, q db.Querier, workspaceID, ref string, data map
 	if err != nil {
 		return "", "", "", err
 	}
+	if _, ok := data["date"]; !ok {
+		withDate := make(map[string]string, len(data)+1)
+		for k, v := range data {
+			withDate[k] = v
+		}
+		withDate["date"] = time.Now().UTC().Format("2 Jan 2006")
+		data = withDate
+	}
 	subject = strings.Join(strings.Fields(fill(subject, data, false)), " ")
 	return subject, fill(body, data, true), fill(text, data, false), nil
 }

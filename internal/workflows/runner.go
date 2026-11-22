@@ -110,7 +110,11 @@ func (r Runner) advance(ctx context.Context, tx pgx.Tx, d due) error {
 		_, err := tx.Exec(ctx, `UPDATE workflow_runs SET step = step + 1, next_run_at = now() + make_interval(mins => $2) WHERE id = $1`, d.id, s.Minutes)
 		return err
 	}
-	if d.contactStatus != "active" {
+	var kind string
+	if err := tx.QueryRow(ctx, `SELECT kind FROM templates WHERE id = $1 AND workspace_id = $2`, s.TemplateID, d.ws).Scan(&kind); err != nil {
+		return r.finish(ctx, tx, d.id, "failed", "template_not_found")
+	}
+	if d.contactStatus != "active" && (kind == "marketing" || d.contactStatus != "unsubscribed") {
 		return r.finish(ctx, tx, d.id, "cancelled", "contact_"+d.contactStatus)
 	}
 	if r.Mail == nil {

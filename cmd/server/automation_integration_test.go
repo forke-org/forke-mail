@@ -181,3 +181,36 @@ func TestWorkflowExitEvent(t *testing.T) {
 		t.Fatalf("runs %s", got)
 	}
 }
+
+func TestWorkflowRespectsTemplateKind(t *testing.T) {
+	f, _ := newIntegratedFixture(t)
+	domain := f.ws + ".kind.test"
+	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified')`, f.ws, domain)
+	ids := map[string]string{}
+	for _, kind := range []string{"transactional", "marketing"} {
+		w := f.request("POST", "/api/templates", `{"name":"`+kind+`","kind":"`+kind+`","subject":"S {{date}}","text":"x"}`, "")
+		var tpl struct{ ID string }
+		json.Unmarshal(w.Body.Bytes(), &tpl)
+		ids[kind] = tpl.ID
+		f.request("POST", "/api/workflows", `{"name":"`+kind+`","trigger_event":"go.`+kind+`","enabled":true,"steps":[{"type":"send","template_id":"`+tpl.ID+`","from_address":"hi@`+domain+`"}]}`, "")
+	}
+	f.request("POST", "/api/events", `{"email":"gone@example.com","event":"seen"}`, "")
+	dbtest.Exec(t, f.pool, `UPDATE contacts SET status = 'unsubscribed' WHERE workspace_id = $1 AND email = 'gone@example.com'`, f.ws)
+	f.request("POST", "/api/events", `{"email":"gone@example.com","event":"go.transactional"}`, "")
+	f.request("POST", "/api/events", `{"email":"gone@example.com","event":"go.marketing"}`, "")
+	runner := workflows.Runner{Pool: f.pool, Mail: transactional.Service{Pool: f.pool}}
+	for i := 0; i < 2; i++ {
+		if _, err := runner.Once(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got := dbtest.QueryString(t, f.pool, `
+		SELECT string_agg(w.name || '=' || r.status || ':' || COALESCE(r.last_error, ''), ',' ORDER BY w.name)
+		FROM workflow_runs r JOIN workflows w ON w.id = r.workflow_id WHERE r.workspace_id = $1`, f.ws)
+	if got != "marketing=cancelled:contact_unsubscribed,transactional=done:" {
+		t.Fatalf("runs %s", got)
+	}
+	if subject := dbtest.QueryString(t, f.pool, `SELECT subject FROM transactional_messages WHERE workspace_id = $1`, f.ws); strings.Contains(subject, "{{date}}") {
+		t.Fatalf("date not filled: %s", subject)
+	}
+}
