@@ -19,7 +19,10 @@ func TestSegmentsEventsAndWorkflows(t *testing.T) {
 	if w.Code != 202 || !strings.Contains(w.Body.String(), `"contact_created":true`) {
 		t.Fatalf("track %d %s", w.Code, w.Body)
 	}
-	f.request("POST", "/api/events", `{"email":"free@example.com","event":"user.signed-up","contact":{"data":{"plan":"free","seats":1}}}`, "")
+	f.request("POST", "/api/events", `{"email":"free@example.com","event":"user.signed-up","tags":["Newsletter"," newsletter "],"contact":{"data":{"plan":"free","seats":1}}}`, "")
+	if got := dbtest.QueryString(t, f.pool, `SELECT string_agg(t.name, ',') FROM contact_tags ct JOIN tags t ON t.id = ct.tag_id JOIN contacts c ON c.id = ct.contact_id WHERE c.email = 'free@example.com' AND c.workspace_id = $1`, f.ws); got != "Newsletter" {
+		t.Fatalf("event tags %q", got)
+	}
 	if w := f.request("POST", "/api/events", `{"email":"x@example.com","event":"bad event!"}`, ""); w.Code != 422 {
 		t.Fatalf("bad event name %d", w.Code)
 	}

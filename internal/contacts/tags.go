@@ -144,3 +144,11 @@ func (h *Handler) TagContacts(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.JSON(w, http.StatusOK, map[string]any{"tags": names})
 }
+
+func NormalizeTags(raw []string) ([]string, error) {
+	return normalizeTags(raw)
+}
+
+func AttachTags(ctx context.Context, q db.Querier, workspaceID, contactID string, names []string) error {
+	return attachTags(ctx, q, workspaceID, []string{contactID}, names)
+}

@@ -38,6 +38,7 @@ type request struct {
 	Email   string         `json:"email"`
 	Event   string         `json:"event"`
 	Data    map[string]any `json:"data"`
+	Tags    []string       `json:"tags"`
 	Contact struct {
 		FirstName *string        `json:"first_name"`
 		LastName  *string        `json:"last_name"`
@@ -68,7 +69,11 @@ func validData(m map[string]any) bool {
 
 func (in *request) validate() string {
 	in.Email = contacts.NormalizeEmail(in.Email)
+	tags, tagErr := contacts.NormalizeTags(in.Tags)
+	in.Tags = tags
 	switch {
+	case tagErr != nil:
+		return "invalid_tags"
 	case !contacts.ValidEmail(in.Email):
 		return "invalid_email"
 	case !eventName.MatchString(in.Event):
@@ -127,6 +132,9 @@ func (h *Handler) Track(w http.ResponseWriter, r *http.Request) {
 				data = CASE WHEN (SELECT COUNT(*) FROM jsonb_object_keys(contacts.data || $5)) <= 100 THEN contacts.data || $5 END
 			RETURNING id, xmax = 0`, ws, in.Email, in.Contact.FirstName, in.Contact.LastName, contactData).Scan(&out.ContactID, &out.Created)
 		if err != nil {
+			return err
+		}
+		if err := contacts.AttachTags(r.Context(), tx, ws, out.ContactID, in.Tags); err != nil {
 			return err
 		}
 		if err := tx.QueryRow(r.Context(), `INSERT INTO contact_events (workspace_id, contact_id, name, data) VALUES ($1, $2, $3, $4) RETURNING id`,
