@@ -126,3 +126,27 @@ func TestBroadcastToSegment(t *testing.T) {
 		t.Fatalf("segment not refreshed: %d", email.Audience.Size)
 	}
 }
+
+func TestGlobalBounceBlocksEveryProject(t *testing.T) {
+	f := newAPIFixture(t)
+	domain := f.ws + ".gb.test"
+	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified')`, f.ws, domain)
+	address := "dead-" + f.ws[:8] + "@example.com"
+	dbtest.Exec(t, f.pool, `INSERT INTO global_bounces (email) VALUES ($1)`, address)
+	t.Cleanup(func() { dbtest.Exec(t, f.pool, `DELETE FROM global_bounces WHERE email = $1`, address) })
+	w := f.request("POST", "/api/transactional", `{"from_address":"me@`+domain+`","to":"`+strings.ToUpper(address)+`","subject":"S","text":"x"}`, "")
+	if w.Code == 202 || !strings.Contains(w.Body.String(), "recipient_suppressed") {
+		t.Fatalf("sent to a globally bounced address %d %s", w.Code, w.Body)
+	}
+	f.request("POST", "/api/events", `{"email":"`+address+`","event":"seen"}`, "")
+	f.request("POST", "/api/events", `{"email":"alive-`+f.ws[:8]+`@example.com","event":"seen"}`, "")
+	w = f.request("POST", "/api/campaigns", `{"name":"GB"}`, "")
+	var campaign struct{ ID string }
+	json.Unmarshal(w.Body.Bytes(), &campaign)
+	w = f.request("POST", "/api/campaigns/"+campaign.ID+"/emails", `{"subject":"Hi","from_address":"me@`+domain+`","text":"Hello","audience":{"all":true}}`, "")
+	var email struct{ Audience struct{ Size int } }
+	json.Unmarshal(w.Body.Bytes(), &email)
+	if email.Audience.Size != 1 {
+		t.Fatalf("audience %d", email.Audience.Size)
+	}
+}

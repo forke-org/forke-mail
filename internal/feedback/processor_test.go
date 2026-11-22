@@ -228,3 +228,14 @@ func TestWebhookEndToEnd(t *testing.T) {
 		}
 	}
 }
+
+func TestHardBounceBlocksAddressForEveryWorkspace(t *testing.T) {
+	f := setup(t)
+	address := fmt.Sprintf("gone-%d@example.com", time.Now().UnixNano())
+	rid, mid := f.recipient(t, address)
+	f.handle(t, "", f.event("Bounce", mid, rid, bounce("Permanent", "NoEmail")))
+	if got := f.count(t, `SELECT COUNT(*)::text FROM global_bounces WHERE email = $1`, address); got != "1" {
+		t.Fatalf("global bounces = %s", got)
+	}
+	t.Cleanup(func() { f.pool.Exec(context.Background(), `DELETE FROM global_bounces WHERE email = $1`, address) })
+}

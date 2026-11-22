@@ -126,6 +126,7 @@ func (w *Worker) loadState(ctx context.Context, rec *Recipient) (state, error) {
 		SELECT ws.status, ws.sending_paused, c.status, c.subject, c.from_name, c.from_address, c.reply_to, c.html, c.text, c.track_opens, c.track_clicks,
 			COALESCE(ct.status, ''), COALESCE(ct.first_name, ''),
 			EXISTS (SELECT 1 FROM suppressions s WHERE s.workspace_id = r.workspace_id AND lower(s.email) = lower(r.email))
+			OR EXISTS (SELECT 1 FROM global_bounces g WHERE g.email = lower(r.email))
 			OR COALESCE(ct.paused_until > now(), false)
 			OR COALESCE(c.topic = ANY(ct.topics_opted_out), false)
 		FROM email_recipients r

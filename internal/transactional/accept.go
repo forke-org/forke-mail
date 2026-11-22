@@ -114,7 +114,7 @@ func checkSendable(ctx context.Context, tx pgx.Tx, ws string, req request) error
 	if err := tx.QueryRow(ctx, `
 		SELECT status, sending_paused, EXISTS (
 			SELECT 1 FROM suppressions s WHERE s.workspace_id = w.id AND lower(s.email) = lower($2)
-				AND s.reason IN ('bounced', 'complained', 'manual'))
+				AND s.reason IN ('bounced', 'complained', 'manual')) OR EXISTS (SELECT 1 FROM global_bounces g WHERE g.email = lower($2))
 		FROM workspaces w WHERE id = $1`, ws, req.To).Scan(&status, &paused, &suppressed); err != nil {
 		return err
 	}

@@ -161,6 +161,12 @@ func (p *Processor) bounce(ctx context.Context, tx pgx.Tx, r recipient, ev Event
 	}); err != nil {
 		return err
 	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO global_bounces (email, first_workspace_id, bounce_type) VALUES (lower($1), $2, $3)
+		ON CONFLICT (email) DO UPDATE SET bounces = global_bounces.bounces + 1, last_bounced_at = now()`,
+		r.email, r.workspaceID, b.BounceType+"/"+b.BounceSubType); err != nil {
+		return err
+	}
 	if err := record("bounced", detail); err != nil {
 		return err
 	}

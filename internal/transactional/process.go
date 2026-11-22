@@ -106,7 +106,7 @@ func (d *Dispatcher) blocked(ctx context.Context, j job) (string, error) {
 	err := d.pool.QueryRow(ctx, `
 		SELECT status, sending_paused, EXISTS (
 			SELECT 1 FROM suppressions s WHERE s.workspace_id = w.id AND lower(s.email) = lower($2)
-				AND s.reason IN ('bounced', 'complained', 'manual'))
+				AND s.reason IN ('bounced', 'complained', 'manual')) OR EXISTS (SELECT 1 FROM global_bounces g WHERE g.email = lower($2))
 		FROM workspaces w WHERE id = $1`, j.workspaceID, j.to).Scan(&status, &paused, &suppressed)
 	switch {
 	case err != nil:
