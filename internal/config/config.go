@@ -37,6 +37,8 @@ type Config struct {
 	AlertFrom           string
 	InviteFrom          string
 	PlatformToken       string
+	SpamdAddr           string
+	SpamBlockScore      float64
 	SMTPServer          smtpserver.Config
 	BetaSendLimit       int
 	BetaDailyLimit      int
@@ -103,6 +105,8 @@ func Load() (Config, error) {
 	c.AlertFrom = orDefault(os.Getenv("ALERT_FROM"), "alerts@forke.space")
 	c.InviteFrom = orDefault(os.Getenv("INVITE_FROM"), "hello@forke.space")
 	c.PlatformToken = os.Getenv("PLATFORM_ADMIN_TOKEN")
+	c.SpamdAddr = os.Getenv("SPAMD_ADDR")
+	c.SpamBlockScore = number(&errs, "SPAM_BLOCK_SCORE", 5)
 	c.SMTPServer = smtpserver.Config{
 		Hostname: orDefault(os.Getenv("SMTP_SERVER_HOSTNAME"), "smtp.mail.forke.space"),
 		Addr:     os.Getenv("SMTP_SERVER_ADDR"),

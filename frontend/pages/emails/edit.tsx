@@ -1,9 +1,10 @@
-import { Eye, Monitor, Save, Send, Smartphone, Trash2, Upload, Users } from 'lucide-react';
+import { Eye, Monitor, Save, Send, ShieldCheck, Smartphone, Trash2, Upload, Users } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import ContactPicker from '../../components/ContactPicker';
 import ImportForm from '../../components/ImportForm';
 import { Modal, useConfirm } from '../../components/Modal';
+import SpamReport, { type SpamResult } from '../../components/SpamReport';
 import TagSelect from '../../components/TagSelect';
 import { Button, Card, EmailFrame, Empty, Field, Input, Loading, PageHeader, Select, Tabs, Textarea } from '../../components/ui';
 import { api, ApiError, describeError } from '../../lib/api';
@@ -114,11 +115,18 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
     return saved;
   };
 
+  const [spam, setSpam] = useState<SpamResult | null>(null);
+  const checkSpam = () => run('spam', async () => {
+    const saved = await save();
+    setSpam(await api<SpamResult>('GET', `/api/emails/${saved.id}/spam-check`));
+  });
+
   const run = async (label: string, fn: () => Promise<void>) => {
     setBusy(label);
     try {
       await fn();
     } catch (err) {
+      if (err instanceof ApiError && err.message === 'content_flagged') { setSpam(err.body.check as SpamResult); return; }
       if (!(err instanceof ApiError && err.status === 402)) toast(describeError(err), 'error', 6000);
     } finally {
       setBusy('');
@@ -171,6 +179,7 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
           <>
             {email ? <Button variant="danger" icon={Trash2} disabled={!!busy} onClick={remove}>Delete</Button> : null}
             <Button icon={Save} loading={busy === 'save'} disabled={!!busy} onClick={() => run('save', async () => { await save(); toast('Draft saved.', 'success'); })}>Save draft</Button>
+            <Button icon={ShieldCheck} loading={busy === 'spam'} disabled={!!busy} onClick={checkSpam}>Spam check</Button>
             <Button variant="primary" icon={Send} loading={busy === 'send'} disabled={!!busy} onClick={send}>Send</Button>
           </>
         )}
@@ -263,6 +272,7 @@ function Editor({ campaign, existing, tags: initialTags, topics }: { campaign: C
           </div>
         </section>
       </div>
+      {spam ? <SpamReport result={spam} onClose={() => setSpam(null)} /> : null}
       {modal === 'pick' ? (
         <ContactPicker
           selected={audience.contact_ids}

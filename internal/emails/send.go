@@ -60,8 +60,16 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	check, err := h.spamCheck(r.Context(), ws, id)
+	if writeError(w, r, err) {
+		return
+	}
+	if check.Spam {
+		httpx.JSON(w, http.StatusUnprocessableEntity, map[string]any{"error": "content_flagged", "check": check})
+		return
+	}
 	var recipients int64
-	err := pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
+	err = pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
 		var err error
 		recipients, err = Launch(r.Context(), tx, ws, id)
 		return err

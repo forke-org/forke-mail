@@ -2,6 +2,7 @@ package emails
 
 import (
 	"errors"
+	"forkemail/internal/spamcheck"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,6 +21,7 @@ func (e invalidError) Error() string { return e.code }
 
 type Handler struct {
 	Pool *pgxpool.Pool
+	Spam spamcheck.Checker
 }
 
 type Email struct {

@@ -6,6 +6,7 @@ import (
 	"forkemail/internal/analytics"
 	"forkemail/internal/deliveries"
 	"forkemail/internal/segments"
+	"forkemail/internal/spamcheck"
 	"forkemail/internal/team"
 	"forkemail/internal/templates"
 	"forkemail/internal/track"
@@ -92,7 +93,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	keyH := &keys.Handler{Pool: pool, Passwords: accounts.Passwords{Pool: pool, Admins: svc.admins}}
 	contactH := &contacts.Handler{Pool: pool}
 	campaignH := &campaigns.Handler{Pool: pool}
-	emailH := &emails.Handler{Pool: pool}
+	emailH := &emails.Handler{Pool: pool, Spam: spamcheck.Checker{Addr: cfg.SpamdAddr, Threshold: cfg.SpamBlockScore}}
 	eventH := &events.Handler{Pool: pool, SendingMode: svc.sendingMode}
 	domainH := &domains.Handler{Pool: pool, Identities: svc.identities}
 	dnsH := &domains.DNSHandler{Pool: pool, Region: cfg.AWS.Region}
@@ -201,6 +202,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Patch("/api/emails/{id}", emailH.Update)
 		api.Delete("/api/emails/{id}", emailH.Delete)
 		api.Post("/api/emails/{id}/send", emailH.Send)
+		api.Get("/api/emails/{id}/spam-check", emailH.SpamCheck)
 		api.Post("/api/emails/{id}/pause", emailH.Pause)
 		api.Post("/api/emails/{id}/resume", emailH.Resume)
 		api.Get("/api/emails/{id}/report", emailH.Report)
