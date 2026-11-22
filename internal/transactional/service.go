@@ -27,6 +27,9 @@ func (s Service) Accept(ctx context.Context, who auth.Identity, key string, req 
 	if key != "" && !validIdempotencyKey(key) {
 		return Acceptance{}, &validationError{"invalid_idempotency_key", 400}
 	}
+	if req.TemplateID == "" {
+		req.TemplateID = req.Template
+	}
 	if req.TemplateID != "" {
 		if len(req.Data) > 100 {
 			return Acceptance{}, &validationError{"too_many_variables", 422}

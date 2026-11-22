@@ -149,3 +149,39 @@ func TestCompatAPIRemoveContact(t *testing.T) {
 		t.Fatalf("sending key %d", w.Code)
 	}
 }
+
+func TestCompatAPITemplatesAndSegments(t *testing.T) {
+	f := newAPIFixture(t)
+	key := f.key(t, "full_access")
+	domain := f.verifiedDomain(t)
+	if w := f.request("POST", "/api/templates", `{"name":"owner-approved","subject":"Approved, {{name}}","html":"<p>Hi {{name}}</p>{{{recent_posts}}}<p>{{{missing}}}</p>"}`, ""); w.Code != 201 {
+		t.Fatalf("template %d %s", w.Code, w.Body)
+	}
+	w := f.request("POST", "/api/forke-mail/emails", `{"from":"Forke <hello@`+domain+`>","to":"owner@example.com","template":"Owner-Approved","data":{"name":"<Ada>","recent_posts":"<ul><li>Post</li></ul>"}}`, key)
+	if w.Code != 200 {
+		t.Fatalf("send by template %d %s", w.Code, w.Body)
+	}
+	id, _ := decodeJSON(t, w.Body.String())["id"].(string)
+	if got := dbtest.QueryString(t, f.pool, `SELECT subject || '|' || html FROM transactional_messages WHERE id = $1`, id); got != "Approved, <Ada>|<p>Hi &lt;Ada&gt;</p><ul><li>Post</li></ul><p></p>" {
+		t.Fatalf("rendered %q", got)
+	}
+	if w := f.request("POST", "/api/forke-mail/emails", `{"from":"Forke <hello@`+domain+`>","to":"owner@example.com","template":"nope"}`, key); w.Code == 200 {
+		t.Fatal("unknown template accepted")
+	}
+
+	for _, e := range []string{"a@example.com", "b@example.com"} {
+		f.request("POST", "/api/events", `{"email":"`+e+`","event":"seen"}`, "")
+	}
+	f.request("POST", "/api/segments", `{"name":"Engaged readers","rules":[{"field":"email","op":"equals","value":"a@example.com"}]}`, "")
+	w = f.request("POST", "/api/forke-mail/broadcasts", `{"from":"Forke <hello@`+domain+`>","segment":"engaged readers","subject":"News","html":"<p>News</p>","name":"Blog"}`, key)
+	if w.Code != 201 {
+		t.Fatalf("segment broadcast %d %s", w.Code, w.Body)
+	}
+	broadcastID, _ := decodeJSON(t, w.Body.String())["id"].(string)
+	if w := f.request("POST", "/api/forke-mail/broadcasts/"+broadcastID+"/send", `{}`, key); w.Code != 200 || decodeJSON(t, w.Body.String())["recipients"] != float64(1) {
+		t.Fatalf("send %d %s", w.Code, w.Body)
+	}
+	if w := f.request("POST", "/api/forke-mail/broadcasts", `{"from":"Forke <hello@`+domain+`>","segment":"missing","subject":"News","html":"<p>x</p>"}`, key); w.Code != 422 {
+		t.Fatalf("missing segment %d", w.Code)
+	}
+}

@@ -26,6 +26,8 @@ type sendEmailRequest struct {
 	Tags        []tag             `json:"tags"`
 	ScheduledAt string            `json:"scheduled_at"`
 	Attachments []json.RawMessage `json:"attachments"`
+	Template    string            `json:"template"`
+	Data        map[string]string `json:"data"`
 }
 
 type transactionalRequest struct {
@@ -37,6 +39,8 @@ type transactionalRequest struct {
 	HTML        string            `json:"html"`
 	Text        string            `json:"text"`
 	Tags        map[string]string `json:"tags"`
+	Template    string            `json:"template,omitempty"`
+	Data        map[string]string `json:"data,omitempty"`
 }
 
 func (h *Handler) SendEmail(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +88,7 @@ func (req sendEmailRequest) translate() (transactionalRequest, string) {
 	if !ok {
 		return transactionalRequest{}, "exactly_one_to_address_required"
 	}
-	out := transactionalRequest{To: to, FromName: name, FromAddress: from, Subject: req.Subject, HTML: req.HTML, Text: req.Text, Tags: map[string]string{}}
+	out := transactionalRequest{To: to, FromName: name, FromAddress: from, Subject: req.Subject, HTML: req.HTML, Text: req.Text, Tags: map[string]string{}, Template: req.Template, Data: req.Data}
 	if len(req.ReplyTo) == 1 {
 		if out.ReplyTo, ok = req.ReplyTo.single(); !ok {
 			return transactionalRequest{}, "invalid_reply_to"

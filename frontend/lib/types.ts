@@ -52,6 +52,7 @@ export interface Workflow {
   id: string;
   name: string;
   trigger_event: string;
+  exit_event: string;
   steps: WorkflowStep[];
   enabled: boolean;
   allow_reentry: boolean;

@@ -37,6 +37,7 @@ type Workflow struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
 	TriggerEvent string    `json:"trigger_event"`
+	ExitEvent    string    `json:"exit_event"`
 	Steps        []Step    `json:"steps"`
 	Enabled      bool      `json:"enabled"`
 	AllowReentry bool      `json:"allow_reentry"`
@@ -53,11 +54,14 @@ type Handler struct {
 func (in *Workflow) validate(ctx context.Context, q db.Querier, ws string) (string, error) {
 	in.Name = strings.TrimSpace(in.Name)
 	in.TriggerEvent = strings.TrimSpace(in.TriggerEvent)
+	in.ExitEvent = strings.TrimSpace(in.ExitEvent)
 	switch {
 	case in.Name == "" || utf8.RuneCountInString(in.Name) > 100:
 		return "invalid_name", nil
 	case !eventName.MatchString(in.TriggerEvent):
 		return "invalid_event", nil
+	case in.ExitEvent != "" && (!eventName.MatchString(in.ExitEvent) || in.ExitEvent == in.TriggerEvent):
+		return "invalid_exit_event", nil
 	case len(in.Steps) > maxSteps:
 		return "too_many_steps", nil
 	case in.Enabled && len(in.Steps) == 0:
@@ -106,7 +110,7 @@ func (in *Workflow) validate(ctx context.Context, q db.Querier, ws string) (stri
 	return "", nil
 }
 
-const columns = `w.id, w.name, w.trigger_event, w.steps, w.enabled, w.allow_reentry,
+const columns = `w.id, w.name, w.trigger_event, w.exit_event, w.steps, w.enabled, w.allow_reentry,
 	(SELECT COUNT(*) FROM workflow_runs r WHERE r.workflow_id = w.id AND r.status = 'running')::int,
 	(SELECT COUNT(*) FROM workflow_runs r WHERE r.workflow_id = w.id AND r.status = 'done')::int,
 	w.created_at, w.updated_at`
@@ -114,7 +118,7 @@ const columns = `w.id, w.name, w.trigger_event, w.steps, w.enabled, w.allow_reen
 func scan(row pgx.Row) (Workflow, error) {
 	var w Workflow
 	var raw []byte
-	if err := row.Scan(&w.ID, &w.Name, &w.TriggerEvent, &raw, &w.Enabled, &w.AllowReentry, &w.Running, &w.Completed, &w.CreatedAt, &w.UpdatedAt); err != nil {
+	if err := row.Scan(&w.ID, &w.Name, &w.TriggerEvent, &w.ExitEvent, &raw, &w.Enabled, &w.AllowReentry, &w.Running, &w.Completed, &w.CreatedAt, &w.UpdatedAt); err != nil {
 		return w, err
 	}
 	return w, json.Unmarshal(raw, &w.Steps)
@@ -160,11 +164,11 @@ func (h *Handler) save(w http.ResponseWriter, r *http.Request, id string) {
 	}
 	steps, _ := json.Marshal(in.Steps)
 	if id == "" {
-		err = h.Pool.QueryRow(r.Context(), `INSERT INTO workflows (workspace_id, name, trigger_event, steps, enabled, allow_reentry) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-			ws, in.Name, in.TriggerEvent, steps, in.Enabled, in.AllowReentry).Scan(&id)
+		err = h.Pool.QueryRow(r.Context(), `INSERT INTO workflows (workspace_id, name, trigger_event, exit_event, steps, enabled, allow_reentry) VALUES ($1, $2, $3, $7, $4, $5, $6) RETURNING id`,
+			ws, in.Name, in.TriggerEvent, steps, in.Enabled, in.AllowReentry, in.ExitEvent).Scan(&id)
 	} else {
-		err = h.Pool.QueryRow(r.Context(), `UPDATE workflows SET name = $3, trigger_event = $4, steps = $5, enabled = $6, allow_reentry = $7, updated_at = now() WHERE id = $1 AND workspace_id = $2 RETURNING id`,
-			id, ws, in.Name, in.TriggerEvent, steps, in.Enabled, in.AllowReentry).Scan(&id)
+		err = h.Pool.QueryRow(r.Context(), `UPDATE workflows SET name = $3, trigger_event = $4, steps = $5, enabled = $6, allow_reentry = $7, exit_event = $8, updated_at = now() WHERE id = $1 AND workspace_id = $2 RETURNING id`,
+			id, ws, in.Name, in.TriggerEvent, steps, in.Enabled, in.AllowReentry, in.ExitEvent).Scan(&id)
 	}
 	if err != nil {
 		respond(w, r, Workflow{}, err, 0)

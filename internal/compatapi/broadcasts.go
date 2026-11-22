@@ -2,12 +2,15 @@ package compatapi
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"unicode/utf8"
 
 	"forkemail/internal/auth"
 	"forkemail/internal/httpx"
+
+	"github.com/jackc/pgx/v5"
 )
 
 const defaultCampaign = "Broadcasts"
@@ -23,6 +26,7 @@ type broadcastRequest struct {
 	Name        string      `json:"name"`
 	Topic       string      `json:"topic"`
 	ScheduledAt string      `json:"scheduled_at"`
+	Segment     string      `json:"segment"`
 }
 
 type emailFields struct {
@@ -37,8 +41,9 @@ type emailFields struct {
 }
 
 type audienceRules struct {
-	All    bool     `json:"all"`
-	TagIDs []string `json:"tag_ids"`
+	All        bool     `json:"all"`
+	TagIDs     []string `json:"tag_ids"`
+	SegmentIDs []string `json:"segment_ids"`
 }
 
 func (h *Handler) CreateBroadcast(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +55,20 @@ func (h *Handler) CreateBroadcast(w http.ResponseWriter, r *http.Request) {
 	if message != "" {
 		fail(w, http.StatusUnprocessableEntity, message)
 		return
+	}
+	if req.Segment != "" {
+		var id string
+		err := h.Pool.QueryRow(r.Context(), `SELECT id FROM segments WHERE workspace_id = $1 AND lower(name) = lower($2)`,
+			auth.FromContext(r.Context()).WorkspaceID, strings.TrimSpace(req.Segment)).Scan(&id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			fail(w, http.StatusUnprocessableEntity, "segment_not_found")
+			return
+		}
+		if err != nil {
+			httpx.Internal(w, r, err)
+			return
+		}
+		fields.Audience.SegmentIDs = []string{id}
 	}
 	campaignID, err := h.campaign(r, req.Name)
 	if err != nil {
@@ -77,7 +96,7 @@ func (req broadcastRequest) translate() (emailFields, string) {
 	switch {
 	case !ok:
 		return emailFields{}, "invalid_from"
-	case !httpx.ValidID(audienceID):
+	case req.Segment == "" && !httpx.ValidID(audienceID):
 		return emailFields{}, "audience_id_required"
 	case req.ScheduledAt != "":
 		return emailFields{}, "scheduled_at_not_supported"
@@ -85,7 +104,10 @@ func (req broadcastRequest) translate() (emailFields, string) {
 		return emailFields{}, "only_one_reply_to_supported"
 	}
 	out := emailFields{Subject: req.Subject, FromName: name, FromAddress: from, Topic: req.Topic, HTML: req.HTML, Text: req.Text,
-		Audience: audienceRules{TagIDs: []string{audienceID}}}
+		Audience: audienceRules{TagIDs: []string{audienceID}, SegmentIDs: []string{}}}
+	if req.Segment != "" {
+		out.Audience.TagIDs = []string{}
+	}
 	if len(req.ReplyTo) == 1 {
 		if out.ReplyTo, ok = req.ReplyTo.single(); !ok {
 			return emailFields{}, "invalid_reply_to"

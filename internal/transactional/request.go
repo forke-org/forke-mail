@@ -33,6 +33,7 @@ type request struct {
 	TrackOpens  bool              `json:"track_opens"`
 	TrackClicks bool              `json:"track_clicks"`
 	TemplateID  string            `json:"template_id"`
+	Template    string            `json:"template"`
 	Data        map[string]string `json:"data"`
 }
 

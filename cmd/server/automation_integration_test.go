@@ -150,3 +150,34 @@ func TestGlobalBounceBlocksEveryProject(t *testing.T) {
 		t.Fatalf("audience %d", email.Audience.Size)
 	}
 }
+
+func TestWorkflowExitEvent(t *testing.T) {
+	f, _ := newIntegratedFixture(t)
+	domain := f.ws + ".exit.test"
+	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified')`, f.ws, domain)
+	w := f.request("POST", "/api/templates", `{"name":"Reminder","subject":"Last chance","text":"Tomorrow"}`, "")
+	var tpl struct{ ID string }
+	json.Unmarshal(w.Body.Bytes(), &tpl)
+	body := `{"name":"Deletion","trigger_event":"account.deletion_scheduled","exit_event":"account.deletion_cancelled","enabled":true,"steps":[{"type":"wait","minutes":1},{"type":"send","template_id":"` + tpl.ID + `","from_address":"hi@` + domain + `"}]}`
+	w = f.request("POST", "/api/workflows", body, "")
+	var wf struct{ ID string }
+	json.Unmarshal(w.Body.Bytes(), &wf)
+	if w.Code != 201 {
+		t.Fatalf("workflow %d %s", w.Code, w.Body)
+	}
+	f.request("POST", "/api/events", `{"email":"leaving@example.com","event":"account.deletion_scheduled"}`, "")
+	f.request("POST", "/api/events", `{"email":"staying@example.com","event":"account.deletion_scheduled"}`, "")
+	dbtest.Exec(t, f.pool, `UPDATE workflow_runs SET created_at = now() - interval '1 minute' WHERE workflow_id = $1`, wf.ID)
+	f.request("POST", "/api/events", `{"email":"staying@example.com","event":"account.deletion_cancelled"}`, "")
+	runner := workflows.Runner{Pool: f.pool, Mail: transactional.Service{Pool: f.pool}}
+	for i := 0; i < 3; i++ {
+		dbtest.Exec(t, f.pool, `UPDATE workflow_runs SET next_run_at = now() WHERE workflow_id = $1`, wf.ID)
+		if _, err := runner.Once(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got := dbtest.QueryString(t, f.pool, `SELECT string_agg(c.email || '=' || COALESCE(r.last_error, 'sent'), ',' ORDER BY c.email) FROM workflow_runs r JOIN contacts c ON c.id = r.contact_id WHERE r.workflow_id = $1`, wf.ID)
+	if got != "leaving@example.com=sent,staying@example.com=exit_event" {
+		t.Fatalf("runs %s", got)
+	}
+}

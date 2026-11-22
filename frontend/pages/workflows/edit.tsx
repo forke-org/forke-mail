@@ -26,7 +26,7 @@ export default function WorkflowEditor() {
   const id = typeof router.query.id === 'string' ? router.query.id : '';
   const domain = me.domains.find((d) => !d.includes('@')) || '';
   const defaultFrom = me.domains.find((d) => d.includes('@')) || (domain ? `hello@${domain}` : '');
-  const [wf, setWf] = useState<Pick<Workflow, 'name' | 'trigger_event' | 'steps' | 'enabled' | 'allow_reentry'>>({ name: 'Welcome series', trigger_event: 'user.signed-up', steps: [], enabled: false, allow_reentry: false });
+  const [wf, setWf] = useState<Pick<Workflow, 'name' | 'trigger_event' | 'exit_event' | 'steps' | 'enabled' | 'allow_reentry'>>({ name: 'Welcome series', trigger_event: 'user.signed-up', exit_event: '', steps: [], enabled: false, allow_reentry: false });
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -86,6 +86,9 @@ export default function WorkflowEditor() {
                 <Field label="Name"><Input required maxLength={100} value={wf.name} onChange={(e) => setWf({ ...wf, name: e.target.value })} /></Field>
                 <Field label="When this event happens"><Input required list="workflow-events" className="font-mono" value={wf.trigger_event} onChange={(e) => setWf({ ...wf, trigger_event: e.target.value.trim() })} /></Field>
               </div>
+              <Field label="Stop early when this event happens" hint="Optional. For example, stop a deletion reminder when account.deletion_cancelled arrives.">
+                <Input list="workflow-events" className="font-mono" placeholder="none" value={wf.exit_event} onChange={(e) => setWf({ ...wf, exit_event: e.target.value.trim() })} />
+              </Field>
               <datalist id="workflow-events">{events.map((ev) => <option key={ev.name} value={ev.name} />)}</datalist>
               <div className="flex flex-wrap gap-5">
                 <Checkbox label="Live" checked={wf.enabled} onChange={(e) => setWf({ ...wf, enabled: e.target.checked })} />

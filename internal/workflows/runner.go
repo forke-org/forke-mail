@@ -28,7 +28,7 @@ type due struct {
 	id, ws, email, firstName, lastName, contactStatus string
 	step                                              int
 	steps                                             []Step
-	enabled                                           bool
+	enabled, exited                                   bool
 	contactData, eventData                            map[string]any
 }
 
@@ -60,7 +60,8 @@ func (r Runner) Once(ctx context.Context) (int, error) {
 	}
 	defer tx.Rollback(ctx)
 	rows, err := tx.Query(ctx, `
-		SELECT r.id, r.workspace_id, c.email, c.first_name, c.last_name, c.status, r.step, w.steps, w.enabled AND ws.status = 'active', c.data, r.event_data
+		SELECT r.id, r.workspace_id, c.email, c.first_name, c.last_name, c.status, r.step, w.steps, w.enabled AND ws.status = 'active', c.data, r.event_data,
+			w.exit_event <> '' AND EXISTS (SELECT 1 FROM contact_events e WHERE e.contact_id = r.contact_id AND e.name = w.exit_event AND e.created_at > r.created_at)
 		FROM workflow_runs r
 		JOIN workflows w ON w.id = r.workflow_id
 		JOIN contacts c ON c.id = r.contact_id
@@ -73,7 +74,7 @@ func (r Runner) Once(ctx context.Context) (int, error) {
 	list, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (due, error) {
 		var d due
 		var raw []byte
-		if err := row.Scan(&d.id, &d.ws, &d.email, &d.firstName, &d.lastName, &d.contactStatus, &d.step, &raw, &d.enabled, &d.contactData, &d.eventData); err != nil {
+		if err := row.Scan(&d.id, &d.ws, &d.email, &d.firstName, &d.lastName, &d.contactStatus, &d.step, &raw, &d.enabled, &d.contactData, &d.eventData, &d.exited); err != nil {
 			return d, err
 		}
 		return d, json.Unmarshal(raw, &d.steps)
@@ -97,6 +98,9 @@ func (r Runner) finish(ctx context.Context, tx pgx.Tx, id, status, reason string
 func (r Runner) advance(ctx context.Context, tx pgx.Tx, d due) error {
 	if !d.enabled {
 		return r.finish(ctx, tx, d.id, "cancelled", "workflow_disabled")
+	}
+	if d.exited {
+		return r.finish(ctx, tx, d.id, "done", "exit_event")
 	}
 	if d.step >= len(d.steps) {
 		return r.finish(ctx, tx, d.id, "done", "")

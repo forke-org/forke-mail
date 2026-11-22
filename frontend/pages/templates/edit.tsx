@@ -14,19 +14,20 @@ const starter = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,
   <p style="color:#666;font-size:13px">It expires in 15 minutes. If this wasn't you, ignore this email.</p>
 </div>`;
 
-const placeholder = /\{\{\s*([A-Za-z_][A-Za-z0-9_.]{0,63})\s*\}\}/g;
+const placeholder = /\{\{\{\s*([A-Za-z_][A-Za-z0-9_.]{0,63})\s*\}\}\}|\{\{\s*([A-Za-z_][A-Za-z0-9_.]{0,63})\s*\}\}/g;
 
 function variablesOf(...parts: string[]) {
   const out = new Set<string>();
-  for (const p of parts) for (const m of p.matchAll(placeholder)) out.add(m[1]);
+  for (const p of parts) for (const m of p.matchAll(placeholder)) out.add(m[1] || m[2]);
   return [...out].sort();
 }
 
 function fill(s: string, data: Record<string, string>, escape: boolean) {
-  return s.replace(placeholder, (match, key: string) => {
+  return s.replace(placeholder, (match, raw: string | undefined, plain: string | undefined) => {
+    const key = raw || plain || '';
     if (!(key in data) || data[key] === '') return match;
     const v = data[key];
-    return escape ? v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : v;
+    return escape && !raw ? v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : v;
   });
 }
 
@@ -101,7 +102,7 @@ export default function TemplateEditor() {
                 </Select>
               </Field>
             </div>
-            <Field label="Subject" hint="Variables work here too, like {{name}}."><Input required maxLength={300} value={form.subject} onChange={set('subject')} /></Field>
+            <Field label="Subject" hint="Variables work here too, like {{name}}. In the HTML, {{{block}}} with three braces inserts HTML you send as-is, such as a list of posts."><Input required maxLength={300} value={form.subject} onChange={set('subject')} /></Field>
             <Field label="HTML"><Textarea code rows={16} value={form.html} onChange={set('html')} /></Field>
             <Field label="Plain text" hint="Optional. Shown by mail apps that can't display HTML."><Textarea code rows={4} value={form.text} onChange={set('text')} /></Field>
           </div>

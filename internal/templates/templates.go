@@ -22,7 +22,14 @@ import (
 
 const maxBody = 256 << 10
 
-var placeholder = regexp.MustCompile(`\{\{\s*([A-Za-z_][A-Za-z0-9_.]{0,63})\s*\}\}`)
+var placeholder = regexp.MustCompile(`\{\{\{\s*([A-Za-z_][A-Za-z0-9_.]{0,63})\s*\}\}\}|\{\{\s*([A-Za-z_][A-Za-z0-9_.]{0,63})\s*\}\}`)
+
+func key(m []string) (string, bool) {
+	if m[1] != "" {
+		return m[1], true
+	}
+	return m[2], false
+}
 
 var ErrNotFound = errors.New("template_not_found")
 
@@ -43,9 +50,10 @@ func Variables(parts ...string) []string {
 	out := []string{}
 	for _, p := range parts {
 		for _, m := range placeholder.FindAllStringSubmatch(p, -1) {
-			if !seen[m[1]] {
-				seen[m[1]] = true
-				out = append(out, m[1])
+			k, _ := key(m)
+			if !seen[k] {
+				seen[k] = true
+				out = append(out, k)
 			}
 		}
 	}
@@ -55,23 +63,27 @@ func Variables(parts ...string) []string {
 
 func fill(s string, data map[string]string, escape bool) string {
 	return placeholder.ReplaceAllStringFunc(s, func(match string) string {
-		key := placeholder.FindStringSubmatch(match)[1]
-		v, ok := data[key]
+		k, raw := key(placeholder.FindStringSubmatch(match))
+		v, ok := data[k]
 		if !ok {
+			if raw {
+				return ""
+			}
 			return match
 		}
-		if escape {
+		if escape && !raw {
 			return html.EscapeString(v)
 		}
 		return v
 	})
 }
 
-func Render(ctx context.Context, q db.Querier, workspaceID, id string, data map[string]string) (subject, body, text string, err error) {
-	if !httpx.ValidID(id) {
-		return "", "", "", ErrNotFound
+func Render(ctx context.Context, q db.Querier, workspaceID, ref string, data map[string]string) (subject, body, text string, err error) {
+	if httpx.ValidID(ref) {
+		err = q.QueryRow(ctx, `SELECT subject, html, text FROM templates WHERE id = $1 AND workspace_id = $2`, ref, workspaceID).Scan(&subject, &body, &text)
+	} else {
+		err = q.QueryRow(ctx, `SELECT subject, html, text FROM templates WHERE lower(name) = lower($1) AND workspace_id = $2`, ref, workspaceID).Scan(&subject, &body, &text)
 	}
-	err = q.QueryRow(ctx, `SELECT subject, html, text FROM templates WHERE id = $1 AND workspace_id = $2`, id, workspaceID).Scan(&subject, &body, &text)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "", "", "", ErrNotFound
 	}
