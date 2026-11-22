@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"forkemail/internal/alerts"
 	"forkemail/internal/auth"
+	"forkemail/internal/guard"
 	"forkemail/internal/smtpserver"
 	"forkemail/internal/workflows"
 	"log/slog"
@@ -127,6 +128,7 @@ func run() error {
 		backend := &smtpserver.Backend{Keys: &auth.Authenticator{Pool: pool}, Mail: transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}}
 		tasks = append(tasks, func(ctx context.Context) { smtpserver.Run(ctx, cfg.SMTPServer, backend) })
 	}
+	tasks = append(tasks, guard.Guard{Pool: pool, MaxBounceRate: cfg.GuardBounceRate, MaxComplaintRate: cfg.GuardComplaintRate, MinSample: 200}.Run)
 	tasks = append(tasks, notifier.Run, workflows.Runner{Pool: pool, Mail: transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}}.Run)
 	if cfg.SMTP() {
 		quota := relay.Quota{Pool: pool, SendRate: cfg.SendRatePerSec, DailyLimit: cfg.Relay.DailyLimit, MonthlyLimit: cfg.Relay.MonthlyLimit, Apply: worker.SetLimits}

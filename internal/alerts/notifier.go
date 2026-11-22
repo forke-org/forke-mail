@@ -169,6 +169,13 @@ func Message(a Alert) (string, []string) {
 	sent := int(number(d, "sent"))
 	bounce, complaint := number(d, "bounce_rate"), number(d, "complaint_rate")
 	stats := fmt.Sprintf("Last 30 days: %d sent, %s bounced, %s marked as spam.", sent, pct(bounce), pct(complaint))
+	if a.Kind == "platform_guard" {
+		return "Forke Mail protection is on", []string{
+			fmt.Sprintf("Across all projects in the last %v: %d sent, %s bounced, %s marked as spam.", d["window"], sent, pct(bounce), pct(complaint)),
+			"Broadcasts from projects that are still warming up or have sent fewer than 5,000 emails are on hold. Transactional mail and established projects keep sending.",
+			"Find the project causing it in the admin panel (Mail users, sort by bounces), suspend it if needed, then turn protection off from Status.",
+		}
+	}
 	if a.Kind == "sending_paused" {
 		return "Sending is paused on " + a.Workspace, []string{
 			stats,

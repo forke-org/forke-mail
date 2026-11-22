@@ -88,7 +88,7 @@ func (w *Worker) tick(ctx context.Context) {
 	rows, err := w.pool.Query(ctx, `
 		SELECT DISTINCT ws.id, ws.plan, ws.rate_limit_per_sec
 		FROM emails c JOIN workspaces ws ON ws.id = c.workspace_id
-		WHERE c.status = 'sending' AND ws.status = 'active' AND NOT ws.sending_paused`)
+		WHERE c.status = 'sending' AND ws.status = 'active' AND NOT ws.sending_paused AND NOT workspace_held(ws.id)`)
 	if err != nil {
 		if ctx.Err() == nil {
 			slog.Error("list sending workspaces failed", "err", err)

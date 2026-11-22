@@ -39,6 +39,8 @@ type Config struct {
 	PlatformToken       string
 	SpamdAddr           string
 	SpamBlockScore      float64
+	GuardBounceRate     float64
+	GuardComplaintRate  float64
 	SMTPServer          smtpserver.Config
 	BetaSendLimit       int
 	BetaDailyLimit      int
@@ -107,6 +109,8 @@ func Load() (Config, error) {
 	c.PlatformToken = os.Getenv("PLATFORM_ADMIN_TOKEN")
 	c.SpamdAddr = os.Getenv("SPAMD_ADDR")
 	c.SpamBlockScore = number(&errs, "SPAM_BLOCK_SCORE", 5)
+	c.GuardBounceRate = fraction(&errs, "GUARD_BOUNCE_RATE", 0.04)
+	c.GuardComplaintRate = fraction(&errs, "GUARD_COMPLAINT_RATE", 0.0008)
 	c.SMTPServer = smtpserver.Config{
 		Hostname: orDefault(os.Getenv("SMTP_SERVER_HOSTNAME"), "smtp.mail.forke.space"),
 		Addr:     os.Getenv("SMTP_SERVER_ADDR"),

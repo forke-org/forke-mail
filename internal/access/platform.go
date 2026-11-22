@@ -165,5 +165,7 @@ func (p *Platform) Routes(r chi.Router) {
 		g.Post("/api/platform/accounts/{id}/limits", p.SetLimits)
 		g.Delete("/api/platform/accounts/{id}/members/{user}", p.RemoveMember)
 		g.Delete("/api/platform/users/{id}", p.DeleteUser)
+		g.Get("/api/platform/guard", p.GuardStatus)
+		g.Post("/api/platform/guard/clear", p.GuardClear)
 	})
 }

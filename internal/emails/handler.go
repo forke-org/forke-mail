@@ -176,6 +176,8 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) bool {
 		httpx.Error(w, http.StatusConflict, "email_not_draft")
 	case errors.Is(err, errInvalidState):
 		httpx.Error(w, http.StatusConflict, "invalid_email_state")
+	case errors.Is(err, errPlatformHold):
+		httpx.Error(w, http.StatusConflict, "platform_protection")
 	case errors.Is(err, errSendingPaused):
 		httpx.Error(w, http.StatusConflict, "workspace_sending_paused")
 	case errors.As(err, &invalid):

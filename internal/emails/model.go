@@ -13,6 +13,7 @@ var (
 	errNotDraft      = errors.New("email_not_draft")
 	errInvalidState  = errors.New("invalid_email_state")
 	errSendingPaused = errors.New("workspace_sending_paused")
+	errPlatformHold  = errors.New("platform_protection")
 )
 
 type invalidError struct{ code string }

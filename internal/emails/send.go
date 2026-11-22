@@ -108,6 +108,13 @@ func Launch(ctx context.Context, tx pgx.Tx, ws, id string) (int64, error) {
 	if paused {
 		return 0, errSendingPaused
 	}
+	var held bool
+	if err := tx.QueryRow(ctx, `SELECT workspace_held($1)`, ws).Scan(&held); err != nil {
+		return 0, err
+	}
+	if held {
+		return 0, errPlatformHold
+	}
 	if plan == "trial" && n > int64(remaining) {
 		return 0, &quotaError{remaining: remaining, required: n}
 	}

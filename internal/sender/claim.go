@@ -15,7 +15,7 @@ func Claim(ctx context.Context, q db.Querier, workspaceID string, n int) ([]Reci
 		WHERE r.status = 'pending' AND r.id IN (
 			SELECT cr.id FROM email_recipients cr
 			JOIN emails c ON c.id = cr.email_id
-			WHERE cr.workspace_id = $1 AND cr.status = 'pending' AND cr.next_attempt_at <= now() AND c.status = 'sending'
+			WHERE cr.workspace_id = $1 AND cr.status = 'pending' AND cr.next_attempt_at <= now() AND c.status = 'sending' AND NOT workspace_held($1)
 			ORDER BY cr.next_attempt_at
 			LIMIT $2
 			FOR UPDATE OF cr SKIP LOCKED
