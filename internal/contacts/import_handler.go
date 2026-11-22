@@ -29,7 +29,9 @@ func (h *Handler) Import(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	target.Tags = tags
-	res, err := Import(r.Context(), h.Pool, ws, parsed, target)
+	cleaned, dropped := parsed.Clean(r.FormValue("keep_risky") == "true")
+	res, err := Import(r.Context(), h.Pool, ws, cleaned, target)
+	res.Risky = dropped
 	if errors.Is(err, errEmailNotFound) {
 		httpx.Error(w, http.StatusNotFound, "email_not_found")
 		return
@@ -43,6 +45,14 @@ func (h *Handler) Import(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusOK, res)
+}
+
+func (h *Handler) CheckImport(w http.ResponseWriter, r *http.Request) {
+	parsed, ok := parseUpload(w, r)
+	if !ok {
+		return
+	}
+	httpx.JSON(w, http.StatusOK, parsed.Check())
 }
 
 func parseUpload(w http.ResponseWriter, r *http.Request) (Parsed, bool) {

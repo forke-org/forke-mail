@@ -123,6 +123,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 
 		api.Get("/api/contacts", contactH.List)
 		api.Post("/api/contacts/import", contactH.Import)
+		api.Post("/api/contacts/import/check", contactH.CheckImport)
 		api.Post("/api/contacts/tags", contactH.TagContacts)
 		api.Delete("/api/contacts/{id}", contactH.Delete)
 		api.Get("/api/tags", contactH.ListTags)

@@ -13,6 +13,7 @@ type ImportResult struct {
 	Updated int `json:"updated"`
 	Skipped int `json:"skipped"`
 	Invalid int `json:"invalid"`
+	Risky   int `json:"risky_skipped"`
 }
 
 type ImportTarget struct {

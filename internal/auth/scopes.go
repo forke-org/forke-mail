@@ -36,6 +36,7 @@ var routeScopes = map[string][]string{
 	"GET /api/events":                                          workspace,
 	"GET /api/contacts":                                        workspace,
 	"POST /api/contacts/import":                                anyone,
+	"POST /api/contacts/import/check":                          anyone,
 	"POST /api/contacts/tags":                                  workspace,
 	"DELETE /api/contacts/{id}":                                workspace,
 	"GET /api/tags":                                            workspace,
