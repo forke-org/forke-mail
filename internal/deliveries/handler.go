@@ -52,7 +52,7 @@ const query = `
 		SELECT 'transactional', tm.id, NULL, tm.to_address, tm.subject,
 			CASE WHEN tm.complained_at IS NOT NULL THEN 'complained' WHEN tm.bounced_at IS NOT NULL THEN 'bounced'
 				WHEN tm.delivered_at IS NOT NULL THEN 'delivered' WHEN tm.status = 'failed' THEN 'failed'
-				WHEN tm.status = 'sent' THEN 'sent' ELSE 'pending' END,
+				WHEN tm.status = 'sent' THEN 'sent' WHEN tm.status = 'test' THEN 'test' ELSE 'pending' END,
 			CASE WHEN tm.bounced_at IS NOT NULL THEN 'bounce: ' || COALESCE(tm.bounce_type, 'permanent') ELSE tm.last_error END,
 			COALESCE(tm.sent_at, tm.created_at), tm.delivered_at
 		FROM transactional_messages tm

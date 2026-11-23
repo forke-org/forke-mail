@@ -31,6 +31,7 @@ const (
 type accepted struct {
 	id       string
 	replayed string
+	test     bool
 }
 
 func accept(ctx context.Context, tx pgx.Tx, who auth.Identity, key string, req request) (accepted, error) {
@@ -50,6 +51,9 @@ func accept(ctx context.Context, tx pgx.Tx, who auth.Identity, key string, req r
 		if prior, err := recentDuplicate(ctx, tx, ws, fingerprint); err != nil || prior.id != "" {
 			return prior, err
 		}
+	}
+	if who.Test {
+		return acceptTest(ctx, tx, who, key, fingerprint, req)
 	}
 	if err := checkSendable(ctx, tx, ws, req); err != nil {
 		return accepted{}, err
@@ -136,4 +140,16 @@ func checkSendable(ctx context.Context, tx pgx.Tx, ws string, req request) error
 		return errDomainUnverified
 	}
 	return err
+}
+
+func acceptTest(ctx context.Context, tx pgx.Tx, who auth.Identity, key, fingerprint string, req request) (accepted, error) {
+	var id string
+	err := tx.QueryRow(ctx, `
+		INSERT INTO transactional_messages (workspace_id, api_key_id, idempotency_key, request_hash, fingerprint, status,
+			to_address, from_name, from_address, reply_to, subject, html, text, tags, track_opens, track_clicks)
+		VALUES ($1, NULLIF($2, '')::uuid, NULLIF($3, ''), $4, $5, 'test', $6, $7, $8, NULLIF($9, ''), $10, $11, $12, $13, $14, $15)
+		RETURNING id`,
+		who.WorkspaceID, who.KeyID, key, req.hash(), fingerprint, req.To, req.FromName, req.FromAddress, req.ReplyTo, req.Subject,
+		req.HTML, req.Text, req.Tags, req.TrackOpens, req.TrackClicks).Scan(&id)
+	return accepted{id: id, test: true}, err
 }

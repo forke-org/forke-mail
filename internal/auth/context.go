@@ -15,13 +15,19 @@ type Identity struct {
 	Role        string
 	WorkspaceID string
 	Plan        string
+	Test        bool
+	Delegated   bool
 }
 
 func (i Identity) Session() bool {
-	return i.KeyID == "" && i.UserID != ""
+	return i.KeyID == "" && i.UserID != "" && !i.Delegated
 }
 
 type identityKey struct{}
+
+func WithIdentity(ctx context.Context, id Identity) context.Context {
+	return withIdentity(ctx, id)
+}
 
 func withIdentity(ctx context.Context, id Identity) context.Context {
 	return context.WithValue(ctx, identityKey{}, id)

@@ -62,6 +62,10 @@ func (h *CompatibilityHandler) Send(w http.ResponseWriter, r *http.Request) {
 		if res.Replayed != "" {
 			w.Header().Set("Idempotency-Replayed", "true")
 		}
-		httpx.JSON(w, 202, Receipt{ID: res.ID, Status: "queued", Mode: "engine"})
+		status := "queued"
+		if res.Test {
+			status = "test"
+		}
+		httpx.JSON(w, 202, Receipt{ID: res.ID, Status: status, Mode: "engine"})
 	}
 }

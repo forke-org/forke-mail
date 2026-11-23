@@ -13,11 +13,12 @@ import (
 )
 
 const (
-	keyPrefix           = "fm_live_"
 	visiblePrefixLength = 12
+	ModeLive            = "live"
+	ModeTest            = "test"
 )
 
-var keyPattern = regexp.MustCompile(`^fm_live_[0-9a-f]{64}$`)
+var keyPattern = regexp.MustCompile(`^fm_(live|test)_[0-9a-f]{64}$`)
 
 type NewKey struct {
 	Plain  string
@@ -25,11 +26,18 @@ type NewKey struct {
 	Hash   string
 }
 
-func GenerateKey() NewKey {
-	b := make([]byte, 32)
-	_, _ = rand.Read(b)
-	plain := keyPrefix + hex.EncodeToString(b)
+func GenerateKey(mode string) NewKey {
+	if mode != ModeTest {
+		mode = ModeLive
+	}
+	plain := "fm_" + mode + "_" + RandomHex(32)
 	return NewKey{Plain: plain, Prefix: plain[:visiblePrefixLength], Hash: HashKey(plain)}
+}
+
+func RandomHex(n int) string {
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
 func HashKey(plain string) string {

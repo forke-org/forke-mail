@@ -13,7 +13,7 @@ import (
 )
 
 func TestGenerateKey(t *testing.T) {
-	k := GenerateKey()
+	k := GenerateKey(ModeLive)
 	if !strings.HasPrefix(k.Plain, "fm_live_") || len(k.Plain) != 72 {
 		t.Fatalf("unexpected key format %q", k.Plain)
 	}
@@ -30,15 +30,20 @@ func TestGenerateKey(t *testing.T) {
 	if strings.Contains(k.Hash, k.Plain) {
 		t.Fatal("hash contains the plain key")
 	}
-	if GenerateKey().Plain == k.Plain {
+	if GenerateKey(ModeLive).Plain == k.Plain {
 		t.Fatal("keys are not random")
 	}
 }
 
 func TestValidKeyFormat(t *testing.T) {
-	for _, bad := range []string{"", "fm_live_", "fm_test_" + strings.Repeat("a", 64), "fm_live_" + strings.Repeat("A", 64), "fm_live_" + strings.Repeat("a", 63)} {
+	for _, bad := range []string{"", "fm_live_", "fm_prod_" + strings.Repeat("a", 64), "fm_live_" + strings.Repeat("A", 64), "fm_live_" + strings.Repeat("a", 63)} {
 		if validKeyFormat(bad) {
 			t.Errorf("accepted %q", bad)
+		}
+	}
+	for _, mode := range []string{ModeLive, ModeTest} {
+		if k := GenerateKey(mode).Plain; !validKeyFormat(k) || !strings.HasPrefix(k, "fm_"+mode+"_") {
+			t.Errorf("rejected %s key", mode)
 		}
 	}
 }

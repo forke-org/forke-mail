@@ -61,6 +61,10 @@ func checkMonthlyRoom(ctx context.Context, tx pgx.Tx, required int64) error {
 
 func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 	ws := auth.FromContext(r.Context()).WorkspaceID
+	if auth.FromContext(r.Context()).Test {
+		httpx.Error(w, http.StatusForbidden, "test_key_cannot_launch_broadcasts")
+		return
+	}
 	id, ok := httpx.PathID(w, r)
 	if !ok {
 		return

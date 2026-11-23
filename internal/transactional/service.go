@@ -15,7 +15,10 @@ import (
 )
 
 type Submission = request
-type Acceptance struct{ ID, Replayed string }
+type Acceptance struct {
+	ID, Replayed string
+	Test         bool
+}
 type Service struct {
 	Pool       *pgxpool.Pool
 	Dispatcher *Dispatcher
@@ -62,8 +65,8 @@ func (s Service) Accept(ctx context.Context, who auth.Identity, key string, req 
 	if err != nil {
 		return Acceptance{}, err
 	}
-	if res.replayed == "" && s.Dispatcher != nil {
+	if res.replayed == "" && !res.test && s.Dispatcher != nil {
 		s.Dispatcher.Notify(res.id)
 	}
-	return Acceptance{ID: res.id, Replayed: res.replayed}, nil
+	return Acceptance{ID: res.id, Replayed: res.replayed, Test: res.test}, nil
 }

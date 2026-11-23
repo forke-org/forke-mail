@@ -34,6 +34,7 @@ import (
 	"forkemail/internal/forke"
 	"forkemail/internal/httpx"
 	"forkemail/internal/keys"
+	"forkemail/internal/oauth"
 	"forkemail/internal/lifecycle"
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/seed"
@@ -114,9 +115,11 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		httpx.Error(w, http.StatusMethodNotAllowed, "method_not_allowed")
 	})
 
-	r.Group(func(api chi.Router) {
-		api.Use(authn.Middleware, keyLimit, auth.Authorize)
+	registerAPI := func(api chi.Router) {
 		api.Get("/api/me", me.Me)
+		agentsH := &oauth.Server{Pool: pool, BaseURL: cfg.PublicBaseURL}
+		api.Get("/api/agents", agentsH.Connections)
+		api.Delete("/api/agents/connections/{id}", agentsH.Disconnect)
 		api.Post("/api/auth/logout", account.Logout)
 
 		api.Get("/api/keys", keyH.List)
@@ -238,7 +241,19 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		api.Delete("/api/forke-mail/audiences/{id}/contacts/{contact}", compatH.RemoveContact)
 		api.Post("/api/forke-mail/broadcasts", compatH.CreateBroadcast)
 		api.Post("/api/forke-mail/broadcasts/{id}/send", compatH.SendBroadcast)
+	}
+	r.Group(func(api chi.Router) {
+		api.Use(authn.Middleware, keyLimit, auth.Authorize)
+		registerAPI(api)
 	})
+	agentAPI := chi.NewRouter()
+	agentAPI.Use(auth.Authorize)
+	agentAPI.NotFound(func(w http.ResponseWriter, r *http.Request) { httpx.Error(w, http.StatusNotFound, "not_found") })
+	agentAPI.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		httpx.Error(w, http.StatusMethodNotAllowed, "method_not_allowed")
+	})
+	registerAPI(agentAPI)
+	registerAgentRoutes(r, cfg, pool, authn, agentAPI, keyLimit, publicLimit)
 
 	r.Get("/healthz", db.Health(pool))
 	r.Get("/_next/static/*", frontend.Handler().ServeHTTP)

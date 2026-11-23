@@ -123,7 +123,7 @@ func (h *Handler) seed(ctx context.Context, tx pgx.Tx, reset bool) ([]seededWork
 		if _, err := accounts.CreateUser(ctx, tx, id, s.owner, s.email, password); err != nil {
 			return nil, err
 		}
-		key := auth.GenerateKey()
+		key := auth.GenerateKey(auth.ModeLive)
 		if _, err := tx.Exec(ctx, `
 			INSERT INTO api_keys (workspace_id, name, scope, prefix, key_hash) VALUES ($1, 'Seed key', $2, $3, $4)`,
 			id, s.scope, key.Prefix, key.Hash); err != nil {

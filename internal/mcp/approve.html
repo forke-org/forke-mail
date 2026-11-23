@@ -1,0 +1,47 @@
+<!--
+  Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+  Source-Available License (Non-Commercial / Fair Source).
+  Open for inspection, learning, and non-commercial development.
+  Commercial use, hosting, or resale without authorization is strictly prohibited.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Approve an AI agent action · Forke Mail</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/theme.js"></script>
+</head>
+<body class="public">
+<main class="public-card stack">
+{{if .Error}}
+<div class="stack-xs"><h1>Nothing to approve</h1><p class="muted">{{.Error}}</p></div>
+<a class="btn btn-block" href="/">Open Forke Mail</a>
+{{else}}
+<div class="stack-xs">
+<h1>Approve this action?</h1>
+<p class="muted">{{.RequestedBy}} wants to do this in <strong>{{.Project}}</strong>.</p>
+</div>
+<p class="code">{{.Summary}}</p>
+{{if .Notice}}<p class="callout">{{.Notice}}</p>
+{{else if eq .Status "pending"}}
+{{if .Owner}}
+<form method="post" class="stack-sm">
+<div class="btn-row">
+<button class="btn" type="submit" name="decision" value="deny">Decline</button>
+<button class="btn btn-primary" type="submit" name="decision" value="approve">Approve</button>
+</div>
+<p class="muted small">Approving lets the agent do exactly this, once, until {{.Expires.Format "15:04 MST"}}. If you did not ask an AI agent to do this, decline.</p>
+</form>
+{{else}}<p class="callout">Only the project owner can approve this.</p>{{end}}
+{{else if eq .Status "approved"}}<p class="callout">Already approved. The agent can continue.</p>
+{{else if eq .Status "used"}}<p class="callout">Done. This approval has been used.</p>
+{{else if eq .Status "denied"}}<p class="callout">You declined this.</p>
+{{else}}<p class="callout">This request expired. Ask the agent to try again.</p>{{end}}
+<p class="muted small">Tool: {{.Tool}}</p>
+{{end}}
+</main>
+</body>
+</html>

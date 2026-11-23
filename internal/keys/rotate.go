@@ -33,11 +33,11 @@ func (h *Handler) Rotate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		var name string
-		if err := tx.QueryRow(r.Context(), `SELECT name FROM api_keys WHERE id = $1`, id).Scan(&name); err != nil {
+		var name, mode string
+		if err := tx.QueryRow(r.Context(), `SELECT name, mode FROM api_keys WHERE id = $1`, id).Scan(&name, &mode); err != nil {
 			return err
 		}
-		if created, err = insertKey(r.Context(), tx, ws, name, scope); err != nil {
+		if created, err = insertKey(r.Context(), tx, ws, name, scope, mode); err != nil {
 			return err
 		}
 		_, err = tx.Exec(r.Context(), `UPDATE api_keys SET revoked_at = now() WHERE id = $1 AND workspace_id = $2`, id, ws)

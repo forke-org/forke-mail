@@ -33,6 +33,8 @@ var routeScopes = map[string][]string{
 	"GET /api/me":                                              anyone,
 	"POST /api/emails":                                         anyone,
 	"POST /api/auth/logout":                                    sessions,
+	"GET /api/agents":                                          sessions,
+	"DELETE /api/agents/connections/{id}":                      sessions,
 	"GET /api/keys":                                            superAdminOnly,
 	"POST /api/keys":                                           superAdminOnly,
 	"DELETE /api/keys/{id}":                                    superAdminOnly,

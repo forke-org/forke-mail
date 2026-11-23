@@ -35,6 +35,7 @@ type keyView struct {
 	ID         string     `json:"id"`
 	Name       string     `json:"name"`
 	Scope      string     `json:"scope"`
+	Mode       string     `json:"mode"`
 	Prefix     string     `json:"prefix"`
 	CreatedAt  time.Time  `json:"created_at"`
 	LastUsedAt *time.Time `json:"last_used_at"`
@@ -51,12 +52,20 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name     string `json:"name"`
 		Scope    string `json:"scope"`
+		Mode     string `json:"mode"`
 		Password string `json:"password"`
 	}
 	if !httpx.Decode(w, r, &body) {
 		return
 	}
-	if !h.confirmPassword(w, r, body.Password) {
+	if !id.Delegated && !h.confirmPassword(w, r, body.Password) {
+		return
+	}
+	if body.Mode == "" {
+		body.Mode = auth.ModeLive
+	}
+	if body.Mode != auth.ModeLive && body.Mode != auth.ModeTest {
+		httpx.Error(w, http.StatusUnprocessableEntity, "invalid_mode")
 		return
 	}
 	if body.Name == "" || utf8.RuneCountInString(body.Name) > 100 {
@@ -71,7 +80,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusForbidden, "trial_cannot_create_full_access_key")
 		return
 	}
-	created, err := insertKey(r.Context(), h.Pool, id.WorkspaceID, body.Name, body.Scope)
+	created, err := insertKey(r.Context(), h.Pool, id.WorkspaceID, body.Name, body.Scope, body.Mode)
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return
@@ -83,7 +92,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	ws := auth.FromContext(r.Context()).WorkspaceID
 	rows, err := h.Pool.Query(r.Context(), `
-		SELECT id, name, scope, prefix, created_at, last_used_at, revoked_at
+		SELECT id, name, scope, mode, prefix, created_at, last_used_at, revoked_at
 		FROM api_keys WHERE workspace_id = $1
 		ORDER BY revoked_at IS NOT NULL, created_at DESC`, ws)
 	if err != nil {
@@ -92,7 +101,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	list, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (keyView, error) {
 		var k keyView
-		return k, row.Scan(&k.ID, &k.Name, &k.Scope, &k.Prefix, &k.CreatedAt, &k.LastUsedAt, &k.RevokedAt)
+		return k, row.Scan(&k.ID, &k.Name, &k.Scope, &k.Mode, &k.Prefix, &k.CreatedAt, &k.LastUsedAt, &k.RevokedAt)
 	})
 	if err != nil {
 		httpx.Internal(w, r, err)
@@ -113,12 +122,12 @@ func (h *Handler) confirmPassword(w http.ResponseWriter, r *http.Request, passwo
 	return ok
 }
 
-func insertKey(ctx context.Context, q db.Querier, workspaceID, name, scope string) (createdKey, error) {
-	key := auth.GenerateKey()
-	k := createdKey{keyView: keyView{Name: name, Scope: scope, Prefix: key.Prefix}, Key: key.Plain}
+func insertKey(ctx context.Context, q db.Querier, workspaceID, name, scope, mode string) (createdKey, error) {
+	key := auth.GenerateKey(mode)
+	k := createdKey{keyView: keyView{Name: name, Scope: scope, Mode: mode, Prefix: key.Prefix}, Key: key.Plain}
 	err := q.QueryRow(ctx, `
-		INSERT INTO api_keys (workspace_id, name, scope, prefix, key_hash)
-		VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at`,
-		workspaceID, name, scope, key.Prefix, key.Hash).Scan(&k.ID, &k.CreatedAt)
+		INSERT INTO api_keys (workspace_id, name, scope, mode, prefix, key_hash)
+		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at`,
+		workspaceID, name, scope, mode, key.Prefix, key.Hash).Scan(&k.ID, &k.CreatedAt)
 	return k, err
 }

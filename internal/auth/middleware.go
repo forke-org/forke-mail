@@ -73,20 +73,21 @@ func (a *Authenticator) identifyKey(ctx context.Context, header string) (Identit
 		return Identity{}, errUnauthorized
 	}
 	var id Identity
-	var status string
+	var status, mode string
 	var lastUsed *time.Time
 	err := a.Pool.QueryRow(ctx, `
-		SELECT k.id, k.prefix, k.scope, k.last_used_at, w.id, w.plan, w.status
+		SELECT k.id, k.prefix, k.scope, k.mode, k.last_used_at, w.id, w.plan, w.status
 		FROM api_keys k
 		JOIN workspaces w ON w.id = k.workspace_id
 		WHERE k.key_hash = $1 AND k.revoked_at IS NULL`, HashKey(plain),
-	).Scan(&id.KeyID, &id.KeyPrefix, &id.Scope, &lastUsed, &id.WorkspaceID, &id.Plan, &status)
+	).Scan(&id.KeyID, &id.KeyPrefix, &id.Scope, &mode, &lastUsed, &id.WorkspaceID, &id.Plan, &status)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && status != "active") {
 		return Identity{}, errUnauthorized
 	}
 	if err != nil {
 		return Identity{}, err
 	}
+	id.Test = mode == ModeTest
 	if lastUsed == nil || time.Since(*lastUsed) > time.Minute {
 		_, err = a.Pool.Exec(ctx, `
 			UPDATE api_keys SET last_used_at = now()

@@ -1,0 +1,49 @@
+<!--
+  Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+  Source-Available License (Non-Commercial / Fair Source).
+  Open for inspection, learning, and non-commercial development.
+  Commercial use, hosting, or resale without authorization is strictly prohibited.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Connect to Forke Mail</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/theme.js"></script>
+</head>
+<body class="public">
+<main class="public-card stack">
+{{if .Error}}
+<div class="stack-xs">
+<h1>Can't connect</h1>
+<p class="muted">{{.Error}}</p>
+</div>
+<a class="btn btn-block" href="/">Open Forke Mail</a>
+{{else}}
+<div class="stack-xs">
+<h1>Connect {{.Client}}</h1>
+<p class="muted">{{.Client}} wants to use Forke Mail as <strong>{{.Email}}</strong>.</p>
+</div>
+<form method="post" action="/oauth/authorize" class="stack">
+{{range $k, $v := .Params}}<input type="hidden" name="{{$k}}" value="{{$v}}">{{end}}
+<label class="stack-xs"><span class="label">Project</span>
+<select name="workspace_id" class="select">{{range .Projects}}<option value="{{.ID}}"{{if eq .ID $.Current}} selected{{end}}>{{.Name}}</option>{{end}}</select>
+</label>
+<ul class="agent-list">
+<li><b>Can do on its own:</b> read your project, manage templates, contacts and segments, and send with test keys.</li>
+<li><b>Asks you first:</b> sending real emails, creating API keys and deleting things.</li>
+<li><b>Needs you to approve here:</b> launching broadcasts, deleting projects or domains, revoking keys and anything to do with credits or payments.</li>
+</ul>
+<div class="btn-row">
+<button class="btn" type="submit" name="decision" value="deny">Cancel</button>
+<button class="btn btn-primary" type="submit" name="decision" value="allow">Allow</button>
+</div>
+<p class="muted small">You can disconnect it any time in Settings → AI agents.</p>
+</form>
+{{end}}
+</main>
+</body>
+</html>
