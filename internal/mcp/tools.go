@@ -284,7 +284,7 @@ var tools = []*tool{
 			return c.do("POST", "/api/segments", obj{"name": s(a, "name"), "match": match, "rules": a["rules"]}, "")
 		}},
 	{Name: "create_broadcast", Title: "Create a broadcast draft",
-		Description: "Create a newsletter or announcement as a draft. Nothing is sent until send_broadcast is approved by the user.",
+		Description: "Create a newsletter or announcement as a draft. Nothing is sent until the user confirms send_broadcast in the chat.",
 		Props: obj{"name": str("Internal name"), "from": str(`"Acme <news@acme.com>"`), "subject": str("Subject"), "html": str("HTML body"), "text": str("Plain-text body"),
 			"segment": str("Segment name for the audience"), "audience_id": str("Tag ID for the audience (alternative to segment)"), "topic": str("Optional topic key so people can opt out of just this topic"),
 			"template": str("Template name or ID instead of html/text; keep {{unsubscribe_url}} in it"), "data": dict("Template variables, string values")},
@@ -351,7 +351,7 @@ var tools = []*tool{
 			return c.do("POST", "/api/keys", obj{"name": s(a, "name"), "mode": mode, "scope": scope}, fmt.Sprintf("Create a %s API key named %q with %s.", mode, s(a, "name"), scope))
 		}},
 	{Name: "call_api", Title: "Call any Forke Mail API",
-		Description: "Call any /api endpoint for things the other tools do not cover (workflows, topics, suppressions, team, webhooks, settings, campaigns, reports). Reading is free; risky changes ask for confirmation or approval. See the resource forke-mail://guide for the endpoint list.",
+		Description: "Call any /api endpoint for things the other tools do not cover (workflows, topics, suppressions, team, webhooks, settings, campaigns, reports). Reading is free; risky changes ask the user to confirm in the chat. See the resource forke-mail://guide for the endpoint list.",
 		Props:       obj{"method": str("GET, POST, PUT, PATCH or DELETE"), "path": str("Path starting with /api/, with query string if needed"), "body": dict("JSON body")},
 		Required:    []string{"method", "path"},
 		Run: func(c *call, a map[string]any) (any, error) {
