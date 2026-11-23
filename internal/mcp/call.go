@@ -16,10 +16,8 @@ import (
 	"time"
 
 	"forkemail/internal/auth"
-	"forkemail/internal/httpx"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
 )
 
 type call struct {
@@ -27,7 +25,6 @@ type call struct {
 	tool      *tool
 	args      map[string]any
 	confirmed bool
-	approved  bool
 }
 
 func (s *session) principal() string {
@@ -35,13 +32,6 @@ func (s *session) principal() string {
 		return "key:" + s.id.KeyID
 	}
 	return "user:" + s.id.UserID + ":" + s.id.WorkspaceID
-}
-
-func (s *session) requester() string {
-	if s.id.KeyID != "" {
-		return "API key " + s.id.KeyPrefix + "…"
-	}
-	return "An AI app signed in as you"
 }
 
 func text(s string, isError bool) map[string]any {
@@ -58,22 +48,14 @@ func (s *session) callTool(t *tool, args map[string]any) map[string]any {
 		}
 		c.confirmed = true
 	}
-	if approval, _ := args["approval_id"].(string); approval != "" {
-		msg, ok := c.redeem(approval)
-		if !ok {
-			return text(msg, true)
-		}
-		c.approved = true
-	}
 	out, err := t.Run(c, args)
 	var g *gate
 	if errors.As(err, &g) {
-		switch g.risk {
-		case Confirm:
-			return text(fmt.Sprintf("CONFIRMATION NEEDED: %s\n\nShow this to the user and ask them to confirm. Only if they clearly say yes, call %s again with exactly the same arguments plus \"confirm_token\": %q. The token expires in 10 minutes.", g.summary, t.Name, conf.token(s.principal(), action, time.Now())), false)
-		case Approve:
-			return c.requestApproval(g.summary)
+		token := conf.token(s.principal(), action, time.Now())
+		if g.risk == Serious {
+			return text(fmt.Sprintf("CONFIRMATION NEEDED (can't be undone): %s\n\nThis is permanent or involves credits. Ask the user in the chat, say clearly that it can't be undone, and wait for an explicit yes. Only then call %s again with exactly the same arguments plus \"confirm_token\": %q. The token expires in 10 minutes.", g.summary, t.Name, token), false)
 		}
+		return text(fmt.Sprintf("CONFIRMATION NEEDED: %s\n\nAsk the user in the chat to confirm. Only if they clearly say yes, call %s again with exactly the same arguments plus \"confirm_token\": %q. The token expires in 10 minutes.", g.summary, t.Name, token), false)
 	}
 	var ae *apiError
 	if errors.As(err, &ae) {
@@ -97,9 +79,9 @@ func (c *call) doWith(method, path string, body any, summary string, headers map
 	switch risk := classify(method, path); {
 	case risk == Blocked:
 		return nil, errors.New("this action is not available to AI agents for safety. The user can do it in the Forke Mail dashboard")
-	case risk == Approve && !c.approved:
-		return nil, &gate{Approve, summary}
-	case risk == Confirm && !c.confirmed && !c.approved && !(c.id.Test && testOnly(method, path)):
+	case risk == Serious && !c.confirmed:
+		return nil, &gate{Serious, summary}
+	case risk == Confirm && !c.confirmed && !(c.id.Test && testOnly(method, path)):
 		return nil, &gate{Confirm, summary}
 	}
 	var reader *bytes.Reader
@@ -180,59 +162,4 @@ func explain(e *apiError) string {
 		msg += "\nResponse: " + e.body
 	}
 	return msg
-}
-
-func (c *call) requestApproval(summary string) map[string]any {
-	clean := map[string]any{}
-	_ = json.Unmarshal([]byte(strings.SplitN(canonical(c.tool.Name, c.args), "\n", 2)[1]), &clean)
-	var id string
-	err := c.h.Pool.QueryRow(c.ctx, `
-		INSERT INTO agent_approvals (workspace_id, requested_by, tool, args, summary, expires_at)
-		VALUES ($1, $2, $3, $4, $5, now() + interval '30 minutes') RETURNING id`,
-		c.id.WorkspaceID, c.requester(), c.tool.Name, clean, summary).Scan(&id)
-	if err != nil {
-		return text("Could not create the approval request. Try again.", true)
-	}
-	link := c.h.BaseURL + "/approve/" + id
-	go c.h.notifyApproval(c.id.WorkspaceID, id, c.requester(), summary)
-	return text(fmt.Sprintf("APPROVAL NEEDED: %s\n\nThis action needs the project owner to approve it in Forke Mail. Give the user this link: %s\nAfter they press Approve, call %s again with exactly the same arguments plus \"approval_id\": %q. The request expires in 30 minutes.", summary, link, c.tool.Name, id), false)
-}
-
-func (c *call) redeem(approvalID string) (string, bool) {
-	if !httpx.ValidID(approvalID) {
-		return "approval_id is not valid.", false
-	}
-	var status, tool, ws string
-	var stored map[string]any
-	var expired bool
-	err := c.h.Pool.QueryRow(c.ctx, `
-		SELECT status, tool, workspace_id, args, expires_at < now() FROM agent_approvals WHERE id = $1`, approvalID,
-	).Scan(&status, &tool, &ws, &stored, &expired)
-	if errors.Is(err, pgx.ErrNoRows) || ws != c.id.WorkspaceID {
-		return "No such approval request in this project.", false
-	}
-	if err != nil {
-		return "Could not check the approval. Try again.", false
-	}
-	clean := map[string]any{}
-	_ = json.Unmarshal([]byte(strings.SplitN(canonical(c.tool.Name, c.args), "\n", 2)[1]), &clean)
-	a, _ := json.Marshal(clean)
-	b, _ := json.Marshal(stored)
-	switch {
-	case tool != c.tool.Name || !bytes.Equal(a, b):
-		return "This approval was for a different action or different arguments. Call the tool without approval_id to request a new approval.", false
-	case status == "denied":
-		return "The user declined this action. Do not retry unless they ask.", false
-	case status == "used":
-		return "This approval was already used. Request a new one if the user wants to do it again.", false
-	case expired:
-		return "This approval request expired. Call the tool without approval_id to request a new one.", false
-	case status == "pending":
-		return "Still waiting for the user to approve at " + c.h.BaseURL + "/approve/" + approvalID + ". Ask them to open the link, then call again.", false
-	}
-	tag, err := c.h.Pool.Exec(c.ctx, `UPDATE agent_approvals SET status = 'used' WHERE id = $1 AND status = 'approved'`, approvalID)
-	if err != nil || tag.RowsAffected() == 0 {
-		return "This approval was already used.", false
-	}
-	return "", true
 }

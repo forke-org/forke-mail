@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-const version = "1.0.1"
+const version = "1.0.2"
 
 const usage = `Forke Mail CLI
 
@@ -35,7 +35,7 @@ Usage:
 Options: --url to use another server (or FORKE_MAIL_URL), --yes to skip confirmation prompts, --json for raw output,
 --no-browser to print links instead of opening them.
 Set FORKE_MAIL_API_KEY to use an API key instead of signing in (CI, servers).
-Risky actions ask you to confirm; broadcasts, deleting domains or projects and anything about credits open an approval page in your browser.
+Risky actions ask you to confirm in the terminal first; ones that can't be undone say so.
 `
 
 type options struct {

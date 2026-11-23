@@ -137,7 +137,6 @@ func toolText(res map[string]any) string {
 }
 
 var confirmPattern = regexp.MustCompile(`"confirm_token": "([^"]+)"`)
-var approvalPattern = regexp.MustCompile(`"approval_id": "([^"]+)"`)
 
 func TestAgentsOAuthAndMCP(t *testing.T) {
 	f := newAPIFixture(t)
@@ -170,6 +169,16 @@ func TestAgentsOAuthAndMCP(t *testing.T) {
 		t.Fatalf("get_account %s", txt)
 	}
 
+	if w := f.request("POST", "/api/templates", `{"name":"agent-tpl","kind":"transactional","subject":"Hi","html":"<p>Hi</p>"}`, ""); w.Code != 201 {
+		t.Fatalf("template %d %s", w.Code, w.Body)
+	}
+	if txt := toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "delete_template", "arguments": map[string]any{"id": "agent-tpl"}})); !strings.HasPrefix(txt, "CONFIRMATION NEEDED") {
+		t.Fatalf("delete_template by name: %s", txt)
+	}
+	if txt := toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "get_template", "arguments": map[string]any{"id": "agent-tpl"}})); !strings.Contains(txt, `"name": "agent-tpl"`) {
+		t.Fatalf("get_template by name: %s", txt)
+	}
+
 	domain := f.ws + ".agents.test"
 	dbtest.Exec(t, f.pool, `INSERT INTO domains(workspace_id,name,status) VALUES($1,$2,'verified')`, f.ws, domain)
 	send := map[string]any{"to": "reader@example.com", "from": "Acme <hi@" + domain + ">", "subject": "Hello", "text": "Hi"}
@@ -195,32 +204,18 @@ func TestAgentsOAuthAndMCP(t *testing.T) {
 	if txt := toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "call_api", "arguments": map[string]any{"method": "POST", "path": "/api/account/password", "body": map[string]any{}}})); !strings.Contains(txt, "not available to AI agents") {
 		t.Fatalf("blocked route ran: %s", txt)
 	}
-	approvalCall := map[string]any{"name": "call_api", "arguments": map[string]any{"method": "PATCH", "path": "/api/team/members/" + f.ws, "body": map[string]any{"role": "admin"}}}
-	first = toolText(f.mcp(t, token, "tools/call", approvalCall))
-	a := approvalPattern.FindStringSubmatch(first)
-	if !strings.HasPrefix(first, "APPROVAL NEEDED") || a == nil {
-		t.Fatalf("approval not requested: %s", first)
+	roleArgs := map[string]any{"method": "PATCH", "path": "/api/team/members/" + f.ws, "body": map[string]any{"role": "admin"}}
+	first = toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "call_api", "arguments": roleArgs}))
+	serious := confirmPattern.FindStringSubmatch(first)
+	if !strings.HasPrefix(first, "CONFIRMATION NEEDED (can't be undone)") || serious == nil {
+		t.Fatalf("serious action not confirmed in chat: %s", first)
 	}
-	approvalCall["arguments"].(map[string]any)["approval_id"] = a[1]
-	if txt := toolText(f.mcp(t, token, "tools/call", approvalCall)); !strings.Contains(txt, "Still waiting") {
-		t.Fatalf("ran before approval: %s", txt)
+	roleArgs["confirm_token"] = serious[1]
+	if txt := toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "call_api", "arguments": roleArgs})); strings.Contains(txt, "CONFIRMATION NEEDED") {
+		t.Fatalf("confirmed serious action did not run: %s", txt)
 	}
-	page := httptest.NewRequest("GET", "/approve/"+a[1], nil)
-	page.AddCookie(f.cookie)
-	if w := f.raw(page); w.Code != 200 || !strings.Contains(w.Body.String(), "Approve this action?") {
-		t.Fatalf("approval page %d %s", w.Code, w.Body)
-	}
-	decide := httptest.NewRequest("POST", "/approve/"+a[1], strings.NewReader("decision=approve"))
-	decide.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	decide.AddCookie(f.cookie)
-	if w := f.raw(decide); !strings.Contains(w.Body.String(), "Approved") {
-		t.Fatalf("approve %d %s", w.Code, w.Body)
-	}
-	if txt := toolText(f.mcp(t, token, "tools/call", approvalCall)); strings.Contains(txt, "APPROVAL NEEDED") || strings.Contains(txt, "Still waiting") {
-		t.Fatalf("approved call did not run: %s", txt)
-	}
-	if txt := toolText(f.mcp(t, token, "tools/call", approvalCall)); !strings.Contains(txt, "already used") {
-		t.Fatalf("approval reused: %s", txt)
+	if w := f.raw(httptest.NewRequest("GET", "/approve/"+f.ws, nil)); w.Code != 404 {
+		t.Fatalf("browser approval page still served: %d", w.Code)
 	}
 
 	keyFirst := toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "create_api_key", "arguments": map[string]any{"name": "dev"}}))

@@ -309,8 +309,7 @@ func (s *Server) Run(ctx context.Context) {
 func (s *Server) Clean(ctx context.Context) error {
 	_, err := s.Pool.Exec(ctx, `
 		WITH codes AS (DELETE FROM oauth_codes WHERE expires_at < now()),
-			grants AS (DELETE FROM oauth_grants WHERE refresh_expires_at < now()),
-			approvals AS (DELETE FROM agent_approvals WHERE created_at < now() - interval '90 days')
+			grants AS (DELETE FROM oauth_grants WHERE refresh_expires_at < now())
 		DELETE FROM oauth_clients c WHERE c.created_at < now() - interval '30 days'
 			AND NOT EXISTS (SELECT 1 FROM oauth_grants g WHERE g.client_id = c.id)
 			AND NOT EXISTS (SELECT 1 FROM oauth_codes o WHERE o.client_id = c.id)`)

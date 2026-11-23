@@ -306,7 +306,7 @@ var tools = []*tool{
 			return c.do("POST", "/api/forke-mail/broadcasts", body, "")
 		}},
 	{Name: "send_broadcast", Title: "Send a broadcast", Destructive: true,
-		Description: "Launch a broadcast draft to its whole audience. Always needs the project owner's approval in the browser.",
+		Description: "Launch a broadcast draft to its whole audience. It can't be undone, so the user must confirm it in the chat first.",
 		Props:       obj{"broadcast_id": str("ID from create_broadcast")}, Required: []string{"broadcast_id"},
 		Run: func(c *call, a map[string]any) (any, error) {
 			bid, err := id(a, "broadcast_id")
@@ -386,7 +386,6 @@ func toolList() []obj {
 		}
 		if !t.ReadOnly {
 			props["confirm_token"] = str("Only after the user confirmed: the token from a CONFIRMATION NEEDED reply")
-			props["approval_id"] = str("Only after the user approved in the browser: the ID from an APPROVAL NEEDED reply")
 		}
 		required := t.Required
 		if required == nil {

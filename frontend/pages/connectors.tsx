@@ -18,8 +18,7 @@ import { useToast } from '../lib/toast';
 import { useLoad } from '../lib/useLoad';
 
 type Connection = { id: string; app: string; project: string; created_at: string; last_used_at: string | null };
-type Approval = { id: string; summary: string; tool: string; requested_by: string; status: string; created_at: string };
-type Agents = { connections: Connection[]; approvals: Approval[]; mcp_url: string };
+type Agents = { connections: Connection[]; mcp_url: string };
 type Client = 'claude' | 'chatgpt' | 'code' | 'cursor' | 'cli';
 
 function Snippet({ value }: { value: string }) {
@@ -56,8 +55,8 @@ function Safety() {
   const rows: [string, string, string][] = [
     ['Does it on its own', 'Reading your project, drafts, templates, contacts, segments and sends with test keys.', 'green'],
     ['Asks you in the chat first', 'Sending real email, creating API keys, importing contacts, changing settings and deleting things.', 'amber'],
-    ['Needs your approval here', 'Launching broadcasts, deleting domains or projects, revoking keys, changing roles and anything about credits or payments.', 'red'],
-    ['Never', 'Your password, signing in or out, and account deletion without your approval.', 'neutral'],
+    ['Asks first, says it can\'t be undone', 'Launching broadcasts, deleting domains or projects, revoking keys, changing roles and anything about credits.', 'red'],
+    ['Never', 'Your password, signing in or out, and Forke admin settings.', 'neutral'],
   ];
   return (
     <Card title="What agents can do" icon={ShieldCheck} description="Every request goes through the same permissions as your account. Risky steps stop and wait for you.">
@@ -78,7 +77,7 @@ export default function ConnectorsPage() {
   const confirm = useConfirm();
   const toast = useToast();
   if (!state.data) return <Loading />;
-  const { connections, approvals, mcp_url: url } = state.data;
+  const { connections, mcp_url: url } = state.data;
 
   const disconnect = async (c: Connection) => {
     if (!(await confirm('Disconnect app', `${c.app} will lose access to ${c.project} straight away.`, 'Disconnect', true))) return;
@@ -113,23 +112,6 @@ export default function ConnectorsPage() {
               ))}
             </div>
           ) : <Empty title="No apps connected" hint="Add the MCP URL to an AI app to connect it." icon={Bot} />}
-        </Card>
-        <Card title="Recent approval requests" flush>
-          {approvals.length ? (
-            <div className="divide-y divide-line">
-              {approvals.map((a) => (
-                <div key={a.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-ink">{a.summary}</p>
-                    <p className="text-xs text-muted">{a.requested_by} · {a.tool} · {timeAgo(a.created_at)}</p>
-                  </div>
-                  {a.status === 'pending'
-                    ? <a className="text-sm font-medium text-accent hover:underline" href={`/approve/${a.id}`}>Review</a>
-                    : <Badge value={a.status === 'used' ? 'done' : a.status === 'approved' ? 'active' : a.status === 'denied' ? 'rejected' : 'skipped'}>{a.status}</Badge>}
-                </div>
-              ))}
-            </div>
-          ) : <Empty title="Nothing to approve yet" hint="When an agent asks to do something risky, it shows up here." icon={ShieldCheck} />}
         </Card>
       </div>
     </>

@@ -65,7 +65,7 @@ func (c *client) post(body []byte) ([]byte, error) {
 		req.Header.Set("Authorization", "Bearer "+tok)
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", "application/json, text/event-stream")
-		res, err := c.http.Do(req)
+		res, err := c.do(req, body)
 		if err != nil {
 			return nil, err
 		}
@@ -139,9 +139,8 @@ func (c *client) tool(name string, args map[string]any) (toolResult, error) {
 }
 
 var (
-	confirmToken = regexp.MustCompile(`"confirm_token": "([^"]+)"`)
-	approvalID   = regexp.MustCompile(`"approval_id": "([^"]+)"`)
-	approvalLink = regexp.MustCompile(`https?://\S+/approve/[0-9a-f-]+`)
+	confirmToken  = regexp.MustCompile(`"confirm_token": "([^"]+)"`)
+	confirmPrefix = regexp.MustCompile(`^CONFIRMATION NEEDED( \(can't be undone\))?: `)
 )
 
 func ask(question string) bool {
@@ -161,35 +160,19 @@ func (c *client) run(name string, args map[string]any, yes bool) (toolResult, er
 	}
 	if strings.HasPrefix(res.Text, "CONFIRMATION NEEDED") {
 		m := confirmToken.FindStringSubmatch(res.Text)
-		summary := strings.TrimPrefix(strings.SplitN(res.Text, "\n", 2)[0], "CONFIRMATION NEEDED: ")
 		if m == nil {
 			return res, nil
 		}
-		if !yes && !ask(summary+"\nGo ahead?") {
+		firstLine := strings.SplitN(res.Text, "\n", 2)[0]
+		question := "Go ahead?"
+		if strings.Contains(firstLine, "can't be undone") {
+			question = "This can't be undone. Go ahead?"
+		}
+		if !yes && !ask(confirmPrefix.ReplaceAllString(firstLine, "")+"\n"+question) {
 			return toolResult{Text: "Cancelled.", IsError: true}, nil
 		}
 		args["confirm_token"] = m[1]
 		return c.tool(name, args)
-	}
-	if strings.HasPrefix(res.Text, "APPROVAL NEEDED") {
-		m := approvalID.FindStringSubmatch(res.Text)
-		link := approvalLink.FindString(res.Text)
-		if m == nil || link == "" {
-			return res, nil
-		}
-		fmt.Fprintln(os.Stderr, strings.SplitN(res.Text, "\n", 2)[0])
-		fmt.Fprintln(os.Stderr, "Approve it in your browser: "+link)
-		openBrowser(link)
-		args["approval_id"] = m[1]
-		deadline := time.Now().Add(30 * time.Minute)
-		for time.Now().Before(deadline) {
-			time.Sleep(3 * time.Second)
-			res, err = c.tool(name, args)
-			if err != nil || !strings.Contains(res.Text, "Still waiting") {
-				return res, err
-			}
-		}
-		return toolResult{Text: "The approval request expired.", IsError: true}, nil
 	}
 	return res, nil
 }
@@ -220,4 +203,19 @@ func (c *client) bridge(in io.Reader, out io.Writer) error {
 		}
 	}
 	return scanner.Err()
+}
+
+func (c *client) do(req *http.Request, body []byte) (*http.Response, error) {
+	for attempt := 0; ; attempt++ {
+		req.Body = io.NopCloser(bytes.NewReader(body))
+		res, err := c.http.Do(req)
+		transient := err != nil || res.StatusCode == http.StatusBadGateway || res.StatusCode == http.StatusServiceUnavailable || res.StatusCode == http.StatusGatewayTimeout
+		if !transient || attempt == 3 {
+			return res, err
+		}
+		if res != nil {
+			res.Body.Close()
+		}
+		time.Sleep(time.Duration(1<<attempt) * time.Second)
+	}
 }

@@ -7,7 +7,7 @@
 - **MCP server:** `https://mail.forke.space/mcp`. Any AI app that supports the Model Context Protocol can add domains, write templates, send email, track events and read analytics for you.
 - **CLI:** `forke-mail`, one binary for macOS, Linux and Windows. It signs in through your browser, sets up projects and runs the MCP server locally.
 - **HTTP API:** plain JSON over HTTPS at `https://mail.forke.space/api`. Every tool the agents use is an API call you can make yourself.
-- **Safe by default:** agents do everyday work on their own, ask you in the chat before anything risky, and need your approval in the browser for anything that can't be undone or costs money.
+- **Safe by default:** agents do everyday work on their own, and ask you in the chat before anything risky, saying clearly when something can't be undone.
 - **Free to build with:** test keys (`fm_test_…`) run every call for real but never deliver email and never use credits.
 
 ## Quickstart
@@ -121,15 +121,14 @@ Every action is sorted into one of four levels. The server enforces this, not th
 | Level | What happens | Examples |
 | --- | --- | --- |
 | Runs directly | The tool just runs. | Reading anything, adding a domain, saving templates and segments, drafting broadcasts, tracking events, sending with a test key |
-| Asks you first | The tool replies `CONFIRMATION NEEDED` with a summary and a one-time `confirm_token`. The agent must show you the summary and only continue after you say yes. | Sending a real email, creating API keys, importing contacts, creating or changing workflows and webhooks, changing settings, deleting templates, contacts or segments |
-| Needs your approval | The tool replies `APPROVAL NEEDED` with a link. You open it, check the action and press **Approve** or **Decline**. Only project owners can approve. | Launching a broadcast, deleting a domain, resetting or deleting a project, revoking or rotating keys, changing roles or removing members, moving credits, removing suppressions |
+| Asks you in the chat | The tool replies `CONFIRMATION NEEDED` with a summary and a one-time `confirm_token`. The agent must show you the summary and only continue after you say yes. | Sending a real email, creating API keys, importing contacts, creating or changing workflows and webhooks, changing settings, deleting templates, contacts or segments |
+| Asks you in the chat, marked can't be undone | The reply starts `CONFIRMATION NEEDED (can't be undone)`, and the agent must tell you so before you answer. | Launching a broadcast, deleting a domain, resetting or deleting a project, revoking or rotating keys, changing roles or removing members, moving credits, removing suppressions |
 | Never through agents | The tool refuses and points you to the dashboard. | Passwords, signing in or out, platform administration |
 
 Details that keep this safe:
 
 - A `confirm_token` only works for the exact same tool and arguments, for 10 minutes. Changing anything (a different recipient, a new subject) needs a new confirmation.
-- An approval works once, for the exact action you saw, within 30 minutes. Recent requests are listed under **Connectors**.
-- The approval page only accepts a click from Forke Mail itself, so another site can't approve on your behalf.
+- The check happens on Forke Mail's server, so an agent cannot skip it by calling the API differently.
 
 Example conversation:
 
@@ -146,7 +145,7 @@ Agent:  Sent. Message ID 5f1c…, status queued.
 - Live sends use credits and count towards your daily limit. New projects warm up over 14 days with a growing daily broadcast cap to protect deliverability.
 - Test keys never use credits.
 - When a project is out of credits or over a limit, the API returns an error (often `402`) and agents tell you what happened and where to fix it.
-- Agents never buy, pay, add credits or enter payment details. Moving credits between projects needs your approval in the browser, and anything involving money always will.
+- Agents never buy, pay, add credits or enter payment details. Moving credits between projects is marked can't be undone and needs your yes in the chat, as will anything involving money.
 - `get_account` (or `forke-mail whoami`) shows the plan, credits, limits and warm-up status.
 
 ## Test mode and live mode
@@ -158,7 +157,7 @@ Agent:  Sent. Message ID 5f1c…, status queued.
 
 ## Tools reference
 
-These are the tools the MCP server and CLI offer right now. Every tool that changes something also accepts `confirm_token` and `approval_id`, which agents fill in after you confirm or approve.
+These are the tools the MCP server and CLI offer right now. Every tool that changes something also accepts `confirm_token`, which agents fill in after you confirm in the chat.
 
 {{tools}}
 
@@ -186,9 +185,9 @@ On Windows, download `forke-mail-windows-amd64.exe` from the [latest release](ht
 | `forke-mail call <tool>` | Run any tool with JSON (`'{"name":"x"}'`) or `key=value` arguments. |
 | `forke-mail mcp` | Run as a local MCP server over stdio. |
 
-Options: `--yes` answers confirmation prompts with yes (approvals still need the browser), `--json` prints raw output, `--no-browser` prints links instead of opening them, `--url` points at another server. Environment: `FORKE_MAIL_API_KEY` uses a key instead of signing in, `FORKE_MAIL_URL` changes the server.
+Options: `--yes` answers confirmation prompts with yes, `--json` prints raw output, `--no-browser` prints links instead of opening them, `--url` points at another server. Environment: `FORKE_MAIL_API_KEY` uses a key instead of signing in, `FORKE_MAIL_URL` changes the server.
 
-When a command needs confirmation the CLI asks in the terminal. When it needs approval it opens the approval page and waits until you decide.
+When a command needs confirmation the CLI asks in the terminal, and says when the action can't be undone.
 
 ## HTTP API
 
@@ -251,7 +250,7 @@ await fetch("https://mail.forke.space/api/transactional", {
 ### Broadcasts
 
 - `POST /api/forke-mail/broadcasts` creates a draft: `from`, `subject`, `html`/`text` or `template` with `data`, and `segment` (name) or `audience_id` (tag), optional `topic`. Templates for broadcasts must keep the `{{unsubscribe_url}}` link.
-- `POST /api/forke-mail/broadcasts/{id}/send` launches it. Through agents this always needs your approval.
+- `POST /api/forke-mail/broadcasts/{id}/send` launches it. Through agents this always asks you first, marked can't be undone.
 
 ### Workflows
 
@@ -283,7 +282,6 @@ await fetch("https://mail.forke.space/api/transactional", {
 - **sender_not_verified:** the from address isn't on a verified domain. Add the domain, add its DNS records and run `check_domain`. Test keys accept any from address.
 - **402 or a limit error:** the project is out of credits or over its daily limit. Check `get_account`.
 - **CONFIRMATION NEEDED keeps coming back:** the arguments changed between calls. Confirm the final version.
-- **APPROVAL NEEDED but nothing happens:** the project owner has to open the link and press Approve while signed in to Forke Mail.
 - **The app can't connect:** remove the connector and add it again to sign in fresh, and check status.forke.space.
 
 ## Links

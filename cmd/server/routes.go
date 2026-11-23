@@ -256,7 +256,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		httpx.Error(w, http.StatusMethodNotAllowed, "method_not_allowed")
 	})
 	registerAPI(agentAPI)
-	registerAgentRoutes(r, cfg, pool, authn, svc.dispatcher, agentAPI, keyLimit, agentLimit, publicLimit)
+	registerAgentRoutes(r, cfg, pool, authn, agentAPI, keyLimit, agentLimit, publicLimit)
 
 	r.Get("/healthz", db.Health(pool))
 	r.Get("/_next/static/*", frontend.Handler().ServeHTTP)

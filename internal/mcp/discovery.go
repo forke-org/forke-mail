@@ -21,7 +21,7 @@ var toolLevel = map[string]string{
 	"send_email":      "Asks you first with a live key; runs directly with a test key",
 	"delete_template": "Asks you first",
 	"create_api_key":  "Asks you first",
-	"send_broadcast":  "Needs your approval in the browser",
+	"send_broadcast":  "Asks you first (can't be undone)",
 	"call_api":        "Depends on the endpoint (see Safety model)",
 }
 

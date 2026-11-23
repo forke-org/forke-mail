@@ -32,16 +32,12 @@ const serverVersion = "1.0.0"
 var protocolVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 
 type Handler struct {
-	Pool  *pgxpool.Pool
-	Auth  *auth.Authenticator
-	API   http.Handler
-	Limit func(http.Handler) http.Handler
-
-	Mail          Mailer
-	MailWorkspace string
-	MailFrom      string
-	BaseURL       string
-	Secret        []byte
+	Pool    *pgxpool.Pool
+	Auth    *auth.Authenticator
+	API     http.Handler
+	Limit   func(http.Handler) http.Handler
+	BaseURL string
+	Secret  []byte
 }
 
 type rpcRequest struct {
@@ -211,7 +207,7 @@ func (s *session) handle(req rpcRequest) (rpcResponse, bool) {
 }
 
 const instructions = `Forke Mail sends transactional emails and broadcasts through Amazon SES. Start with get_account to see the project, credits, verified domains and whether you are using a test key.
-Safety: some tools answer with CONFIRMATION NEEDED or APPROVAL NEEDED instead of acting. For CONFIRMATION NEEDED, show the user the summary, wait for an explicit yes in the chat, then call the same tool again with the same arguments plus confirm_token. Never confirm on the user's behalf. For APPROVAL NEEDED, give the user the link; they approve in their browser, then you call again with approval_id.
+Safety: some tools answer with CONFIRMATION NEEDED instead of acting. Show the user the summary in the chat (say clearly when it can't be undone), wait for an explicit yes, then call the same tool again with the same arguments plus confirm_token. Never confirm on the user's behalf.
 Money: never try to buy, pay or add credits yourself. If a send fails for credits or limits, tell the user what to do.
 Building an app: create a test API key (create_api_key with mode "test") for development; test sends are stored but never delivered. Read the resource forke-mail://guide for the HTTP API and code samples.`
 

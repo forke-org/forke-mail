@@ -3,12 +3,25 @@
   "name": "space.forke/mail",
   "title": "Forke Mail",
   "description": "Email for AI agents: send email, manage domains, templates and contacts. Risky steps ask you first.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "websiteUrl": "https://www.forke.space/docs/forke-mail",
   "remotes": [
     {
       "type": "streamable-http",
       "url": "https://mail.forke.space/mcp"
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/forke-org/forke-mail",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://mail.forke.space/forke-mark.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "500x500"
+      ]
     }
   ]
 }

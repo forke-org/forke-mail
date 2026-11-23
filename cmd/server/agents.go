@@ -14,20 +14,15 @@ import (
 	"forkemail/internal/mcp"
 	"forkemail/internal/oauth"
 	"forkemail/internal/team"
-	"forkemail/internal/transactional"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func registerAgentRoutes(r chi.Router, cfg config.Config, pool *pgxpool.Pool, authn *auth.Authenticator, dispatcher *transactional.Dispatcher, api http.Handler, keyLimit, agentLimit, publicLimit func(http.Handler) http.Handler) {
+func registerAgentRoutes(r chi.Router, cfg config.Config, pool *pgxpool.Pool, authn *auth.Authenticator, api http.Handler, keyLimit, agentLimit, publicLimit func(http.Handler) http.Handler) {
 	projects := &team.Projects{Pool: pool, MaxProjects: cfg.MaxProjects, Defaults: accounts.NewWorkspace{Plan: "trial", DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5, Warmup: true}}
 	oa := &oauth.Server{Pool: pool, Auth: authn, Projects: projects, BaseURL: cfg.PublicBaseURL}
-	m := &mcp.Handler{Pool: pool, Auth: authn, API: api, Limit: keyLimit, BaseURL: cfg.PublicBaseURL, Secret: []byte(cfg.UnsubscribeSecret),
-		MailWorkspace: cfg.AlertWorkspaceID, MailFrom: cfg.AlertFrom}
-	if dispatcher != nil {
-		m.Mail = transactional.Service{Pool: pool, Dispatcher: dispatcher}
-	}
+	m := &mcp.Handler{Pool: pool, Auth: authn, API: api, Limit: keyLimit, BaseURL: cfg.PublicBaseURL, Secret: []byte(cfg.UnsubscribeSecret)}
 	r.Group(func(machine chi.Router) {
 		machine.Use(agentLimit)
 		for _, p := range []string{"/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp", "/.well-known/oauth-authorization-server"} {
@@ -54,8 +49,6 @@ func registerAgentRoutes(r chi.Router, cfg config.Config, pool *pgxpool.Pool, au
 		pub.Get("/docs/agents/", m.AgentsDocs)
 		pub.Get("/oauth/authorize", oa.Authorize)
 		pub.Post("/oauth/authorize", oa.Decide)
-		pub.Get("/approve/{id}", m.ShowApproval)
-		pub.Post("/approve/{id}", m.DecideApproval)
 	})
 	r.Handle("/mcp", m)
 }

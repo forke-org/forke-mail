@@ -21,11 +21,11 @@ type Risk int
 const (
 	Safe Risk = iota
 	Confirm
-	Approve
+	Serious
 	Blocked
 )
 
-var riskName = map[Risk]string{Safe: "safe", Confirm: "confirm", Approve: "approve", Blocked: "blocked"}
+var riskName = map[Risk]string{Safe: "safe", Confirm: "confirm", Serious: "serious", Blocked: "blocked"}
 
 type rule struct {
 	method string
@@ -43,18 +43,18 @@ var rules = []rule{
 	r("*", `/api/auth/.*`, Blocked),
 	r("*", `/api/platform/.*`, Blocked),
 	r("POST", `/api/account/password`, Blocked),
-	r("POST", `/api/emails/`+idPart+`/send`, Approve),
-	r("POST", `/api/forke-mail/broadcasts/`+idPart+`/send`, Approve),
-	r("POST", `/api/emails/`+idPart+`/resume`, Approve),
-	r("DELETE", `/api/domains/`+idPart, Approve),
-	r("POST", `/api/projects/current/(delete|reset|leave)`, Approve),
-	r("POST", `/api/projects/credits`, Approve),
-	r("POST", `/api/account/delete`, Approve),
-	r("DELETE", `/api/keys/`+idPart, Approve),
-	r("POST", `/api/keys/`+idPart+`/rotate`, Approve),
-	r("DELETE", `/api/team/members/`+idPart, Approve),
-	r("PATCH", `/api/team/members/`+idPart, Approve),
-	r("DELETE", `/api/suppressions/`+idPart, Approve),
+	r("POST", `/api/emails/`+idPart+`/send`, Serious),
+	r("POST", `/api/forke-mail/broadcasts/`+idPart+`/send`, Serious),
+	r("POST", `/api/emails/`+idPart+`/resume`, Serious),
+	r("DELETE", `/api/domains/`+idPart, Serious),
+	r("POST", `/api/projects/current/(delete|reset|leave)`, Serious),
+	r("POST", `/api/projects/credits`, Serious),
+	r("POST", `/api/account/delete`, Serious),
+	r("DELETE", `/api/keys/`+idPart, Serious),
+	r("POST", `/api/keys/`+idPart+`/rotate`, Serious),
+	r("DELETE", `/api/team/members/`+idPart, Serious),
+	r("PATCH", `/api/team/members/`+idPart, Serious),
+	r("DELETE", `/api/suppressions/`+idPart, Serious),
 	r("PUT", `/api/settings/.*`, Confirm),
 	r("PATCH", `/api/account`, Confirm),
 	r("PATCH", `/api/projects/current`, Confirm),
