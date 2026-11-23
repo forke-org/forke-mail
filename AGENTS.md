@@ -56,6 +56,7 @@ DB-backed tests skip when `TEST_DATABASE_URL` is unset. They create their own wo
 | `cmd/server/routes.go` | router: middleware chain, authenticated API group, public group, `/healthz`, `/webhooks/ses` (only when SES is configured), `/dev/*` (development only) |
 | `cmd/sesbootstrap`, `cmd/sescheck` | operator CLIs (see README) |
 | `cmd/forke-mail` | the public CLI: login, init, send, call, mcp |
+| `cmd/registrypublish` | publishes `server.json` to the official MCP Registry as `space.forke/mail` (DNS-verified key in `~/.config/forke/mcp-registry.key`); bump `version` in `server.json` before each publish |
 | `internal/mcp`, `internal/oauth` | MCP server, tools, safety gates, approvals, discovery files; OAuth authorization server and connected apps |
 | `internal/config` | env parsing and validation (`Load`, `LoadAWS`, `ValidateBaseURL`). Startup fails on invalid config |
 | `internal/accounts` | `Login` (Forke `Directory` when `FORKE_DATABASE_URL` is set, else local bcrypt users for development), `ForkeWorkspace`/`UpsertAdmin` (link a Forke admin to a local user by `forke_admin_id`), `Passwords.Verify` (Forke or local password re-check), logout, `CreateWorkspace`, `AddVerifiedIdentity`, `CreateUser` |

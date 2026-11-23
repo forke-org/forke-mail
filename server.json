@@ -1,11 +1,14 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "space.forke/mail",
   "title": "Forke Mail",
-  "description": "Send transactional email and broadcasts, manage domains, templates, contacts and workflows. Risky actions ask the user first.",
+  "description": "Email for AI agents: send email, manage domains, templates and contacts. Risky steps ask you first.",
   "version": "1.0.0",
   "websiteUrl": "https://www.forke.space/docs/forke-mail",
   "remotes": [
-    { "type": "streamable-http", "url": "https://mail.forke.space/mcp" }
+    {
+      "type": "streamable-http",
+      "url": "https://mail.forke.space/mcp"
+    }
   ]
 }
