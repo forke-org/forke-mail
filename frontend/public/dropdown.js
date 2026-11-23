@@ -41,6 +41,7 @@
       li.className = 'dropdown-option';
       li.innerHTML = '<span class="dropdown-text"></span><span class="dropdown-check">' + check + '</span>';
       li.firstChild.textContent = o.textContent;
+      li.hidden = o.disabled;
       li.addEventListener('mousedown', function (e) { e.preventDefault(); });
       li.addEventListener('click', function (e) { e.preventDefault(); choose(i); });
       li.addEventListener('mousemove', function () { highlight(i); });
@@ -48,10 +49,20 @@
     });
 
     function sync() {
-      label.textContent = select.options[select.selectedIndex].textContent;
+      var current = select.options[select.selectedIndex];
+      label.textContent = current.textContent;
+      wrap.classList.toggle('is-placeholder', current.disabled);
       Array.prototype.forEach.call(list.children, function (li, i) {
         li.setAttribute('aria-selected', String(i === select.selectedIndex));
       });
+    }
+    function step(from, dir) {
+      var i = from;
+      for (var n = 0; n < options.length; n++) {
+        i = (i + dir + options.length) % options.length;
+        if (!options[i].disabled) return i;
+      }
+      return from;
     }
     function highlight(i) {
       active = i;
@@ -65,7 +76,7 @@
       button.setAttribute('aria-expanded', 'true');
       var r = button.getBoundingClientRect();
       wrap.classList.toggle('opens-up', window.innerHeight - r.bottom < 220 && r.top > window.innerHeight - r.bottom);
-      highlight(select.selectedIndex);
+      highlight(options[select.selectedIndex].disabled ? step(select.selectedIndex, 1) : select.selectedIndex);
     }
     function close() {
       list.hidden = true;
@@ -88,15 +99,15 @@
         if (keys.indexOf(e.key) >= 0) { e.preventDefault(); open(); }
         return;
       }
-      if (e.key === 'ArrowDown') { e.preventDefault(); highlight((active + 1) % options.length); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); highlight((active - 1 + options.length) % options.length); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); highlight(step(active, 1)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(step(active, -1)); }
       else if (e.key === 'Home') { e.preventDefault(); highlight(0); }
       else if (e.key === 'End') { e.preventDefault(); highlight(options.length - 1); }
       else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(active); }
       else if (e.key === 'Escape' || e.key === 'Tab') { close(); }
       else if (e.key.length === 1) {
         for (var k = 0; k < options.length; k++) {
-          if (options[k].textContent.toLowerCase().indexOf(e.key.toLowerCase()) === 0) { highlight(k); break; }
+          if (!options[k].disabled && options[k].textContent.toLowerCase().indexOf(e.key.toLowerCase()) === 0) { highlight(k); break; }
         }
       }
     });

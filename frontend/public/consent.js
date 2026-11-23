@@ -25,8 +25,30 @@
     sync();
   });
   document.querySelectorAll('form').forEach(function (form) {
+    var select = form.querySelector('select[name="workspace_id"]');
+    var error = document.getElementById('project-error');
+    if (select) select.addEventListener('change', function () {
+      if (error) error.hidden = true;
+      var wrap = select.closest('.dropdown');
+      if (wrap) wrap.classList.remove('is-invalid');
+    });
     form.addEventListener('submit', function (e) {
       var button = e.submitter;
+      var allowing = !button || button.value === 'allow';
+      if (allowing && select && !select.value) {
+        e.preventDefault();
+        if (error) error.hidden = false;
+        var wrap = select.closest('.dropdown');
+        if (wrap) {
+          wrap.classList.add('is-invalid');
+          var trigger = wrap.querySelector('.dropdown-trigger');
+          if (trigger) trigger.focus();
+        }
+        return;
+      }
+      if (!allowing) {
+        form.querySelectorAll('[required]').forEach(function (el) { el.required = false; });
+      }
       if (button) button.setAttribute('aria-busy', 'true');
     });
   });

@@ -34,7 +34,6 @@ type consentView struct {
 	Client   string
 	Email    string
 	Projects []project
-	Current  string
 	Params   map[string]string
 	Error    string
 }
@@ -109,7 +108,7 @@ func (s *Server) Authorize(w http.ResponseWriter, r *http.Request) {
 		}
 		httpx.AllowFormTarget(w, source)
 	}
-	s.render(w, http.StatusOK, consentView{Client: c.Name, Email: email, Projects: projects, Current: id.WorkspaceID, Params: params})
+	s.render(w, http.StatusOK, consentView{Client: c.Name, Email: email, Projects: projects, Params: params})
 }
 
 func (s *Server) Decide(w http.ResponseWriter, r *http.Request) {
@@ -140,6 +139,10 @@ func (s *Server) Decide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	workspace := r.PostForm.Get("workspace_id")
+	if workspace == "" {
+		s.render(w, http.StatusUnprocessableEntity, consentView{Error: "Pick a project for this app, then press Allow."})
+		return
+	}
 	if workspace == "new" && s.Projects != nil {
 		created, err := s.Projects.CreateFor(r.Context(), id.UserID, r.PostForm.Get("project_name"))
 		switch {

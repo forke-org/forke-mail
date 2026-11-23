@@ -21,7 +21,7 @@
 <div class="ember-bg" data-ember aria-hidden="true"></div>
 <div class="ember-fade" aria-hidden="true"></div>
 <main class="public-card stack">
-<p class="wordmark">forke<span>*</span> <em>mail</em></p>
+<p class="wordmark"><b>forke<span>*</span></b><em>mail</em></p>
 {{if .Error}}
 <div class="stack-xs">
 <h1>Can't connect</h1>
@@ -36,9 +36,9 @@
 <form method="post" action="/oauth/authorize" class="stack">
 {{range $k, $v := .Params}}<input type="hidden" name="{{$k}}" value="{{$v}}">{{end}}
 <label class="stack-xs"><span class="label">Project</span>
-<select name="workspace_id" class="select" data-dropdown data-reveal="new-project">{{range .Projects}}<option value="{{.ID}}"{{if eq .ID $.Current}} selected{{end}}>{{.Name}}</option>{{end}}<option value="new"{{if not .Projects}} selected{{end}}>+ New project</option></select>
+<select name="workspace_id" class="select" data-dropdown data-reveal="new-project"><option value="" disabled selected>Select a project</option>{{range .Projects}}<option value="{{.ID}}">{{.Name}}</option>{{end}}<option value="new">+ New project</option></select>
 </label>
-<label class="stack-xs new-project" id="new-project"{{if .Projects}} hidden{{end}}><span class="label">New project name</span>
+<label class="stack-xs new-project" id="new-project" hidden><span class="label">New project name</span>
 <input class="field-input" name="project_name" maxlength="100" placeholder="My app" autocomplete="off">
 </label>
 <ul class="agent-list">
@@ -47,9 +47,10 @@
 <li><b>Needs you to approve here:</b> launching broadcasts, deleting projects or domains, revoking keys and anything to do with credits or payments.</li>
 </ul>
 <div class="btn-row">
-<button class="btn" type="submit" name="decision" value="deny">Cancel</button>
+<button class="btn" type="submit" name="decision" value="deny" formnovalidate>Cancel</button>
 <button class="btn btn-primary" type="submit" name="decision" value="allow">Allow</button>
 </div>
+<p class="field-error" id="project-error" hidden>Pick a project first.</p>
 <p class="muted small">You can disconnect it any time under Connectors in Forke Mail.</p>
 </form>
 {{end}}
