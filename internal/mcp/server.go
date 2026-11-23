@@ -32,12 +32,16 @@ const serverVersion = "1.0.0"
 var protocolVersions = []string{"2025-06-18", "2025-03-26", "2024-11-05"}
 
 type Handler struct {
-	Pool    *pgxpool.Pool
-	Auth    *auth.Authenticator
-	API     http.Handler
-	Limit   func(http.Handler) http.Handler
-	BaseURL string
-	Secret  []byte
+	Pool  *pgxpool.Pool
+	Auth  *auth.Authenticator
+	API   http.Handler
+	Limit func(http.Handler) http.Handler
+
+	Mail          Mailer
+	MailWorkspace string
+	MailFrom      string
+	BaseURL       string
+	Secret        []byte
 }
 
 type rpcRequest struct {

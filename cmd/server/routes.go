@@ -76,6 +76,9 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 	publicLimit := ratelimit.Middleware(lim.public, func(r *http.Request) (string, ratelimit.Rule) {
 		return "ip:" + ip.ClientIP(r), ratelimit.Rule{PerSecond: cfg.PublicRatePerSec, Burst: cfg.PublicBurst}
 	})
+	agentLimit := ratelimit.Middleware(lim.public, func(r *http.Request) (string, ratelimit.Rule) {
+		return "agents:" + ip.ClientIP(r), ratelimit.Rule{PerSecond: 20, Burst: 200}
+	})
 	keyLimit := ratelimit.Middleware(lim.keys, func(r *http.Request) (string, ratelimit.Rule) {
 		id := auth.FromContext(r.Context())
 		if id.KeyID == "" {
@@ -253,7 +256,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 		httpx.Error(w, http.StatusMethodNotAllowed, "method_not_allowed")
 	})
 	registerAPI(agentAPI)
-	registerAgentRoutes(r, cfg, pool, authn, agentAPI, keyLimit, publicLimit)
+	registerAgentRoutes(r, cfg, pool, authn, svc.dispatcher, agentAPI, keyLimit, agentLimit, publicLimit)
 
 	r.Get("/healthz", db.Health(pool))
 	r.Get("/_next/static/*", frontend.Handler().ServeHTTP)

@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -283,4 +284,30 @@ func (s *Server) Revoke(w http.ResponseWriter, r *http.Request) {
 
 func oauthError(w http.ResponseWriter, status int, code string) {
 	httpx.JSON(w, status, map[string]string{"error": code})
+}
+
+func (s *Server) Run(ctx context.Context) {
+	ticker := time.NewTicker(time.Hour)
+	defer ticker.Stop()
+	for {
+		if err := s.Clean(ctx); err != nil {
+			slog.Warn("oauth cleanup", "err", err)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+		}
+	}
+}
+
+func (s *Server) Clean(ctx context.Context) error {
+	_, err := s.Pool.Exec(ctx, `
+		WITH codes AS (DELETE FROM oauth_codes WHERE expires_at < now()),
+			grants AS (DELETE FROM oauth_grants WHERE refresh_expires_at < now()),
+			approvals AS (DELETE FROM agent_approvals WHERE created_at < now() - interval '90 days')
+		DELETE FROM oauth_clients c WHERE c.created_at < now() - interval '30 days'
+			AND NOT EXISTS (SELECT 1 FROM oauth_grants g WHERE g.client_id = c.id)
+			AND NOT EXISTS (SELECT 1 FROM oauth_codes o WHERE o.client_id = c.id)`)
+	return err
 }

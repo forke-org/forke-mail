@@ -12,6 +12,7 @@ import (
 	"forkemail/internal/alerts"
 	"forkemail/internal/auth"
 	"forkemail/internal/guard"
+	"forkemail/internal/oauth"
 	"forkemail/internal/smtpserver"
 	"forkemail/internal/statusmail"
 	"forkemail/internal/workflows"
@@ -137,6 +138,7 @@ func run() error {
 	if cfg.StatusSourceURL != "" {
 		tasks = append(tasks, (&statusmail.Notifier{Handler: statusMail(cfg, pool, svc.dispatcher), Source: cfg.StatusSourceURL}).Run)
 	}
+	tasks = append(tasks, (&oauth.Server{Pool: pool}).Run)
 	tasks = append(tasks, guard.Guard{Pool: pool, MaxBounceRate: cfg.GuardBounceRate, MaxComplaintRate: cfg.GuardComplaintRate, MinSample: 200}.Run)
 	tasks = append(tasks, notifier.Run, workflows.Runner{Pool: pool, Mail: transactional.Service{Pool: pool, Dispatcher: svc.dispatcher}}.Run)
 	if cfg.SMTP() {

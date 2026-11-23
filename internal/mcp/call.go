@@ -194,6 +194,7 @@ func (c *call) requestApproval(summary string) map[string]any {
 		return text("Could not create the approval request. Try again.", true)
 	}
 	link := c.h.BaseURL + "/approve/" + id
+	go c.h.notifyApproval(c.id.WorkspaceID, id, c.requester(), summary)
 	return text(fmt.Sprintf("APPROVAL NEEDED: %s\n\nThis action needs the project owner to approve it in Forke Mail. Give the user this link: %s\nAfter they press Approve, call %s again with exactly the same arguments plus \"approval_id\": %q. The request expires in 30 minutes.", summary, link, c.tool.Name, id), false)
 }
 
