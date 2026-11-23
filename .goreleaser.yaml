@@ -62,7 +62,7 @@ release:
     owner: forke-org
     name: forke-mail
   name_template: "Forke Mail CLI {{ .Version }}"
-  make_latest: true
+  make_latest: "true"
   footer: |
     ## Install
 
