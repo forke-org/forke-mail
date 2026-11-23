@@ -43,6 +43,7 @@ type Server struct {
 	Pool     *pgxpool.Pool
 	Auth     *auth.Authenticator
 	Projects ProjectCreator
+	Prompts  any
 	BaseURL  string
 }
 

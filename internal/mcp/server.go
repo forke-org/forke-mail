@@ -25,7 +25,7 @@ import (
 //go:embed docs.md
 var docsSource string
 
-var Guide = strings.Replace(docsSource, "{{tools}}", toolsMarkdown(), 1)
+var Guide = strings.NewReplacer("{{tools}}", toolsMarkdown(), "{{prompts}}", promptsMarkdown()).Replace(docsSource)
 
 const serverVersion = "1.0.0"
 
@@ -166,7 +166,7 @@ func (s *session) handle(req rpcRequest) (rpcResponse, bool) {
 		}
 		res.Result = map[string]any{
 			"protocolVersion": version,
-			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}, "resources": map[string]any{}},
+			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}, "resources": map[string]any{}, "prompts": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "forke-mail", "title": "Forke Mail", "version": serverVersion},
 			"instructions":    instructions,
 		}
@@ -199,7 +199,23 @@ func (s *session) handle(req rpcRequest) (rpcResponse, bool) {
 	case "resources/templates/list":
 		res.Result = map[string]any{"resourceTemplates": []any{}}
 	case "prompts/list":
-		res.Result = map[string]any{"prompts": []any{}}
+		list := make([]map[string]any, 0, len(Prompts))
+		for _, p := range Prompts {
+			list = append(list, map[string]any{"name": p.Name, "title": p.Title, "description": p.Description, "arguments": p.Arguments})
+		}
+		res.Result = map[string]any{"prompts": list}
+	case "prompts/get":
+		var p struct {
+			Name      string            `json:"name"`
+			Arguments map[string]string `json:"arguments"`
+		}
+		_ = json.Unmarshal(req.Params, &p)
+		prompt, ok := promptByName(p.Name)
+		if !ok {
+			res.Error = &rpcError{-32602, "unknown prompt: " + p.Name}
+			break
+		}
+		res.Result = map[string]any{"description": prompt.Description, "messages": []map[string]any{{"role": "user", "content": map[string]any{"type": "text", "text": prompt.render(p.Arguments)}}}}
 	default:
 		res.Error = &rpcError{-32601, "method not found: " + req.Method}
 	}

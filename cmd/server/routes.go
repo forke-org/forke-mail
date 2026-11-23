@@ -35,6 +35,7 @@ import (
 	"forkemail/internal/httpx"
 	"forkemail/internal/keys"
 	"forkemail/internal/lifecycle"
+	"forkemail/internal/mcp"
 	"forkemail/internal/oauth"
 	"forkemail/internal/ratelimit"
 	"forkemail/internal/seed"
@@ -120,7 +121,7 @@ func newRouter(cfg config.Config, pool *pgxpool.Pool, lim limiters, svc services
 
 	registerAPI := func(api chi.Router) {
 		api.Get("/api/me", me.Me)
-		agentsH := &oauth.Server{Pool: pool, BaseURL: cfg.PublicBaseURL}
+		agentsH := &oauth.Server{Pool: pool, BaseURL: cfg.PublicBaseURL, Prompts: mcp.PromptCards()}
 		api.Get("/api/agents", agentsH.Connections)
 		api.Delete("/api/agents/connections/{id}", agentsH.Disconnect)
 		api.Post("/api/auth/logout", account.Logout)

@@ -11,9 +11,9 @@
 import clsx from 'clsx';
 import { Gauge, Megaphone, Send, Users, Zap } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DataTable, { Columns, Strong } from '../components/DataTable';
-import { GoalPicker, QuickStart, useGoal } from '../components/QuickStart';
+import { QuickStart, SetupBanner, useGoal } from '../components/QuickStart';
 import { Badge, ButtonLink, Card, Meter, PageHeader, Skeleton, Stat } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDate, number, percent } from '../lib/format';
@@ -54,6 +54,23 @@ export default function Overview() {
   ], []);
 
   const [goal, setGoal] = useGoal(me.workspace.id);
+  const setupKey = `forke-mail-setup-${me.workspace.id}`;
+  const [setupHidden, setSetupHidden] = useState(true);
+  useEffect(() => {
+    const state = window.localStorage.getItem(setupKey);
+    setSetupHidden(state === 'done' || state === 'hidden');
+  }, [setupKey]);
+  useEffect(() => {
+    if (!d || window.localStorage.getItem(setupKey)) return;
+    if (me.domains.length === 0 && d.emails_sent === 0 && d.sent_last_7_days === 0) {
+      window.localStorage.setItem(setupKey, 'seen');
+      router.replace('/setup/');
+    }
+  }, [d, me.domains.length, router, setupKey]);
+  const hideSetup = () => {
+    window.localStorage.setItem(setupKey, 'hidden');
+    setSetupHidden(true);
+  };
 
   const events = d?.events_last_7_days || {};
   const delivered = events.delivered || 0;
@@ -74,7 +91,7 @@ export default function Overview() {
           </>
         )}
       />
-      {d && !goal && (me.domains.length === 0 || d.emails_sent === 0) ? <GoalPicker onPick={setGoal} /> : null}
+      {d && !goal && !setupHidden && (me.domains.length === 0 || d.emails_sent === 0) ? <SetupBanner onDismiss={hideSetup} /> : null}
       {d && goal ? (
         <QuickStart goal={goal} domains={me.domains} hasKey={Boolean(keys && keys.keys.length)} canKeys={superAdmin} contacts={d.contacts}
           sent={d.sent_last_7_days + d.emails_sent} campaigns={d.campaigns} email={me.user?.email || 'you@example.com'} onChange={() => setGoal(null)} />

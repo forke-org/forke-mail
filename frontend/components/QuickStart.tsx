@@ -9,18 +9,14 @@
  */
 
 import clsx from 'clsx';
-import { ArrowRight, Check, Code2, Megaphone, ShieldCheck, Users, KeyRound, Send } from 'lucide-react';
+import { ArrowRight, Bot, Check, Code2, Megaphone, ShieldCheck, Users, KeyRound, Send } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ButtonLink, Card, CopyButton, Meter, Tabs } from './ui';
 
 export type Goal = 'transactional' | 'campaigns';
 
 type Step = { icon: typeof Send; label: string; hint: string; done: boolean; href: string; cta: string; required?: boolean };
-
-const goals: { id: Goal; icon: typeof Send; title: string; time: string; body: string }[] = [
-  { id: 'transactional', icon: Code2, title: 'Send transactional email', time: '~1 minute', body: 'Wire Forke Mail into your app for sign-in codes, password resets, receipts and notifications.' },
-  { id: 'campaigns', icon: Megaphone, title: 'Run email campaigns', time: '~5 minutes', body: 'Import contacts, write a broadcast and send it to your audience with unsubscribe handled for you.' },
-];
 
 const storageKey = (ws: string) => `forke-mail-goal-${ws}`;
 
@@ -38,28 +34,33 @@ export function useGoal(workspaceID: string): [Goal | null, (g: Goal | null) => 
   return [goal, update];
 }
 
-export function GoalPicker({ onPick }: { onPick: (g: Goal) => void }) {
+export function SetupBanner({ onDismiss }: { onDismiss: () => void }) {
+  const choices: { path: 'ai' | 'manual'; icon: typeof Send; title: string; body: string }[] = [
+    { path: 'ai', icon: Bot, title: 'With an AI agent', body: 'Connect Claude, ChatGPT or Cursor and let it set up email for you.' },
+    { path: 'manual', icon: Code2, title: 'Step by step myself', body: 'Domain, test key and your first email with copy-paste code.' },
+  ];
   return (
-    <div className="mb-6">
-      <div className="mb-4">
-        <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">How do you plan to use Forke Mail?</h2>
-        <p className="mt-1 text-sm text-muted">Pick the closest fit. You can do both once you&apos;re set up.</p>
+    <section className="mb-6 overflow-hidden rounded-[10px] bg-surface shadow-card">
+      <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+        <div>
+          <h2 className="text-[15px] font-medium tracking-[-0.01em] text-ink">Get set up in about 5 minutes</h2>
+          <p className="mt-0.5 text-[13px] text-muted">Pick how you&apos;d like to work. You can switch any time.</p>
+        </div>
+        <button type="button" onClick={onDismiss} className="text-xs text-muted hover:text-ink">Hide</button>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {goals.map((g) => (
-          <button key={g.id} type="button" onClick={() => onPick(g.id)}
-            className="group flex flex-col rounded-[8px] bg-surface p-5 text-left shadow-card transition-colors hover:bg-surface-2">
-            <div className="flex items-start justify-between">
-              <span className="grid size-10 place-items-center rounded-[6px] bg-surface-2 text-ink shadow-[inset_0_0_0_1px_var(--line)]"><g.icon className="size-4" /></span>
-              <span className="text-xs text-faint">{g.time}</span>
-            </div>
-            <div className="mt-5 text-[15px] font-medium text-ink">{g.title}</div>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{g.body}</p>
-            <span className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink group-hover:text-accent">Start here<ArrowRight className="size-3.5" /></span>
-          </button>
+      <div className="grid gap-px bg-line md:grid-cols-2">
+        {choices.map((c) => (
+          <Link key={c.path} href={`/setup/?path=${c.path}`} className="group flex items-start gap-4 bg-surface px-5 py-4 transition-colors hover:bg-surface-2">
+            <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-accent-soft text-accent shadow-[inset_0_0_0_1px_var(--accent-line)]"><c.icon className="size-4" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium text-ink">{c.title}</span>
+              <span className="mt-0.5 block text-xs text-muted">{c.body}</span>
+            </span>
+            <ArrowRight className="mt-1 size-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+          </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 

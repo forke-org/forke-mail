@@ -38,7 +38,7 @@ func (s *Server) Connections(w http.ResponseWriter, r *http.Request) {
 		httpx.Internal(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, map[string]any{"connections": conns, "mcp_url": s.BaseURL + "/mcp"})
+	httpx.JSON(w, http.StatusOK, map[string]any{"connections": conns, "prompts": s.Prompts, "mcp_url": s.BaseURL + "/mcp"})
 }
 
 func (s *Server) Disconnect(w http.ResponseWriter, r *http.Request) {

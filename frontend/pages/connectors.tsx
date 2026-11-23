@@ -8,48 +8,17 @@
  * commercial license from Forke Inc. is strictly prohibited.
  */
 
-import { Bot, Link2, ShieldCheck, Terminal, Unplug } from 'lucide-react';
-import { useState } from 'react';
+import { Bot, Link2, ShieldCheck, Sparkles, Unplug } from 'lucide-react';
+import { CodeLine, ConnectApps, PromptList, type PromptCard } from '../components/Agents';
 import { useConfirm } from '../components/Modal';
-import { Badge, Button, Card, CopyButton, Empty, Loading, PageHeader, Tabs } from '../components/ui';
+import { Badge, Button, Card, Empty, Loading, PageHeader } from '../components/ui';
 import { api, describeError } from '../lib/api';
 import { timeAgo } from '../lib/format';
 import { useToast } from '../lib/toast';
 import { useLoad } from '../lib/useLoad';
 
 type Connection = { id: string; app: string; project: string; created_at: string; last_used_at: string | null };
-type Agents = { connections: Connection[]; mcp_url: string };
-type Client = 'claude' | 'chatgpt' | 'code' | 'cursor' | 'cli';
-
-function Snippet({ value }: { value: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <pre className="min-w-0 flex-1 overflow-x-auto rounded-[6px] bg-surface-2 px-3 py-2.5 font-mono text-[12.5px] leading-relaxed text-ink shadow-[inset_0_0_0_1px_var(--line)]">{value}</pre>
-      <CopyButton value={value} boxed />
-    </div>
-  );
-}
-
-function Setup({ url }: { url: string }) {
-  const [client, setClient] = useState<Client>('claude');
-  const steps: Record<Client, { text: string; code?: string }> = {
-    claude: { text: 'In Claude (web or desktop) open Settings → Connectors → Add custom connector, paste this URL, then sign in and pick a project.', code: url },
-    chatgpt: { text: 'In ChatGPT open Settings → Connectors → Create, choose OAuth, paste this URL, then sign in and pick a project.', code: url },
-    code: { text: 'Run this in your terminal, then type /mcp in Claude Code to sign in.', code: `claude mcp add --transport http forke-mail ${url}` },
-    cursor: { text: 'Cursor, Windsurf, VS Code, Antigravity and most other apps: add this to the MCP settings. The app opens a browser window to sign in.', code: JSON.stringify({ mcpServers: { 'forke-mail': { url } } }, null, 2) },
-    cli: { text: 'Prefer the terminal or an app that only runs local servers? Install the CLI, sign in once, then point the app at the command.', code: `forke-mail login\n\n{"mcpServers": {"forke-mail": {"command": "forke-mail", "args": ["mcp"]}}}` },
-  };
-  const s = steps[client];
-  return (
-    <Card title="Connect an AI app" icon={Bot} description="Give Claude, ChatGPT, Cursor or any MCP app access to this project. It can then add domains, write templates, send test emails and build email into your app for you.">
-      <div className="flex flex-col gap-3">
-        <Tabs value={client} onChange={setClient} className="self-start" options={[['claude', 'Claude'], ['chatgpt', 'ChatGPT'], ['code', 'Claude Code'], ['cursor', 'Cursor & others'], ['cli', 'CLI']]} />
-        <p className="text-[13px] text-muted">{s.text}</p>
-        {s.code ? <Snippet value={s.code} /> : null}
-      </div>
-    </Card>
-  );
-}
+type Agents = { connections: Connection[]; prompts: PromptCard[]; mcp_url: string };
 
 function Safety() {
   const rows: [string, string, string][] = [
@@ -77,7 +46,7 @@ export default function ConnectorsPage() {
   const confirm = useConfirm();
   const toast = useToast();
   if (!state.data) return <Loading />;
-  const { connections, mcp_url: url } = state.data;
+  const { connections, prompts, mcp_url: url } = state.data;
 
   const disconnect = async (c: Connection) => {
     if (!(await confirm('Disconnect app', `${c.app} will lose access to ${c.project} straight away.`, 'Disconnect', true))) return;
@@ -94,9 +63,10 @@ export default function ConnectorsPage() {
       <PageHeader title="Connectors" description="Connect Claude, ChatGPT, Cursor and other AI apps to Forke Mail over MCP, with you in control of anything risky." actions={<a className="text-sm font-medium text-accent hover:underline" href="https://www.forke.space/docs/forke-mail-connect" target="_blank" rel="noreferrer">Read the docs</a>} />
       <div className="flex flex-col gap-5">
         <Card title="MCP server URL" icon={Link2} description="One address for every app. Sign-in happens in your browser; no keys to copy.">
-          <Snippet value={url} />
+          <CodeLine value={url} />
         </Card>
-        <Setup url={url} />
+        <Card title="Connect an AI app" icon={Bot} description="Give Claude, ChatGPT, Cursor or any MCP app access to this project. It can then add domains, write templates, send test emails and build email into your app for you."><ConnectApps url={url} /></Card>
+        <Card title="Prompts to try" icon={Sparkles} description="Paste one into your AI app, or pick it from the app's prompt menu. Agents ask you before anything risky."><PromptList prompts={prompts} /></Card>
         <Safety />
         <Card title="Connected apps" flush icon={Unplug}>
           {connections.length ? (

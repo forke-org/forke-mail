@@ -161,6 +161,12 @@ These are the tools the MCP server and CLI offer right now. Every tool that chan
 
 {{tools}}
 
+## Prompts to try
+
+Ready-made requests that work well with the Forke Mail tools. In Claude and other apps that support MCP prompts they appear in the prompt or slash-command menu; anywhere else, copy one into the chat.
+
+{{prompts}}
+
 ## CLI reference
 
 ### Install

@@ -165,6 +165,14 @@ func TestAgentsOAuthAndMCP(t *testing.T) {
 	if b, _ := json.Marshal(list); !strings.Contains(string(b), `"send_broadcast"`) || !strings.Contains(string(b), `"destructiveHint":true`) {
 		t.Fatalf("tools %s", b)
 	}
+	prompts := f.mcp(t, token, "prompts/list", map[string]any{})
+	if list, _ := prompts["prompts"].([]any); len(list) < 5 {
+		t.Fatalf("prompts %v", prompts)
+	}
+	got := f.mcp(t, token, "prompts/get", map[string]any{"name": "setup-app", "arguments": map[string]any{"framework": "Next.js"}})
+	if b, _ := json.Marshal(got); !strings.Contains(string(b), "Set up Forke Mail in this Next.js project") {
+		t.Fatalf("prompt %s", b)
+	}
 	if txt := toolText(f.mcp(t, token, "tools/call", map[string]any{"name": "get_account", "arguments": map[string]any{}})); !strings.Contains(txt, f.ws) {
 		t.Fatalf("get_account %s", txt)
 	}
