@@ -132,6 +132,11 @@ func TestAgentsOAuthAndMCP(t *testing.T) {
 	if w := f.raw(httptest.NewRequest("GET", "/.well-known/oauth-authorization-server", nil)); !strings.Contains(w.Body.String(), "code_challenge_methods_supported") {
 		t.Fatalf("metadata %s", w.Body)
 	}
+	for path, want := range map[string]string{"/llms.txt": "confirm_token", "/robots.txt": "Sitemap:", "/sitemap.xml": "/docs/agents/", "/.well-known/mcp.json": "streamable-http", "/docs/agents/": `"@type":"SoftwareApplication"`} {
+		if w := f.raw(httptest.NewRequest("GET", path, nil)); w.Code != 200 || !strings.Contains(w.Body.String(), want) {
+			t.Fatalf("%s %d %s", path, w.Code, w.Body.String()[:min(300, w.Body.Len())])
+		}
+	}
 	token := f.oauthToken(t)
 
 	init := f.mcp(t, token, "initialize", map[string]any{"protocolVersion": "2025-06-18"})

@@ -76,6 +76,11 @@ export default function App(props: AppProps) {
       <Head>
         <title>Forke Mail</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="Forke Mail: email API, broadcasts, templates and workflows on Amazon SES, with an MCP server and CLI for AI agents." />
+        <meta property="og:title" content="Forke Mail" />
+        <meta property="og:description" content="Email API, broadcasts and workflows for developers and AI agents." />
+        <meta property="og:image" content="https://status.forke.space/og.png" />
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
       </Head>
       <ToastProvider>
         <SessionProvider>

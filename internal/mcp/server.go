@@ -22,8 +22,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//go:embed guide.md
-var Guide string
+//go:embed docs.md
+var docsSource string
+
+var Guide = strings.Replace(docsSource, "{{tools}}", toolsMarkdown(), 1)
 
 const serverVersion = "1.0.0"
 

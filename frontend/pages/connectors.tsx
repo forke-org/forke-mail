@@ -73,7 +73,7 @@ function Safety() {
   );
 }
 
-export default function AgentsPage() {
+export default function ConnectorsPage() {
   const [state, reload] = useLoad(() => api<Agents>('GET', '/api/agents'), []);
   const confirm = useConfirm();
   const toast = useToast();
@@ -92,7 +92,7 @@ export default function AgentsPage() {
 
   return (
     <>
-      <PageHeader title="AI agents" description="Let AI apps and coding agents use Forke Mail for you, with you in control of anything risky." />
+      <PageHeader title="Connectors" description="Connect Claude, ChatGPT, Cursor and other AI apps to Forke Mail over MCP, with you in control of anything risky." actions={<a className="text-sm font-medium text-accent hover:underline" href="/docs/agents/">Read the docs</a>} />
       <div className="flex flex-col gap-5">
         <Card title="MCP server URL" icon={Terminal} description="One address for every app. Sign-in happens in your browser; no keys to copy.">
           <Snippet value={url} />
