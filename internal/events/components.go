@@ -44,8 +44,10 @@ const componentQuery = `
 		(SELECT EXTRACT(EPOCH FROM now() - MIN(next_attempt_at)) FROM webhook_deliveries WHERE status = 'pending' AND next_attempt_at <= now()),
 		(SELECT CASE WHEN expected >= 5 THEN EXTRACT(EPOCH FROM now() - COALESCE(
 				(SELECT MAX(received_at) FROM processed_sns_messages), now() - interval '1 day')) END
-			FROM (SELECT (SELECT COUNT(*) FROM email_recipients WHERE sent_at BETWEEN now() - interval '1 hour' AND now() - interval '10 minutes')
-				+ (SELECT COUNT(*) FROM transactional_messages WHERE sent_at BETWEEN now() - interval '1 hour' AND now() - interval '10 minutes') AS expected) s)`
+			FROM (SELECT (SELECT COUNT(*) FROM email_recipients WHERE sent_at BETWEEN now() - interval '1 hour' AND now() - interval '10 minutes'
+					AND delivered_at IS NULL AND bounced_at IS NULL AND complained_at IS NULL)
+				+ (SELECT COUNT(*) FROM transactional_messages WHERE sent_at BETWEEN now() - interval '1 hour' AND now() - interval '10 minutes'
+					AND delivered_at IS NULL AND bounced_at IS NULL AND complained_at IS NULL) AS expected) s)`
 
 var componentThresholds = []struct {
 	id string
