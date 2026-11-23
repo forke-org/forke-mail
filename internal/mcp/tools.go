@@ -195,7 +195,11 @@ var tools = []*tool{
 	{Name: "get_template", Title: "Get a template", ReadOnly: true,
 		Description: "One template with its HTML, text and variables.", Props: obj{"id": str("Template ID or name")}, Required: []string{"id"},
 		Run: func(c *call, a map[string]any) (any, error) {
-			return c.do("GET", "/api/templates/"+url.PathEscape(s(a, "id")), nil, "")
+			tid, err := c.templateID(s(a, "id"))
+			if err != nil {
+				return nil, err
+			}
+			return c.do("GET", "/api/templates/"+tid, nil, "")
 		}},
 	{Name: "save_template", Title: "Create or update a template",
 		Description: "Create a template, or update the one with the same name. Use {{variable}} for escaped values and {{{variable}}} for raw HTML. kind is transactional (always delivered) or marketing (skipped for unsubscribed contacts).",
@@ -225,9 +229,9 @@ var tools = []*tool{
 		}},
 	{Name: "delete_template", Title: "Delete a template", Destructive: true,
 		Description: "Delete a template. Emails or workflows using it will fail, so this asks for confirmation.",
-		Props:       obj{"id": str("Template ID")}, Required: []string{"id"},
+		Props:       obj{"id": str("Template ID or name")}, Required: []string{"id"},
 		Run: func(c *call, a map[string]any) (any, error) {
-			tid, err := id(a, "id")
+			tid, err := c.templateID(s(a, "id"))
 			if err != nil {
 				return nil, err
 			}
@@ -395,4 +399,24 @@ func toolList() []obj {
 		})
 	}
 	return out
+}
+
+func (c *call) templateID(ref string) (string, error) {
+	if httpx.ValidID(ref) {
+		return ref, nil
+	}
+	raw, err := c.do("GET", "/api/templates", nil, "")
+	if err != nil {
+		return "", err
+	}
+	var list struct {
+		Templates []struct{ ID, Name string } `json:"templates"`
+	}
+	_ = json.Unmarshal(raw, &list)
+	for _, t := range list.Templates {
+		if strings.EqualFold(t.Name, ref) {
+			return t.ID, nil
+		}
+	}
+	return "", fmt.Errorf("no template named %q; use list_templates", ref)
 }

@@ -21,7 +21,7 @@ import { useLoad } from '../lib/useLoad';
 const pageSize = 50;
 const statusOptions: [string, string][] = [
   ['problems', 'Problems only'], ['', 'All statuses'], ['bounced', 'Bounced'], ['complained', 'Spam reports'], ['failed', 'Failed'],
-  ['skipped', 'Skipped'], ['delivered', 'Delivered'], ['sent', 'Sent, waiting'], ['pending', 'Pending'],
+  ['skipped', 'Skipped'], ['delivered', 'Delivered'], ['sent', 'Sent, waiting'], ['pending', 'Pending'], ['test', 'Test sends'],
 ];
 
 export default function Deliveries() {

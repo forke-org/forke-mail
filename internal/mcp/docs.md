@@ -234,7 +234,7 @@ await fetch("https://mail.forke.space/api/transactional", {
 
 ### Templates
 
-- `GET /api/templates`, `POST /api/templates`, `GET|PUT|DELETE /api/templates/{id}` (the ID or the name).
+- `GET /api/templates`, `POST /api/templates`, `GET|PUT|DELETE /api/templates/{id}` (the template ID; the MCP tools also accept names).
 - Body: `name`, `kind` (`transactional` reaches everyone; `marketing` skips unsubscribed contacts), `subject`, `html`, `text`.
 - `{{name}}` inserts an escaped value, `{{{html}}}` inserts raw HTML, `{{date}}` is today's date.
 

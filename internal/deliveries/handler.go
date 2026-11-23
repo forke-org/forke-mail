@@ -18,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var statuses = []string{"problems", "pending", "sent", "delivered", "bounced", "complained", "failed", "skipped"}
+var statuses = []string{"problems", "pending", "sent", "delivered", "bounced", "complained", "failed", "skipped", "test"}
 var kinds = []string{"broadcast", "transactional"}
 
 type Handler struct {
