@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-const version = "1.0.2"
+var version = "dev"
 
 const usage = `Forke Mail CLI
 

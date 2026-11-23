@@ -1,0 +1,78 @@
+version: 2
+project_name: forke-mail
+
+builds:
+  - id: forke-mail
+    main: ./cmd/forke-mail
+    binary: forke-mail
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: ["-s -w -X main.version={{ .Version }}"]
+    goos: [darwin, linux, windows, freebsd]
+    goarch: ["386", amd64, arm64, arm]
+    goarm: ["7"]
+    ignore:
+      - { goos: darwin, goarch: "386" }
+      - { goos: darwin, goarch: arm }
+      - { goos: windows, goarch: arm }
+      - { goos: freebsd, goarch: "386" }
+      - { goos: freebsd, goarch: arm }
+
+universal_binaries:
+  - id: forke-mail-universal
+    ids: [forke-mail]
+    replace: false
+
+archives:
+  - id: archives
+    ids: [forke-mail, forke-mail-universal]
+    formats: [tar.gz]
+    format_overrides:
+      - { goos: windows, formats: [zip] }
+      - { goos: darwin, formats: [zip] }
+    name_template: >-
+      forke-mail_{{ .Version }}_{{ if eq .Os "darwin" }}macOS{{ else }}{{ .Os }}{{ end }}_{{ if eq .Arch "all" }}universal{{ else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - LICENSE
+      - src: cmd/forke-mail/CHANGELOG.md
+        dst: CHANGELOG.md
+
+nfpms:
+  - id: packages
+    ids: [forke-mail]
+    package_name: forke-mail
+    file_name_template: "forke-mail_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    vendor: Forke
+    homepage: https://www.forke.space/docs/forke-mail-cli
+    maintainer: Forke <support@forke.space>
+    description: Command-line tool and local MCP server for Forke Mail.
+    license: Source-available
+    formats: [deb, rpm, apk]
+    bindir: /usr/bin
+
+checksum:
+  name_template: "forke-mail_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+
+changelog:
+  disable: true
+
+release:
+  github:
+    owner: forke-org
+    name: forke-mail
+  name_template: "Forke Mail CLI {{ .Version }}"
+  make_latest: true
+  footer: |
+    ## Install
+
+    macOS and Linux:
+    ```sh
+    curl -fsSL https://mail.forke.space/install.sh | sh
+    ```
+
+    Debian or Ubuntu: download the `.deb` for your CPU and run `sudo dpkg -i forke-mail_*.deb`. Fedora or RHEL: `sudo rpm -i forke-mail_*.rpm`. Alpine: `sudo apk add --allow-untrusted forke-mail_*.apk`. Windows: unzip the archive for your CPU and put `forke-mail.exe` on your PATH.
+
+    Check a download: `sha256sum -c forke-mail_{{ .Version }}_checksums.txt --ignore-missing`, or verify the build with `gh attestation verify <file> --repo forke-org/forke-mail`.
+
+    Docs: https://www.forke.space/docs/forke-mail-cli
