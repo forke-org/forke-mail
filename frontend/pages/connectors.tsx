@@ -8,7 +8,7 @@
  * commercial license from Forke Inc. is strictly prohibited.
  */
 
-import { Bot, ShieldCheck, Terminal, Unplug } from 'lucide-react';
+import { Bot, Link2, ShieldCheck, Terminal, Unplug } from 'lucide-react';
 import { useState } from 'react';
 import { useConfirm } from '../components/Modal';
 import { Badge, Button, Card, CopyButton, Empty, Loading, PageHeader, Tabs } from '../components/ui';
@@ -94,7 +94,7 @@ export default function ConnectorsPage() {
     <>
       <PageHeader title="Connectors" description="Connect Claude, ChatGPT, Cursor and other AI apps to Forke Mail over MCP, with you in control of anything risky." actions={<a className="text-sm font-medium text-accent hover:underline" href="https://www.forke.space/docs/forke-mail-connect" target="_blank" rel="noreferrer">Read the docs</a>} />
       <div className="flex flex-col gap-5">
-        <Card title="MCP server URL" icon={Terminal} description="One address for every app. Sign-in happens in your browser; no keys to copy.">
+        <Card title="MCP server URL" icon={Link2} description="One address for every app. Sign-in happens in your browser; no keys to copy.">
           <Snippet value={url} />
         </Card>
         <Setup url={url} />

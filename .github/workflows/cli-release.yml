@@ -26,4 +26,5 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Forke Mail CLI ${GITHUB_REF_NAME#cli-}" --notes "Install: curl -fsSL https://mail.forke.space/install.sh | sh" --latest
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* --title "Forke Mail CLI ${GITHUB_REF_NAME#cli-}" --notes "Install with: curl -fsSL https://mail.forke.space/install.sh | sh" --latest
