@@ -65,16 +65,3 @@ release:
   make_latest: "true"
   mode: replace
   replace_existing_artifacts: true
-  footer: |
-    ## Install
-
-    macOS and Linux:
-    ```sh
-    curl -fsSL https://mail.forke.space/install.sh | sh
-    ```
-
-    Debian or Ubuntu: download the `.deb` for your CPU and run `sudo dpkg -i forke-mail_*.deb`. Fedora or RHEL: `sudo rpm -i forke-mail_*.rpm`. Alpine: `sudo apk add --allow-untrusted forke-mail_*.apk`. Windows: unzip the archive for your CPU and put `forke-mail.exe` on your PATH.
-
-    Check a download: `sha256sum -c forke-mail_{{ .Version }}_checksums.txt --ignore-missing`, or verify the build with `gh attestation verify <file> --repo forke-org/forke-mail`.
-
-    Docs: https://www.forke.space/docs/forke-mail-cli

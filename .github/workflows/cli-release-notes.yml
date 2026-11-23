@@ -1,0 +1,25 @@
+name: cli release notes
+
+on:
+  push:
+    branches: [main]
+    paths: ['cmd/forke-mail/CHANGELOG.md', 'scripts/release-notes.sh']
+
+permissions:
+  contents: write
+
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update the latest release's notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1)
+          [ -n "$tag" ] || exit 0
+          scripts/release-notes.sh "$tag" > "$RUNNER_TEMP/notes.md"
+          gh release edit "$tag" --notes-file "$RUNNER_TEMP/notes.md"

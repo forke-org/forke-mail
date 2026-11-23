@@ -2,13 +2,58 @@
 
 ## 1.1.0
 
-### New
-- Builds for every platform: macOS (Apple Silicon, Intel and a universal binary), Linux (x86, x86-64, ARM64 and ARMv7) as `.tar.gz`, `.deb`, `.rpm` and `.apk`, Windows (x86, x86-64 and ARM64) and FreeBSD.
-- Every release ships with a checksums file and a signed build attestation you can check with `gh attestation verify`.
-- `forke-mail version` reports the exact release it was built from.
+## Install the Forke Mail CLI on any machine
 
-### Changed
-- The installer picks the right archive for your system and verifies its checksum before installing.
+The CLI now ships for **macOS, Linux, Windows and FreeBSD**, as plain archives and as native Linux packages, so you can install it the way you install everything else:
+
+```sh
+# macOS and Linux: picks the right file and checks it before installing
+curl -fsSL https://mail.forke.space/install.sh | sh
+
+# Debian and Ubuntu
+sudo dpkg -i forke-mail_1.1.0_linux_amd64.deb
+
+# Fedora, RHEL and openSUSE
+sudo rpm -i forke-mail_1.1.0_linux_amd64.rpm
+
+# Alpine
+sudo apk add --allow-untrusted forke-mail_1.1.0_linux_amd64.apk
+```
+
+| Platform | Download |
+| --- | --- |
+| macOS | `macOS_universal.zip` (any Mac), `macOS_arm64.zip` (Apple Silicon), `macOS_amd64.zip` (Intel) |
+| Linux | `linux_amd64`, `linux_arm64`, `linux_armv7`, `linux_386` as `.tar.gz`, `.deb`, `.rpm` or `.apk` |
+| Windows | `windows_amd64.zip`, `windows_arm64.zip`, `windows_386.zip`; unzip and add `forke-mail.exe` to your PATH |
+| FreeBSD | `freebsd_amd64.tar.gz`, `freebsd_arm64.tar.gz` |
+
+## Check what you downloaded
+
+Every release has a checksums file and a signed build attestation, so you can prove a file came from this repository's release workflow:
+
+```sh
+sha256sum -c forke-mail_1.1.0_checksums.txt --ignore-missing
+gh attestation verify forke-mail_1.1.0_linux_amd64.tar.gz --repo forke-org/forke-mail
+```
+
+> [!NOTE]
+> Upgrading from 1.0.x? Run the installer again. You stay signed in, and `forke-mail version` now shows the exact release you're on. New to the CLI? Start with `forke-mail login`, then `forke-mail init` in your project. Docs: https://www.forke.space/docs/forke-mail-cli
+
+## What's Changed
+
+### ✨ Features
+- Builds for macOS (Apple Silicon, Intel and universal), Linux (`amd64`, `arm64`, `armv7`, `386`), Windows (`amd64`, `arm64`, `386`) and FreeBSD (`amd64`, `arm64`)
+- `.deb`, `.rpm` and `.apk` packages for every Linux CPU, installing `forke-mail` to `/usr/bin`
+- A `checksums.txt` file and a signed build attestation on every release
+- `forke-mail version` reports the release it was built from instead of a fixed number
+
+### 🐛 Fixes
+- The installer checks the SHA-256 checksum and installs nothing if the file doesn't match
+- The installer finds the latest release itself, so it keeps working as new versions ship
+
+### 📚 Docs & Chores
+- Releases are built and published by GoReleaser on GitHub Actions from `v*` tags
+- Release notes come from the CLI changelog, with the commit list and a compare link added automatically
 
 ## 1.0.2
 
