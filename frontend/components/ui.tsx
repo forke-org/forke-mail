@@ -287,6 +287,7 @@ const badgeTones: Record<string, Tone> = {
   sending: 'blue', queued: 'blue', scheduled: 'blue', sending_access: 'blue', draft: 'neutral',
   trial: 'amber', pending: 'amber', delayed: 'amber', soft_bounced: 'amber', paused: 'amber', skipped: 'amber', unsubscribed: 'amber', sandbox: 'amber', reputation_warning: 'amber',
   bounced: 'red', complained: 'red', failed: 'red', invalid: 'red', revoked: 'red', rejected: 'red', sending_paused: 'red',
+  test: 'amber', live: 'green',
   full_access: 'accent', opened: 'accent', clicked: 'accent', super_admin: 'accent', admin: 'blue',
 };
 

@@ -9,7 +9,7 @@
  */
 
 import {
-  Activity, Ban, BarChart3, FileText, Layers, MailSearch, Workflow, Globe, Hash, KeyRound, Webhook, LayoutDashboard, Megaphone, Settings, Users, Zap, type LucideIcon,
+  Activity, Ban, Bot, BarChart3, FileText, Layers, MailSearch, Workflow, Globe, Hash, KeyRound, Webhook, LayoutDashboard, Megaphone, Settings, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -54,6 +54,7 @@ export const navGroups: { label: string | null; items: NavItem[] }[] = [
     items: [
       { href: '/domains/', label: 'Domains', icon: Globe, keywords: 'dns dkim spf identities' },
       { href: '/webhooks/', label: 'Webhooks', icon: Webhook, keywords: 'events sync callbacks integrations' },
+      { href: '/agents/', label: 'AI agents', icon: Bot, keywords: 'mcp claude chatgpt cursor cli oauth connect approvals' },
       { href: '/keys/', label: 'API keys', icon: KeyRound, superAdmin: true, keywords: 'tokens api' },
       { href: '/settings/', label: 'Settings', icon: Settings, keywords: 'plan usage re-engagement account' },
     ],

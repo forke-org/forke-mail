@@ -13,9 +13,12 @@
 <title>Connect to Forke Mail</title>
 <link rel="stylesheet" href="/app.css">
 <script src="/theme.js"></script>
+<script src="/ember.js" defer></script>
 <script src="/dropdown.js" defer></script>
 </head>
-<body class="public">
+<body class="public ember-page">
+<div class="ember-bg" data-ember aria-hidden="true"></div>
+<div class="ember-fade" aria-hidden="true"></div>
 <main class="public-card stack">
 {{if .Error}}
 <div class="stack-xs">
@@ -42,7 +45,7 @@
 <button class="btn" type="submit" name="decision" value="deny">Cancel</button>
 <button class="btn btn-primary" type="submit" name="decision" value="allow">Allow</button>
 </div>
-<p class="muted small">You can disconnect it any time in Settings → AI agents.</p>
+<p class="muted small">You can disconnect it any time under AI agents in Forke Mail.</p>
 </form>
 {{end}}
 </main>

@@ -45,14 +45,14 @@ function KeyReveal({ plain, onClose }: { plain: string; onClose: () => void }) {
   );
 }
 
-function ScopeOption({ checked, disabled, onChange, title, text }: { checked: boolean; disabled?: boolean; onChange: () => void; title: string; text: string }) {
+function ScopeOption({ name = 'scope', checked, disabled, onChange, title, text }: { name?: string; checked: boolean; disabled?: boolean; onChange: () => void; title: string; text: string }) {
   return (
     <label className={clsx(
       'flex cursor-pointer items-start gap-3 rounded-xl p-3.5 transition-colors',
       checked ? 'bg-accent-soft shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'shadow-[inset_0_0_0_1px_var(--line-strong)] hover:bg-surface-2',
       disabled && 'pointer-events-none opacity-50',
     )}>
-      <input type="radio" name="scope" className="mt-0.5 accent-accent" checked={checked} disabled={disabled} onChange={onChange} />
+      <input type="radio" name={name} className="mt-0.5 accent-accent" checked={checked} disabled={disabled} onChange={onChange} />
       <div><div className="text-sm font-medium text-ink">{title}</div><p className="mt-0.5 text-xs text-muted">{text}</p></div>
     </label>
   );
@@ -61,6 +61,7 @@ function ScopeOption({ checked, disabled, onChange, title, text }: { checked: bo
 function KeyForm({ mode, keyRow, trial, onClose, onCreated }: { mode: 'create' | 'rotate'; keyRow?: ApiKey; trial: boolean; onClose: () => void; onCreated: (k: { key: string }) => void }) {
   const [name, setName] = useState('');
   const [scope, setScope] = useState('sending_access');
+  const [keyMode, setKeyMode] = useState('test');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -71,7 +72,7 @@ function KeyForm({ mode, keyRow, trial, onClose, onCreated }: { mode: 'create' |
     try {
       const created = mode === 'rotate' && keyRow
         ? await api<{ key: string }>('POST', `/api/keys/${keyRow.id}/rotate`, { password })
-        : await api<{ key: string }>('POST', '/api/keys', { name: name.trim(), scope, password });
+        : await api<{ key: string }>('POST', '/api/keys', { name: name.trim(), scope, mode: keyMode, password });
       onCreated(created);
     } catch (err) {
       setError(describeError(err));
@@ -92,6 +93,11 @@ function KeyForm({ mode, keyRow, trial, onClose, onCreated }: { mode: 'create' |
               <span className="text-[13px] font-medium text-ink-2">Permission</span>
               <ScopeOption checked={scope === 'sending_access'} onChange={() => setScope('sending_access')} title="Sending access" text="Send transactional email, import contacts, create and send broadcasts, read reports." />
               <ScopeOption checked={scope === 'full_access'} disabled={trial} onChange={() => setScope('full_access')} title="Full access" text={trial ? 'Available on paid plans.' : 'Everything the API offers, including domains, webhooks and suppressions.'} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-medium text-ink-2">Mode</span>
+              <ScopeOption name="mode" checked={keyMode === 'test'} onChange={() => setKeyMode('test')} title="Test" text="For building and AI agents. Emails are checked and saved but never delivered, and use no credits." />
+              <ScopeOption name="mode" checked={keyMode === 'live'} onChange={() => setKeyMode('live')} title="Live" text="Sends real email to real inboxes. Use it in production." />
             </div>
           </>
         ) : null}
@@ -144,6 +150,7 @@ export default function Keys() {
       ),
     },
     { accessorKey: 'scope', header: 'Permission', cell: ({ getValue }) => <Badge value={getValue()} /> },
+    { accessorKey: 'mode', header: 'Mode', cell: ({ getValue }) => <Badge value={getValue() === 'test' ? 'test' : 'live'} /> },
     { accessorKey: 'last_used_at', header: 'Last used', cell: ({ getValue }) => <span className="text-muted">{timeAgo(getValue())}</span> },
     { accessorKey: 'created_at', header: 'Created', cell: ({ getValue }) => <span className="text-muted">{formatDate(getValue())}</span> },
     { id: 'status', header: 'Status', accessorFn: (k) => (k.revoked_at ? 'revoked' : 'active'), cell: ({ getValue }) => <Badge value={getValue()} /> },

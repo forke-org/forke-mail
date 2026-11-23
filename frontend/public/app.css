@@ -178,3 +178,8 @@ p { margin: 0; }
 .dropdown-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dropdown-check { display: inline-flex; color: var(--accent); visibility: hidden; }
 .dropdown-option[aria-selected="true"] .dropdown-check { visibility: visible; }
+
+.ember-page { position: relative; isolation: isolate; background: #0b0604; }
+.ember-bg { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+.ember-fade { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, rgba(11, 6, 4, 0.8), transparent 45%); }
+.ember-page .public-card { position: relative; box-shadow: 0 0 0 1px rgba(255, 163, 71, 0.12), 0 24px 80px -20px rgba(0, 0, 0, 0.8); }

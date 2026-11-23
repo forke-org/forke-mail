@@ -13,8 +13,11 @@
 <title>Approve an AI agent action · Forke Mail</title>
 <link rel="stylesheet" href="/app.css">
 <script src="/theme.js"></script>
+<script src="/ember.js" defer></script>
 </head>
-<body class="public">
+<body class="public ember-page">
+<div class="ember-bg" data-ember aria-hidden="true"></div>
+<div class="ember-fade" aria-hidden="true"></div>
 <main class="public-card stack">
 {{if .Error}}
 <div class="stack-xs"><h1>Nothing to approve</h1><p class="muted">{{.Error}}</p></div>

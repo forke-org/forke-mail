@@ -24,6 +24,12 @@ import '../styles/globals.css';
 
 const publicPaths = ['/login', '/welcome'];
 
+function returnTo(): string | null {
+  if (typeof window === 'undefined') return null;
+  const next = new URLSearchParams(window.location.search).get('next') || '';
+  return /^\/(oauth\/authorize\?|approve\/[0-9a-f-]+$)/.test(next) ? next : null;
+}
+
 function Shell({ Component, pageProps }: AppProps) {
   const { status } = useSession();
   const router = useRouter();
@@ -31,7 +37,11 @@ function Shell({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     if (status === 'signedOut' && !isPublic) router.replace('/login/');
-    if (status === 'signedIn' && isPublic) router.replace('/');
+    if (status === 'signedIn' && isPublic) {
+      const next = returnTo();
+      if (next) window.location.replace(next);
+      else router.replace('/');
+    }
   }, [status, isPublic, router]);
 
   const minimum = useLoaderMinimum();
