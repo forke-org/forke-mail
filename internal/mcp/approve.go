@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"time"
 
+	"forkemail/frontend"
 	"forkemail/internal/auth"
 	"forkemail/internal/httpx"
 
@@ -23,7 +24,7 @@ import (
 //go:embed approve.html
 var approveHTML string
 
-var approvePage = template.Must(template.New("approve").Parse(approveHTML))
+var approvePage = template.Must(template.New("approve").Funcs(template.FuncMap{"asset": frontend.Asset}).Parse(approveHTML))
 
 type approvalView struct {
 	ID, Summary, Tool, Project, RequestedBy, Status, Error, Notice string

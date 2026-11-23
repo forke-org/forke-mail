@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"time"
 
+	"forkemail/frontend"
 	"forkemail/internal/auth"
 	"forkemail/internal/httpx"
 	"forkemail/internal/team"
@@ -25,7 +26,7 @@ import (
 //go:embed consent.html
 var consentHTML string
 
-var consentPage = template.Must(template.New("consent").Parse(consentHTML))
+var consentPage = template.Must(template.New("consent").Funcs(template.FuncMap{"asset": frontend.Asset}).Parse(consentHTML))
 
 type project struct{ ID, Name string }
 

@@ -13,6 +13,7 @@ import { useRouter } from 'next/router';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { SendSnippetTemplate } from '../../components/TemplateSnippet';
 import { Button, Card, EmailFrame, Field, FormError, Input, Loading, PageHeader, Select, Tabs, Textarea } from '../../components/ui';
+import { automaticVariables, previewHtml, previewSubject } from '../../lib/templatePreview';
 import { api, describeError } from '../../lib/api';
 import { useToast } from '../../lib/toast';
 import type { EmailTemplate } from '../../lib/types';
@@ -30,15 +31,6 @@ function variablesOf(...parts: string[]) {
   const out = new Set<string>();
   for (const p of parts) for (const m of p.matchAll(placeholder)) out.add(m[1] || m[2]);
   return [...out].sort();
-}
-
-function fill(s: string, data: Record<string, string>, escape: boolean) {
-  return s.replace(placeholder, (match, raw: string | undefined, plain: string | undefined) => {
-    const key = raw || plain || '';
-    if (!(key in data) || data[key] === '') return match;
-    const v = data[key];
-    return escape && !raw ? v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : v;
-  });
 }
 
 export default function TemplateEditor() {
@@ -62,7 +54,7 @@ export default function TemplateEditor() {
     }, (err) => { setError(describeError(err)); setLoaded(true); });
   }, [router.isReady, id]);
 
-  const vars = useMemo(() => variablesOf(form.subject, form.html, form.text), [form.subject, form.html, form.text]);
+  const vars = useMemo(() => variablesOf(form.subject, form.html, form.text).filter((v) => !automaticVariables.includes(v)), [form.subject, form.html, form.text]);
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const save = async (e: FormEvent) => {
@@ -118,7 +110,7 @@ export default function TemplateEditor() {
           </div>
         </Card>
         <div className="flex flex-col gap-5">
-          <Card title="Variables" description={vars.length ? 'Sample values for the preview. Send real values with "data" in the API.' : 'Add {{variable}} anywhere to fill it per send.'}>
+          <Card title="Variables" description={vars.length ? 'Sample values for the preview. Send real values with "data" in the API. {{date}} and {{unsubscribe_url}} are filled in automatically.' : 'Add {{variable}} anywhere to fill it per send.'}>
             {vars.length ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 {vars.map((v) => (
@@ -129,10 +121,10 @@ export default function TemplateEditor() {
               </div>
             ) : null}
           </Card>
-          <Card title={view === 'preview' ? fill(form.subject, sample, false) || 'Preview' : 'Send it'} actions={<Tabs value={view} onChange={setView} options={[['preview', 'Preview'], ['api', 'API']]} />}>
+          <Card title={view === 'preview' ? previewSubject(form.subject, sample) || 'Preview' : 'Send it'} actions={<Tabs value={view} onChange={setView} options={[['preview', 'Preview'], ['api', 'API']]} />}>
             {view === 'preview' ? (
               <div className="dot-grid overflow-hidden rounded-xl bg-surface-2 p-3 shadow-[inset_0_0_0_1px_var(--line)]">
-                <div className="overflow-hidden rounded-lg shadow-card"><EmailFrame html={fill(form.html, sample, true)} className="h-[480px]" /></div>
+                <div className="overflow-hidden rounded-lg shadow-card"><EmailFrame html={previewHtml(form.html, sample)} className="h-[480px]" /></div>
               </div>
             ) : id ? <SendSnippetTemplate id={id} vars={vars} sample={sample} /> : <p className="text-[13px] text-muted">Save the template to get its ID.</p>}
           </Card>

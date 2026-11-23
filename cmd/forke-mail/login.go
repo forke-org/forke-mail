@@ -132,12 +132,13 @@ func login(base string) error {
 			http.NotFound(w, r)
 			return
 		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if r.URL.Query().Get("state") != state || r.URL.Query().Get("code") == "" {
-			fmt.Fprintln(w, "Sign-in was cancelled. You can close this tab.")
+			fmt.Fprint(w, resultPage(false))
 			codes <- ""
 			return
 		}
-		fmt.Fprintln(w, "Signed in to Forke Mail. You can close this tab and go back to your terminal.")
+		fmt.Fprint(w, resultPage(true))
 		codes <- r.URL.Query().Get("code")
 	})}
 	go func() { _ = srv.Serve(ln) }()
@@ -186,4 +187,22 @@ func logout() error {
 	}
 	fmt.Fprintln(os.Stderr, "Signed out.")
 	return nil
+}
+
+func resultPage(ok bool) string {
+	title, body, icon, tone := "You're signed in", "The Forke Mail CLI is connected. You can close this tab and go back to your terminal.", "&#10003;", "#4ade80"
+	if !ok {
+		title, body, icon, tone = "Sign-in cancelled", "Nothing was connected. Run forke-mail login again whenever you're ready.", "&#10005;", "#f87171"
+	}
+	return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>` + title + ` · Forke Mail</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{display:grid;place-items:center;padding:24px;background:radial-gradient(900px 520px at 50% 115%,rgba(255,122,0,.28),transparent 60%),radial-gradient(rgba(240,227,222,.07) 1px,transparent 1px) 0 0/14px 14px,#0b0604;color:#f4f4f5;font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:420px;text-align:center;animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.mark{font-size:22px;letter-spacing:-.04em;font-weight:600;margin:0 0 36px}.mark span{color:#ff7a00}.mark em{font-style:normal;font-weight:400;color:rgba(244,244,245,.6);margin-left:6px}
+.icon{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:50%;font-size:24px;color:` + tone + `;background:color-mix(in srgb,` + tone + ` 12%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,` + tone + ` 30%,transparent),0 0 40px color-mix(in srgb,` + tone + ` 25%,transparent);margin-bottom:20px;animation:pop .5s .15s cubic-bezier(.2,.9,.3,1.3) both}
+h1{margin:0 0 8px;font-size:24px;font-weight:600;letter-spacing:-.02em}p{margin:0;color:rgba(244,244,245,.62)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.06)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+</style></head><body><main><p class="mark">forke<span>*</span><em>mail</em></p><div class="icon">` + icon + `</div><h1>` + title + `</h1><p>` + body + `</p></main></body></html>`
 }

@@ -9,6 +9,7 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"forkemail/frontend"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -27,7 +28,8 @@ import (
 var pageFS embed.FS
 
 var page = template.Must(template.New("page.html").Funcs(template.FuncMap{
-	"date": func(t *time.Time) string { return t.Format("2 January 2006") },
+	"asset": frontend.Asset,
+	"date":  func(t *time.Time) string { return t.Format("2 January 2006") },
 }).ParseFS(pageFS, "page.html"))
 
 var (
