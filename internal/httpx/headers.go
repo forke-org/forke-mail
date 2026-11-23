@@ -25,3 +25,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func AllowFormTarget(w http.ResponseWriter, source string) {
+	w.Header().Set("Content-Security-Policy", strings.Replace(contentSecurityPolicy, "form-action 'self'", "form-action 'self' "+source, 1))
+}

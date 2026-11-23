@@ -28,7 +28,9 @@ func (f apiFixture) raw(r *http.Request) *httptest.ResponseRecorder {
 func (f apiFixture) oauthToken(t *testing.T) string {
 	t.Helper()
 	reg := f.raw(httptest.NewRequest("POST", "/oauth/register", strings.NewReader(`{"client_name":"Test agent","redirect_uris":["http://127.0.0.1/callback"]}`)))
-	var client struct{ ClientID string `json:"client_id"` }
+	var client struct {
+		ClientID string `json:"client_id"`
+	}
 	if reg.Code != 201 || json.Unmarshal(reg.Body.Bytes(), &client) != nil {
 		t.Fatalf("register %d %s", reg.Code, reg.Body)
 	}
@@ -42,8 +44,8 @@ func (f apiFixture) oauthToken(t *testing.T) string {
 	}
 	page := httptest.NewRequest("GET", "/oauth/authorize?"+params.Encode(), nil)
 	page.AddCookie(f.cookie)
-	if w := f.raw(page); w.Code != 200 || !strings.Contains(w.Body.String(), "Connect Test agent") {
-		t.Fatalf("consent %d %s", w.Code, w.Body)
+	if w := f.raw(page); w.Code != 200 || !strings.Contains(w.Body.String(), "Connect Test agent") || !strings.Contains(w.Header().Get("Content-Security-Policy"), "form-action 'self' http://127.0.0.1:5555") {
+		t.Fatalf("consent %d %v %s", w.Code, w.Header(), w.Body)
 	}
 	params.Set("workspace_id", f.ws)
 	params.Set("decision", "allow")

@@ -162,3 +162,19 @@ p { margin: 0; }
 .agent-list b { color: var(--ink); font-weight: 500; }
 .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-strong); white-space: pre-wrap; word-break: break-word; }
+
+.dropdown { position: relative; }
+.dropdown-native { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.dropdown-trigger { display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px 0 12px; border: 0; border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; line-height: 1; text-align: left; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line-strong); transition: box-shadow 0.15s; }
+.dropdown-trigger:hover { box-shadow: inset 0 0 0 1px var(--muted); }
+.dropdown-trigger:focus-visible, .dropdown.is-open .dropdown-trigger { outline: none; box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
+.dropdown-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dropdown-chevron { display: inline-flex; color: var(--muted); transition: transform 0.15s; }
+.dropdown.is-open .dropdown-chevron { transform: rotate(180deg); }
+.dropdown-menu { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; max-height: 240px; margin: 0; padding: 4px; overflow-y: auto; list-style: none; border-radius: 10px; background: var(--surface); box-shadow: 0 0 0 1px var(--line-strong), 0 16px 40px -12px rgba(0, 0, 0, 0.6); }
+.dropdown.opens-up .dropdown-menu { top: auto; bottom: calc(100% + 4px); }
+.dropdown-option { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 7px; font-size: 14px; cursor: pointer; }
+.dropdown-option.is-active { background: var(--surface-2); }
+.dropdown-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dropdown-check { display: inline-flex; color: var(--accent); visibility: hidden; }
+.dropdown-option[aria-selected="true"] .dropdown-check { visibility: visible; }

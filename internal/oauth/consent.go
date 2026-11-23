@@ -99,6 +99,13 @@ func (s *Server) Authorize(w http.ResponseWriter, r *http.Request) {
 	}
 	params := map[string]string{"client_id": req.ClientID, "redirect_uri": req.RedirectURI, "code_challenge": req.Challenge,
 		"code_challenge_method": "S256", "response_type": "code", "state": req.State}
+	if target, err := url.Parse(req.RedirectURI); err == nil {
+		source := target.Scheme + ":"
+		if target.Host != "" {
+			source = target.Scheme + "://" + target.Host
+		}
+		httpx.AllowFormTarget(w, source)
+	}
 	s.render(w, http.StatusOK, consentView{Client: c.Name, Email: email, Projects: projects, Current: id.WorkspaceID, Params: params})
 }
 
