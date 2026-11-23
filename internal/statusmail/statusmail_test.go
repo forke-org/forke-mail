@@ -97,6 +97,33 @@ func TestSubscribeConfirmNotifyUnsubscribe(t *testing.T) {
 		t.Fatalf("resolved notice %d", len(mail.sent))
 	}
 
+	var batch []Incident
+	for i, name := range []string{"Website", "Dashboard", "Forke API"} {
+		batch = append(batch, Incident{ID: ws + "-batch-" + string(rune('a'+i)), Name: name, Impact: "down", StartedAt: now.Add(-15 * time.Minute)})
+	}
+	if err := n.Notify(t.Context(), batch, now); err != nil {
+		t.Fatal(err)
+	}
+	if len(mail.sent) != 4 || mail.sent[3].Subject != "3 Forke services are not working" || !strings.Contains(mail.sent[3].Text, "Website, Dashboard and Forke API are not working") {
+		t.Fatalf("batched notice %d %q", len(mail.sent), mail.sent[len(mail.sent)-1].Subject)
+	}
+	for i := range batch {
+		batch[i].ResolvedAt = &resolved
+	}
+	if err := n.Notify(t.Context(), batch, now); err != nil {
+		t.Fatal(err)
+	}
+	if len(mail.sent) != 5 || mail.sent[4].Subject != "3 Forke services are back to normal" {
+		t.Fatalf("batched resolve %d", len(mail.sent))
+	}
+	blip := Incident{ID: ws + "-blip", Name: "SMTP", Impact: "down", StartedAt: now.Add(-6 * time.Minute), ResolvedAt: &resolved}
+	if err := n.Notify(t.Context(), []Incident{blip}, now); err != nil {
+		t.Fatal(err)
+	}
+	if len(mail.sent) != 5 {
+		t.Fatal("emailed about an incident that ended before anyone was told it started")
+	}
+
 	unsub := strings.TrimPrefix(linkIn(t, mail.sent[2].Text, "https://mail.test/status/unsubscribe/"), "https://mail.test")
 	if w := do("GET", unsub, ""); !strings.HasSuffix(w.Header().Get("Location"), "subscribe=removed") {
 		t.Fatalf("unsubscribe %s", w.Header().Get("Location"))

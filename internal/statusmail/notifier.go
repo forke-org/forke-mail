@@ -7,11 +7,15 @@ package statusmail
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"forkemail/internal/auth"
@@ -91,29 +95,52 @@ func (n *Notifier) Notify(ctx context.Context, incidents []Incident, now time.Ti
 	if n.WorkspaceID == "" || n.Mail == nil {
 		return nil
 	}
+	var opened, resolved []Incident
 	for _, inc := range incidents {
 		if inc.ID == "" || len(inc.ID) > 100 {
 			continue
 		}
-		if now.Sub(inc.StartedAt) < notifyWindow {
-			if err := n.send(ctx, inc, "opened"); err != nil {
-				return err
-			}
-		}
 		if inc.ResolvedAt != nil && now.Sub(*inc.ResolvedAt) < notifyWindow {
-			if err := n.send(ctx, inc, "resolved"); err != nil {
+			claimedOpen, err := n.claim(ctx, inc.ID, "opened")
+			if err != nil {
 				return err
 			}
+			claimedResolved, err := n.claim(ctx, inc.ID, "resolved")
+			if err != nil {
+				return err
+			}
+			if claimedResolved && !claimedOpen {
+				resolved = append(resolved, inc)
+			}
+			continue
 		}
+		if inc.ResolvedAt == nil && now.Sub(inc.StartedAt) < notifyWindow {
+			claimed, err := n.claim(ctx, inc.ID, "opened")
+			if err != nil {
+				return err
+			}
+			if claimed {
+				opened = append(opened, inc)
+			}
+		}
+	}
+	if len(opened) > 0 {
+		if err := n.send(ctx, opened, "opened"); err != nil {
+			return err
+		}
+	}
+	if len(resolved) > 0 {
+		return n.send(ctx, resolved, "resolved")
 	}
 	return nil
 }
 
-func (n *Notifier) send(ctx context.Context, inc Incident, kind string) error {
-	tag, err := n.Pool.Exec(ctx, `INSERT INTO status_notifications (incident_id, kind) VALUES ($1, $2) ON CONFLICT DO NOTHING`, inc.ID, kind)
-	if err != nil || tag.RowsAffected() == 0 {
-		return err
-	}
+func (n *Notifier) claim(ctx context.Context, incidentID, kind string) (bool, error) {
+	tag, err := n.Pool.Exec(ctx, `INSERT INTO status_notifications (incident_id, kind) VALUES ($1, $2) ON CONFLICT DO NOTHING`, incidentID, kind)
+	return err == nil && tag.RowsAffected() == 1, err
+}
+
+func (n *Notifier) send(ctx context.Context, batch []Incident, kind string) error {
 	rows, err := n.Pool.Query(ctx, `
 		SELECT c.id, c.email FROM contacts c
 		JOIN contact_tags ct ON ct.contact_id = c.id JOIN tags t ON t.id = ct.tag_id
@@ -128,10 +155,17 @@ func (n *Notifier) send(ctx context.Context, inc Incident, kind string) error {
 	if err != nil {
 		return err
 	}
-	subject, lines := incidentMessage(inc, kind)
+	ids := make([]string, len(batch))
+	for i, inc := range batch {
+		ids[i] = inc.ID
+	}
+	sort.Strings(ids)
+	sum := sha256.Sum256([]byte(strings.Join(ids, ",")))
+	batchKey := hex.EncodeToString(sum[:8])
+	subject, lines := incidentMessage(batch, kind)
 	for _, r := range list {
 		body, text := render(subject, lines, n.PageURL, "Open status page", n.unsubscribeURL(r.Email))
-		_, err := n.Mail.Accept(ctx, auth.Identity{WorkspaceID: n.WorkspaceID}, "status-"+kind+"-"+inc.ID+"-"+r.ID, transactional.Submission{
+		_, err := n.Mail.Accept(ctx, auth.Identity{WorkspaceID: n.WorkspaceID}, "status-"+kind+"-"+batchKey+"-"+r.ID, transactional.Submission{
 			To: r.Email, FromName: "Forke Status", FromAddress: n.From, Subject: subject, HTML: body, Text: text,
 			Tags: map[string]string{"category": "status"},
 		})
@@ -142,21 +176,51 @@ func (n *Notifier) send(ctx context.Context, inc Incident, kind string) error {
 	return nil
 }
 
-func incidentMessage(inc Incident, kind string) (string, []string) {
-	started := inc.StartedAt.UTC().Format("15:04 UTC, 2 Jan")
+func names(batch []Incident) string {
+	list := make([]string, len(batch))
+	for i, inc := range batch {
+		list[i] = inc.Name
+	}
+	if len(list) <= 2 {
+		return strings.Join(list, " and ")
+	}
+	return strings.Join(list[:len(list)-1], ", ") + " and " + list[len(list)-1]
+}
+
+func incidentMessage(batch []Incident, kind string) (string, []string) {
+	first := batch[0]
+	started := first.StartedAt.UTC().Format("15:04 UTC, 2 Jan")
+	plural := len(batch) > 1
 	if kind == "resolved" {
-		mins := int(inc.ResolvedAt.Sub(inc.StartedAt).Minutes())
-		return inc.Name + " is back to normal", []string{
-			fmt.Sprintf("%s had a problem from %s for about %d minutes. It is working normally again.", inc.Name, started, max(mins, 1)),
+		mins := 1
+		for _, inc := range batch {
+			mins = max(mins, int(inc.ResolvedAt.Sub(inc.StartedAt).Minutes()))
+		}
+		subject := first.Name + " is back to normal"
+		if plural {
+			subject = fmt.Sprintf("%d Forke services are back to normal", len(batch))
+		}
+		return subject, []string{
+			fmt.Sprintf("%s had a problem from %s for about %d minutes. Everything is working normally again.", names(batch), started, mins),
 			"The status page has the full history.",
 		}
 	}
-	what := "is slower than usual"
-	if inc.Impact == "down" {
-		what = "is not working"
+	down := false
+	for _, inc := range batch {
+		down = down || inc.Impact == "down"
 	}
-	return inc.Name + " " + what, []string{
-		fmt.Sprintf("Since %s, %s %s. We are looking into it.", started, inc.Name, what),
+	what := "slower than usual"
+	if down {
+		what = "not working"
+	}
+	subject := first.Name + " is " + what
+	verb := "is"
+	if plural {
+		subject = fmt.Sprintf("%d Forke services are %s", len(batch), what)
+		verb = "are"
+	}
+	return subject, []string{
+		fmt.Sprintf("Since %s, %s %s %s. We are looking into it.", started, names(batch), verb, what),
 		"We will email you again when it is fixed.",
 	}
 }
