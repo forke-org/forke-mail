@@ -28,16 +28,6 @@ func (f *fakeMail) Accept(_ context.Context, _ auth.Identity, _ string, s transa
 	return transactional.Acceptance{}, nil
 }
 
-func linkIn(t *testing.T, body, prefix string) string {
-	t.Helper()
-	i := strings.Index(body, prefix)
-	if i < 0 {
-		t.Fatalf("no %s link in %s", prefix, body)
-	}
-	end := strings.IndexAny(body[i:], "\"\n ")
-	return body[i : i+end]
-}
-
 func TestSubscribeConfirmNotifyUnsubscribe(t *testing.T) {
 	pool := dbtest.Pool(t)
 	ws := dbtest.Workspace(t, pool, "paid", 100)
@@ -65,7 +55,7 @@ func TestSubscribeConfirmNotifyUnsubscribe(t *testing.T) {
 	if dbtest.QueryString(t, pool, tagged, ws) != "0" {
 		t.Fatal("subscribed before confirming")
 	}
-	confirm := strings.TrimPrefix(linkIn(t, mail.sent[0].Text, "https://mail.test/status/confirm/"), "https://mail.test")
+	confirm := strings.TrimPrefix(mail.sent[0].Data["confirm_link"], "https://mail.test")
 	if w := do("GET", confirm, ""); w.Code != http.StatusFound || !strings.HasSuffix(w.Header().Get("Location"), "subscribe=confirmed") {
 		t.Fatalf("confirm %d %s", w.Code, w.Header().Get("Location"))
 	}
@@ -104,7 +94,7 @@ func TestSubscribeConfirmNotifyUnsubscribe(t *testing.T) {
 	if err := n.Notify(t.Context(), batch, now); err != nil {
 		t.Fatal(err)
 	}
-	if len(mail.sent) != 4 || mail.sent[3].Subject != "3 Forke services are not working" || !strings.Contains(mail.sent[3].Text, "Website, Dashboard and Forke API are not working") {
+	if len(mail.sent) != 4 || mail.sent[3].Subject != "3 Forke services are not working" || !strings.Contains(mail.sent[3].Data["message"], "Website, Dashboard and Forke API are not working") || mail.sent[3].Template != IncidentTemplate {
 		t.Fatalf("batched notice %d %q", len(mail.sent), mail.sent[len(mail.sent)-1].Subject)
 	}
 	for i := range batch {
@@ -124,7 +114,7 @@ func TestSubscribeConfirmNotifyUnsubscribe(t *testing.T) {
 		t.Fatal("emailed about an incident that ended before anyone was told it started")
 	}
 
-	unsub := strings.TrimPrefix(linkIn(t, mail.sent[2].Text, "https://mail.test/status/unsubscribe/"), "https://mail.test")
+	unsub := strings.TrimPrefix(mail.sent[2].Data["stop_url"], "https://mail.test")
 	if w := do("GET", unsub, ""); !strings.HasSuffix(w.Header().Get("Location"), "subscribe=removed") {
 		t.Fatalf("unsubscribe %s", w.Header().Get("Location"))
 	}

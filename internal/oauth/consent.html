@@ -15,11 +15,13 @@
 <script src="/theme.js"></script>
 <script src="/ember.js" defer></script>
 <script src="/dropdown.js" defer></script>
+<script src="/consent.js" defer></script>
 </head>
 <body class="public ember-page">
 <div class="ember-bg" data-ember aria-hidden="true"></div>
 <div class="ember-fade" aria-hidden="true"></div>
 <main class="public-card stack">
+<p class="wordmark">forke<span>*</span> <em>mail</em></p>
 {{if .Error}}
 <div class="stack-xs">
 <h1>Can't connect</h1>
@@ -34,7 +36,10 @@
 <form method="post" action="/oauth/authorize" class="stack">
 {{range $k, $v := .Params}}<input type="hidden" name="{{$k}}" value="{{$v}}">{{end}}
 <label class="stack-xs"><span class="label">Project</span>
-<select name="workspace_id" class="select" data-dropdown>{{range .Projects}}<option value="{{.ID}}"{{if eq .ID $.Current}} selected{{end}}>{{.Name}}</option>{{end}}</select>
+<select name="workspace_id" class="select" data-dropdown data-reveal="new-project">{{range .Projects}}<option value="{{.ID}}"{{if eq .ID $.Current}} selected{{end}}>{{.Name}}</option>{{end}}<option value="new"{{if not .Projects}} selected{{end}}>+ New project</option></select>
+</label>
+<label class="stack-xs new-project" id="new-project"{{if .Projects}} hidden{{end}}><span class="label">New project name</span>
+<input class="field-input" name="project_name" maxlength="100" placeholder="My app" autocomplete="off">
 </label>
 <ul class="agent-list">
 <li><b>Can do on its own:</b> read your project, manage templates, contacts and segments, and send with test keys.</li>

@@ -6,6 +6,7 @@
 package team
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -71,23 +72,8 @@ func (p *Projects) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	var project string
 	err := pgx.BeginFunc(r.Context(), p.Pool, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(r.Context(), `SELECT pg_advisory_xact_lock(hashtext('forke-mail-projects:' || $1))`, id.UserID); err != nil {
-			return err
-		}
-		var owned int
-		if err := tx.QueryRow(r.Context(), `SELECT COUNT(*) FROM workspace_members m JOIN workspaces w ON w.id = m.workspace_id WHERE m.user_id = $1 AND m.role = 'super_admin' AND NOT w.platform`, id.UserID).Scan(&owned); err != nil {
-			return err
-		}
-		if owned >= p.MaxProjects {
-			return errTooMany
-		}
-		ws := p.Defaults
-		ws.Name = body.Name
 		var err error
-		if project, err = accounts.CreateWorkspace(r.Context(), tx, ws); err != nil {
-			return err
-		}
-		if _, err := tx.Exec(r.Context(), `INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'super_admin')`, project, id.UserID); err != nil {
+		if project, err = p.create(r.Context(), tx, id.UserID, body.Name); err != nil {
 			return err
 		}
 		return switchSession(r, tx, id.UserID, project)
@@ -205,3 +191,42 @@ func (p *Projects) MoveCredits(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+var ErrTooManyProjects = errTooMany
+
+func (p *Projects) create(ctx context.Context, tx pgx.Tx, userID, name string) (string, error) {
+	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext('forke-mail-projects:' || $1))`, userID); err != nil {
+		return "", err
+	}
+	var owned int
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM workspace_members m JOIN workspaces w ON w.id = m.workspace_id WHERE m.user_id = $1 AND m.role = 'super_admin' AND NOT w.platform`, userID).Scan(&owned); err != nil {
+		return "", err
+	}
+	if owned >= p.MaxProjects {
+		return "", errTooMany
+	}
+	ws := p.Defaults
+	ws.Name = name
+	project, err := accounts.CreateWorkspace(ctx, tx, ws)
+	if err != nil {
+		return "", err
+	}
+	_, err = tx.Exec(ctx, `INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'super_admin')`, project, userID)
+	return project, err
+}
+
+func (p *Projects) CreateFor(ctx context.Context, userID, name string) (string, error) {
+	name = strings.TrimSpace(name)
+	if name == "" || utf8.RuneCountInString(name) > 100 {
+		return "", ErrInvalidProjectName
+	}
+	var project string
+	err := pgx.BeginFunc(ctx, p.Pool, func(tx pgx.Tx) error {
+		var err error
+		project, err = p.create(ctx, tx, userID, name)
+		return err
+	})
+	return project, err
+}
+
+var ErrInvalidProjectName = errors.New("invalid_workspace_name")

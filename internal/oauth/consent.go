@@ -9,6 +9,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -16,6 +17,7 @@ import (
 
 	"forkemail/internal/auth"
 	"forkemail/internal/httpx"
+	"forkemail/internal/team"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -137,6 +139,21 @@ func (s *Server) Decide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	workspace := r.PostForm.Get("workspace_id")
+	if workspace == "new" && s.Projects != nil {
+		created, err := s.Projects.CreateFor(r.Context(), id.UserID, r.PostForm.Get("project_name"))
+		switch {
+		case errors.Is(err, team.ErrTooManyProjects):
+			s.render(w, http.StatusConflict, consentView{Error: "You already have the most projects your plan allows. Pick an existing project instead."})
+			return
+		case errors.Is(err, team.ErrInvalidProjectName):
+			s.render(w, http.StatusUnprocessableEntity, consentView{Error: "Give the new project a name of up to 100 characters."})
+			return
+		case err != nil:
+			httpx.Internal(w, r, err)
+			return
+		}
+		workspace = created
+	}
 	var member bool
 	if err := s.Pool.QueryRow(r.Context(), `
 		SELECT EXISTS (SELECT 1 FROM workspace_members m JOIN workspaces w ON w.id = m.workspace_id

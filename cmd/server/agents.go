@@ -8,10 +8,12 @@ package main
 import (
 	"net/http"
 
+	"forkemail/internal/accounts"
 	"forkemail/internal/auth"
 	"forkemail/internal/config"
 	"forkemail/internal/mcp"
 	"forkemail/internal/oauth"
+	"forkemail/internal/team"
 	"forkemail/internal/transactional"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +21,8 @@ import (
 )
 
 func registerAgentRoutes(r chi.Router, cfg config.Config, pool *pgxpool.Pool, authn *auth.Authenticator, dispatcher *transactional.Dispatcher, api http.Handler, keyLimit, agentLimit, publicLimit func(http.Handler) http.Handler) {
-	oa := &oauth.Server{Pool: pool, Auth: authn, BaseURL: cfg.PublicBaseURL}
+	projects := &team.Projects{Pool: pool, MaxProjects: cfg.MaxProjects, Defaults: accounts.NewWorkspace{Plan: "trial", DailyLimit: cfg.BetaDailyLimit, RatePerSec: 5, Warmup: true}}
+	oa := &oauth.Server{Pool: pool, Auth: authn, Projects: projects, BaseURL: cfg.PublicBaseURL}
 	m := &mcp.Handler{Pool: pool, Auth: authn, API: api, Limit: keyLimit, BaseURL: cfg.PublicBaseURL, Secret: []byte(cfg.UnsubscribeSecret),
 		MailWorkspace: cfg.AlertWorkspaceID, MailFrom: cfg.AlertFrom}
 	if dispatcher != nil {

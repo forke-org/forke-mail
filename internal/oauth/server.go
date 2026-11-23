@@ -35,10 +35,15 @@ const (
 
 var customScheme = regexp.MustCompile(`^[a-z][a-z0-9+.-]{1,40}$`)
 
+type ProjectCreator interface {
+	CreateFor(ctx context.Context, userID, name string) (string, error)
+}
+
 type Server struct {
-	Pool    *pgxpool.Pool
-	Auth    *auth.Authenticator
-	BaseURL string
+	Pool     *pgxpool.Pool
+	Auth     *auth.Authenticator
+	Projects ProjectCreator
+	BaseURL  string
 }
 
 func cors(w http.ResponseWriter) {

@@ -7,7 +7,6 @@ package mcp
 
 import (
 	"context"
-	"strings"
 	"sync"
 	"testing"
 
@@ -46,7 +45,7 @@ func TestApprovalEmailGoesToOwners(t *testing.T) {
 	id := dbtest.QueryString(t, pool, `INSERT INTO agent_approvals (workspace_id, requested_by, tool, args, summary, expires_at)
 		VALUES ($1, 'An AI app', 'send_broadcast', '{}', 'Send the broadcast "Launch" to 120 people.', now() + interval '30 minutes') RETURNING id::text`, ws)
 	h.notifyApproval(ws, id, "An AI app", `Send the broadcast "Launch" to 120 people.`)
-	if len(mail.sent) != 1 || mail.sent[0].To != ws+"@owner.test" || !strings.Contains(mail.sent[0].Text, "https://mail.test/approve/"+id) {
+	if len(mail.sent) != 1 || mail.sent[0].To != ws+"@owner.test" || mail.sent[0].Data["review_link"] != "https://mail.test/approve/"+id || mail.sent[0].Template != ApprovalTemplate {
 		t.Fatalf("approval email %+v", mail.sent)
 	}
 	for range approvalEmailsPerHour + 1 {

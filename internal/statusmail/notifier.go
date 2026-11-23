@@ -162,11 +162,15 @@ func (n *Notifier) send(ctx context.Context, batch []Incident, kind string) erro
 	sort.Strings(ids)
 	sum := sha256.Sum256([]byte(strings.Join(ids, ",")))
 	batchKey := hex.EncodeToString(sum[:8])
-	subject, lines := incidentMessage(batch, kind)
+	data := incidentMessage(batch, kind)
+	data["status_url"] = n.PageURL
 	for _, r := range list {
-		body, text := render(subject, lines, n.PageURL, "Open status page", n.unsubscribeURL(r.Email))
+		perRecipient := map[string]string{"stop_url": n.unsubscribeURL(r.Email)}
+		for k, v := range data {
+			perRecipient[k] = v
+		}
 		_, err := n.Mail.Accept(ctx, auth.Identity{WorkspaceID: n.WorkspaceID}, "status-"+kind+"-"+batchKey+"-"+r.ID, transactional.Submission{
-			To: r.Email, FromName: "Forke Status", FromAddress: n.From, Subject: subject, HTML: body, Text: text,
+			To: r.Email, FromName: "Forke Status", FromAddress: n.From, Subject: data["subject"], Template: IncidentTemplate, Data: perRecipient,
 			Tags: map[string]string{"category": "status"},
 		})
 		if err != nil {
@@ -187,7 +191,7 @@ func names(batch []Incident) string {
 	return strings.Join(list[:len(list)-1], ", ") + " and " + list[len(list)-1]
 }
 
-func incidentMessage(batch []Incident, kind string) (string, []string) {
+func incidentMessage(batch []Incident, kind string) map[string]string {
 	first := batch[0]
 	started := first.StartedAt.UTC().Format("15:04 UTC, 2 Jan")
 	plural := len(batch) > 1
@@ -200,9 +204,11 @@ func incidentMessage(batch []Incident, kind string) (string, []string) {
 		if plural {
 			subject = fmt.Sprintf("%d Forke services are back to normal", len(batch))
 		}
-		return subject, []string{
-			fmt.Sprintf("%s had a problem from %s for about %d minutes. Everything is working normally again.", names(batch), started, mins),
-			"The status page has the full history.",
+		return map[string]string{
+			"subject": subject, "heading": "All clear.", "subheading": "Everything is working again.",
+			"label": "Back to normal", "services": names(batch),
+			"message":   fmt.Sprintf("%s had a problem from %s for about %d minutes. Everything is working normally again.", names(batch), started, mins),
+			"next_step": "The status page has the full history.",
 		}
 	}
 	down := false
@@ -219,8 +225,10 @@ func incidentMessage(batch []Incident, kind string) (string, []string) {
 		subject = fmt.Sprintf("%d Forke services are %s", len(batch), what)
 		verb = "are"
 	}
-	return subject, []string{
-		fmt.Sprintf("Since %s, %s %s %s. We are looking into it.", started, names(batch), verb, what),
-		"We will email you again when it is fixed.",
+	return map[string]string{
+		"subject": subject, "heading": "Something's wrong.", "subheading": "We're on it.",
+		"label": "Affected", "services": names(batch),
+		"message":   fmt.Sprintf("Since %s, %s %s %s. We are looking into it.", started, names(batch), verb, what),
+		"next_step": "We will email you again when it is fixed.",
 	}
 }

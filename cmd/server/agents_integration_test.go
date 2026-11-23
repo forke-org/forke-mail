@@ -56,6 +56,22 @@ func (f apiFixture) oauthToken(t *testing.T) string {
 	if w := f.raw(cross); w.Code != 403 {
 		t.Fatalf("cross-site consent accepted %d", w.Code)
 	}
+	fresh := url.Values{}
+	for k, v := range params {
+		fresh[k] = v
+	}
+	fresh.Set("workspace_id", "new")
+	fresh.Set("project_name", "Agent project "+f.ws[:8])
+	create := httptest.NewRequest("POST", "/oauth/authorize", strings.NewReader(fresh.Encode()))
+	create.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	create.AddCookie(f.cookie)
+	if w := f.raw(create); w.Code != 303 || !strings.Contains(w.Header().Get("Location"), "code=") {
+		t.Fatalf("new project consent %d %s", w.Code, w.Body)
+	}
+	if got := dbtest.QueryString(t, f.pool, `SELECT m.role FROM workspaces w JOIN workspace_members m ON m.workspace_id = w.id WHERE w.name = $1`, "Agent project "+f.ws[:8]); got != "super_admin" {
+		t.Fatalf("new project membership %q", got)
+	}
+	dbtest.Exec(t, f.pool, `DELETE FROM workspaces WHERE name = $1`, "Agent project "+f.ws[:8])
 	allow := httptest.NewRequest("POST", "/oauth/authorize", strings.NewReader(params.Encode()))
 	allow.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	allow.AddCookie(f.cookie)
