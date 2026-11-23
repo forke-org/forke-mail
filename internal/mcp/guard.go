@@ -89,7 +89,7 @@ func classify(method, path string) Risk {
 func canonical(tool string, args map[string]any) string {
 	clean := map[string]any{}
 	for k, v := range args {
-		if k != "confirm_token" && k != "approval_id" {
+		if k != "confirm_token" {
 			clean[k] = v
 		}
 	}
