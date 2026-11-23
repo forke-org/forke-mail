@@ -14,6 +14,7 @@ import (
 
 	"forkemail/internal/auth"
 	"forkemail/internal/httpx"
+	"forkemail/internal/templates"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -21,17 +22,19 @@ import (
 const defaultCampaign = "Broadcasts"
 
 type broadcastRequest struct {
-	AudienceID  string      `json:"audience_id"`
-	SegmentID   string      `json:"segment_id"`
-	From        string      `json:"from"`
-	ReplyTo     addressList `json:"reply_to"`
-	Subject     string      `json:"subject"`
-	HTML        string      `json:"html"`
-	Text        string      `json:"text"`
-	Name        string      `json:"name"`
-	Topic       string      `json:"topic"`
-	ScheduledAt string      `json:"scheduled_at"`
-	Segment     string      `json:"segment"`
+	AudienceID  string            `json:"audience_id"`
+	SegmentID   string            `json:"segment_id"`
+	From        string            `json:"from"`
+	ReplyTo     addressList       `json:"reply_to"`
+	Subject     string            `json:"subject"`
+	HTML        string            `json:"html"`
+	Text        string            `json:"text"`
+	Name        string            `json:"name"`
+	Topic       string            `json:"topic"`
+	ScheduledAt string            `json:"scheduled_at"`
+	Segment     string            `json:"segment"`
+	Template    string            `json:"template"`
+	Data        map[string]string `json:"data"`
 }
 
 type emailFields struct {
@@ -55,6 +58,25 @@ func (h *Handler) CreateBroadcast(w http.ResponseWriter, r *http.Request) {
 	var req broadcastRequest
 	if !decode(w, r, &req) {
 		return
+	}
+	if req.Template != "" {
+		if len(req.Data) > 100 {
+			fail(w, http.StatusUnprocessableEntity, "too_many_variables")
+			return
+		}
+		subject, html, text, err := templates.Render(r.Context(), h.Pool, auth.FromContext(r.Context()).WorkspaceID, req.Template, req.Data)
+		if errors.Is(err, templates.ErrNotFound) {
+			fail(w, http.StatusUnprocessableEntity, "template_not_found")
+			return
+		}
+		if err != nil {
+			httpx.Internal(w, r, err)
+			return
+		}
+		if req.Subject == "" {
+			req.Subject = subject
+		}
+		req.HTML, req.Text = html, text
 	}
 	fields, message := req.translate()
 	if message != "" {

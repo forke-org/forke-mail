@@ -282,14 +282,22 @@ var tools = []*tool{
 	{Name: "create_broadcast", Title: "Create a broadcast draft",
 		Description: "Create a newsletter or announcement as a draft. Nothing is sent until send_broadcast is approved by the user.",
 		Props: obj{"name": str("Internal name"), "from": str(`"Acme <news@acme.com>"`), "subject": str("Subject"), "html": str("HTML body"), "text": str("Plain-text body"),
-			"segment": str("Segment name for the audience"), "audience_id": str("Tag ID for the audience (alternative to segment)"), "topic": str("Optional topic key so people can opt out of just this topic")},
-		Required: []string{"from", "subject"},
+			"segment": str("Segment name for the audience"), "audience_id": str("Tag ID for the audience (alternative to segment)"), "topic": str("Optional topic key so people can opt out of just this topic"),
+			"template": str("Template name or ID instead of html/text; keep {{unsubscribe_url}} in it"), "data": dict("Template variables, string values")},
+		Required: []string{"from"},
 		Run: func(c *call, a map[string]any) (any, error) {
 			body := obj{}
-			for _, k := range []string{"name", "from", "subject", "html", "text", "segment", "audience_id", "topic"} {
+			for _, k := range []string{"name", "from", "subject", "html", "text", "segment", "audience_id", "topic", "template"} {
 				if v := s(a, k); v != "" {
 					body[k] = v
 				}
+			}
+			if d, ok := a["data"].(map[string]any); ok {
+				data := map[string]string{}
+				for k, v := range d {
+					data[k] = fmt.Sprint(v)
+				}
+				body["data"] = data
 			}
 			return c.do("POST", "/api/forke-mail/broadcasts", body, "")
 		}},

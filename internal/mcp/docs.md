@@ -250,7 +250,7 @@ await fetch("https://mail.forke.space/api/transactional", {
 
 ### Broadcasts
 
-- `POST /api/forke-mail/broadcasts` creates a draft: `from`, `subject`, `html`/`text`, and `segment` (name) or `audience_id` (tag), optional `topic`.
+- `POST /api/forke-mail/broadcasts` creates a draft: `from`, `subject`, `html`/`text` or `template` with `data`, and `segment` (name) or `audience_id` (tag), optional `topic`. Templates for broadcasts must keep the `{{unsubscribe_url}}` link.
 - `POST /api/forke-mail/broadcasts/{id}/send` launches it. Through agents this always needs your approval.
 
 ### Workflows

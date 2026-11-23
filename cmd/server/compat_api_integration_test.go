@@ -82,6 +82,20 @@ func TestCompatAPIBroadcastFlow(t *testing.T) {
 	if got := dbtest.QueryString(t, f.pool, `SELECT reply_to || '|' || c.name FROM emails e JOIN campaigns c ON c.id = e.campaign_id WHERE e.id = $1`, broadcastID); got != "support@"+domain+"|Blog: New post" {
 		t.Fatalf("stored %q", got)
 	}
+	if w := f.request("POST", "/api/templates", `{"name":"blog-post","kind":"marketing","subject":"New on the blog: {{title}}","html":"<h1>{{title}}</h1>{{{recent_posts}}}<a href=\"{{unsubscribe_url}}\">Unsubscribe</a>"}`, ""); w.Code != 201 {
+		t.Fatalf("template %d %s", w.Code, w.Body)
+	}
+	w = f.request("POST", "/api/forke-mail/broadcasts", `{"audience_id":"`+audienceID+`","from":"Forke Blog <blog@`+domain+`>","template":"blog-post","data":{"title":"Ship <fast>","recent_posts":"<p>Older</p>"},"name":"Blog: templated"}`, key)
+	if w.Code != 201 {
+		t.Fatalf("templated broadcast %d %s", w.Code, w.Body)
+	}
+	templated := decodeJSON(t, w.Body.String())["id"].(string)
+	if got := dbtest.QueryString(t, f.pool, `SELECT subject || '|' || html FROM emails WHERE id = $1`, templated); got != `New on the blog: Ship <fast>|<h1>Ship &lt;fast&gt;</h1><p>Older</p><a href="{{unsubscribe_url}}">Unsubscribe</a>` {
+		t.Fatalf("templated broadcast stored %q", got)
+	}
+	if w := f.request("POST", "/api/forke-mail/broadcasts", `{"audience_id":"`+audienceID+`","from":"Forke Blog <blog@`+domain+`>","template":"missing"}`, key); w.Code != 422 || !strings.Contains(w.Body.String(), "template_not_found") {
+		t.Fatalf("missing template %d %s", w.Code, w.Body)
+	}
 	if w := f.request("POST", "/api/forke-mail/broadcasts/"+broadcastID+"/send", `{}`, key); w.Code != 200 || decodeJSON(t, w.Body.String())["id"] != broadcastID || decodeJSON(t, w.Body.String())["recipients"] != float64(1) {
 		t.Fatalf("send %d %s", w.Code, w.Body)
 	}
