@@ -132,10 +132,13 @@ func TestAgentsOAuthAndMCP(t *testing.T) {
 	if w := f.raw(httptest.NewRequest("GET", "/.well-known/oauth-authorization-server", nil)); !strings.Contains(w.Body.String(), "code_challenge_methods_supported") {
 		t.Fatalf("metadata %s", w.Body)
 	}
-	for path, want := range map[string]string{"/llms.txt": "confirm_token", "/robots.txt": "Sitemap:", "/sitemap.xml": "/docs/agents/", "/.well-known/mcp.json": "streamable-http", "/docs/agents/": `"@type":"SoftwareApplication"`} {
+	for path, want := range map[string]string{"/llms.txt": "confirm_token", "/robots.txt": "Sitemap:", "/sitemap.xml": "/login/", "/.well-known/mcp.json": "streamable-http"} {
 		if w := f.raw(httptest.NewRequest("GET", path, nil)); w.Code != 200 || !strings.Contains(w.Body.String(), want) {
 			t.Fatalf("%s %d %s", path, w.Code, w.Body.String()[:min(300, w.Body.Len())])
 		}
+	}
+	if w := f.raw(httptest.NewRequest("GET", "/docs/agents/", nil)); w.Code != 301 || w.Header().Get("Location") != "https://www.forke.space/docs/forke-mail" {
+		t.Fatalf("docs redirect %d %s", w.Code, w.Header().Get("Location"))
 	}
 	token := f.oauthToken(t)
 

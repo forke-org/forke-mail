@@ -37,6 +37,7 @@ func registerAgentRoutes(r chi.Router, cfg config.Config, pool *pgxpool.Pool, au
 		pub.Post("/oauth/revoke", oa.Revoke)
 		pub.Options("/oauth/revoke", oa.Preflight)
 		pub.Get("/llms.txt", m.LLMs)
+		pub.Get("/install.sh", m.Install)
 		pub.Get("/robots.txt", m.Robots)
 		pub.Get("/sitemap.xml", m.Sitemap)
 		pub.Get("/.well-known/mcp.json", m.ServerCard)

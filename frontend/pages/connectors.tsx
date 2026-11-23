@@ -92,7 +92,7 @@ export default function ConnectorsPage() {
 
   return (
     <>
-      <PageHeader title="Connectors" description="Connect Claude, ChatGPT, Cursor and other AI apps to Forke Mail over MCP, with you in control of anything risky." actions={<a className="text-sm font-medium text-accent hover:underline" href="/docs/agents/">Read the docs</a>} />
+      <PageHeader title="Connectors" description="Connect Claude, ChatGPT, Cursor and other AI apps to Forke Mail over MCP, with you in control of anything risky." actions={<a className="text-sm font-medium text-accent hover:underline" href="https://www.forke.space/docs/forke-mail-connect" target="_blank" rel="noreferrer">Read the docs</a>} />
       <div className="flex flex-col gap-5">
         <Card title="MCP server URL" icon={Terminal} description="One address for every app. Sign-in happens in your browser; no keys to copy.">
           <Snippet value={url} />

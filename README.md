@@ -12,6 +12,8 @@ docker compose up -d
 set -a && . ./.env && set +a && go run ./cmd/server
 ```
 
+Connect AI apps at `https://mail.forke.space/mcp` or use the CLI (`curl -fsSL https://mail.forke.space/install.sh | sh`). Docs: [forke.space/docs/forke-mail](https://www.forke.space/docs/forke-mail).
+
 Contributors and coding agents: read [AGENTS.md](AGENTS.md).
 
 ## License

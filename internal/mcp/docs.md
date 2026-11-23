@@ -23,6 +23,7 @@ Pick the path that fits how you work.
 ### With the CLI
 
 ```sh
+curl -fsSL https://mail.forke.space/install.sh | sh
 forke-mail login
 cd my-app
 forke-mail init
@@ -163,6 +164,16 @@ These are the tools the MCP server and CLI offer right now. Every tool that chan
 
 ## CLI reference
 
+### Install
+
+```sh
+curl -fsSL https://mail.forke.space/install.sh | sh
+```
+
+On Windows, download `forke-mail-windows-amd64.exe` from the [latest release](https://github.com/forke-org/forke-mail/releases/latest). To build from source: `go build -o forke-mail ./cmd/forke-mail` in the forke-mail repository.
+
+### Commands
+
 | Command | What it does |
 | --- | --- |
 | `forke-mail login` | Sign in through your browser. Credentials are stored in your user config folder, readable only by you. |
@@ -279,7 +290,7 @@ await fetch("https://mail.forke.space/api/transactional", {
 
 - Dashboard: https://mail.forke.space
 - Connectors in the dashboard: https://mail.forke.space/connectors/
-- These docs: https://mail.forke.space/docs/agents/
+- Full docs: https://www.forke.space/docs/forke-mail
 - Machine-readable docs: https://mail.forke.space/llms.txt
 - Status: https://status.forke.space
 - Support: support@forke.space
