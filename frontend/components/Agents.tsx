@@ -35,7 +35,7 @@ export function connectSteps(url: string): Record<AgentApp, { text: string; code
     chatgpt: { text: 'In ChatGPT open Settings → Connectors → Create, choose OAuth, paste this URL, then sign in and pick a project.', code: url },
     code: { text: 'Run this in your terminal, then type /mcp in Claude Code to sign in.', code: `claude mcp add --transport http forke-mail ${url}` },
     cursor: { text: 'Cursor, Windsurf, VS Code, Antigravity and most other apps: add this to the MCP settings. The app opens a browser window to sign in.', code: JSON.stringify({ mcpServers: { 'forke-mail': { url } } }, null, 2) },
-    cli: { text: 'Install the CLI, sign in once, then point any app that runs local servers at it.', code: `curl -fsSL https://mail.forke.space/install.sh | sh\nforke-mail login\n\n{"mcpServers": {"forke-mail": {"command": "forke-mail", "args": ["mcp"]}}}` },
+    cli: { text: 'Install the CLI, sign in once, then point any app that runs local servers at it.', code: `brew install forke-org/tap/forke-mail\nforke-mail login\n\n{"mcpServers": {"forke-mail": {"command": "forke-mail", "args": ["mcp"]}}}` },
   };
 }
 

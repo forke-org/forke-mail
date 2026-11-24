@@ -23,7 +23,7 @@ Pick the path that fits how you work.
 ### With the CLI
 
 ```sh
-curl -fsSL https://mail.forke.space/install.sh | sh
+brew install forke-org/tap/forke-mail   # or: curl -fsSL https://mail.forke.space/install.sh | sh
 forke-mail login
 cd my-app
 forke-mail init
@@ -171,11 +171,19 @@ Ready-made requests that work well with the Forke Mail tools. In Claude and othe
 
 ### Install
 
+With [Homebrew](https://brew.sh) on macOS or Linux:
+
+```sh
+brew install forke-org/tap/forke-mail
+```
+
+Or with the install script, which checks the release's SHA-256 checksum:
+
 ```sh
 curl -fsSL https://mail.forke.space/install.sh | sh
 ```
 
-On Windows, download `forke-mail-windows-amd64.exe` from the [latest release](https://github.com/forke-org/forke-mail/releases/latest). To build from source: `go build -o forke-mail ./cmd/forke-mail` in the forke-mail repository.
+On Windows, download `forke-mail_<version>_windows_amd64.zip` from the [latest release](https://github.com/forke-org/forke-mail/releases/latest), unzip it and put `forke-mail.exe` on your PATH. Debian, Fedora and Alpine packages are on the same page. Update with `brew upgrade forke-mail` or by running the install script again. To build from source: `go build -o forke-mail ./cmd/forke-mail` in the forke-mail repository.
 
 ### Commands
 
