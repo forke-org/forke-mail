@@ -66,7 +66,7 @@ export default function ConnectorsPage() {
           <CodeLine value={url} />
         </Card>
         <Card title="Connect an AI app" icon={Bot} description="Give Claude, ChatGPT, Cursor or any MCP app access to this project. It can then add domains, write templates, send test emails and build email into your app for you."><ConnectApps url={url} /></Card>
-        <Card title="Prompts to try" icon={Sparkles} description="Paste one into your AI app, or pick it from the app's prompt menu. Agents ask you before anything risky."><PromptList prompts={prompts} /></Card>
+        <Card title="Prompts to try" icon={Sparkles} description="Click to copy and paste into your AI app, or pick it by name from the app's prompt menu. Agents ask you before anything risky."><PromptList prompts={prompts} highlight="setup-app" wide /></Card>
         <Safety />
         <Card title="Connected apps" flush icon={Unplug}>
           {connections.length ? (

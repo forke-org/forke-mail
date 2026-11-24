@@ -23,6 +23,7 @@ import { ToastProvider } from '../lib/toast';
 import '../styles/globals.css';
 
 const publicPaths = ['/login', '/welcome'];
+const fullScreenPaths = ['/setup'];
 
 function returnTo(): string | null {
   if (typeof window === 'undefined') return null;
@@ -54,7 +55,8 @@ function Shell({ Component, pageProps }: AppProps) {
   // would remount it mid-drawing and the animation would jump back to the start.
   let content: ReactNode = null;
   if (ready && isPublic) content = <Component {...pageProps} />;
-  if (ready && !isPublic)
+  if (ready && !isPublic && fullScreenPaths.includes(router.pathname)) content = <Component {...pageProps} />;
+  else if (ready && !isPublic)
     content = (
       <Layout>
         <Component {...pageProps} />

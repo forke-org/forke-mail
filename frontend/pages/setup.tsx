@@ -9,9 +9,10 @@
  */
 
 import clsx from 'clsx';
-import { ArrowLeft, ArrowRight, Bot, Check, Globe, KeyRound, Loader2, PartyPopper, Send, Wrench } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bot, Check, Globe, KeyRound, Loader2, PartyPopper, Send, Wrench, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { FormEvent, ReactNode, useCallback, useEffect, useState } from 'react';
+import Logo from '../components/Logo';
 import { agentApps, ConnectApps, PromptList, type AgentApp, type PromptCard } from '../components/Agents';
 import { SendSnippet } from '../components/QuickStart';
 import { Button, ButtonLink, Callout, CopyButton, Field, FormError, Input } from '../components/ui';
@@ -27,35 +28,45 @@ const flows: Record<Path, string[]> = {
   manual: ['Add your domain', 'Create an API key', 'Send your first email', 'Done'],
 };
 
-function Shell({ step, path, children, onBack }: { step: number; path: Path | null; children: ReactNode; onBack?: () => void }) {
+function Shell({ step, path, children, onBack, onSkip }: { step: number; path: Path | null; children: ReactNode; onBack?: () => void; onSkip: () => void }) {
   const labels = path ? flows[path] : [];
   return (
-    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-8 py-6">
-      <div className="flex items-center justify-between gap-4">
-        {onBack ? <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-ink"><ArrowLeft className="size-3.5" />Back</button> : <span />}
-        <ButtonLink href="/" variant="ghost" size="sm">Skip setup</ButtonLink>
-      </div>
-      {labels.length ? (
-        <ol className="flex items-center gap-2">
-          {labels.map((label, i) => (
-            <li key={label} className="flex flex-1 flex-col gap-2">
-              <span className={clsx('h-1 rounded-full transition-colors duration-500', i <= step ? 'bg-accent' : 'bg-surface-3')} />
-              <span className={clsx('text-[11px] font-medium tracking-wide uppercase transition-colors', i === step ? 'text-ink' : 'text-faint')}>{label}</span>
-            </li>
-          ))}
-        </ol>
-      ) : null}
-      <div key={`${path}-${step}`} className="animate-[fade-up_0.35s_ease_both]">{children}</div>
+    <div className="relative flex min-h-[100dvh] flex-col bg-bg">
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_60%_100%_at_50%_0%,rgba(255,122,0,0.10),transparent_70%)]" />
+      <header className="relative z-10 flex h-16 items-center justify-between px-5 sm:px-8">
+        <Logo />
+        <button type="button" onClick={onSkip} className="inline-flex h-8 items-center gap-1.5 rounded-[6px] px-3 text-[13px] text-muted transition-colors hover:bg-surface-2 hover:text-ink">Skip setup<X className="size-3.5" /></button>
+      </header>
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pt-4 pb-16 sm:px-8">
+        <div className="flex w-full max-w-[760px] flex-col gap-8">
+          {labels.length ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex h-6 items-center justify-center">
+                {onBack ? <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-ink"><ArrowLeft className="size-3.5" />Back</button> : null}
+              </div>
+              <ol className="mx-auto flex w-full max-w-[560px] items-center gap-2">
+                {labels.map((label, i) => (
+                  <li key={label} className="flex flex-1 flex-col items-center gap-2 text-center">
+                    <span className={clsx('h-1 w-full rounded-full transition-colors duration-500', i <= step ? 'bg-accent' : 'bg-surface-3')} />
+                    <span className={clsx('hidden text-[11px] font-medium tracking-wide uppercase transition-colors sm:block', i === step ? 'text-ink' : 'text-faint')}>{label}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+          <div key={`${path}-${step}`} className="animate-[fade-up_0.35s_ease_both]">{children}</div>
+        </div>
+      </main>
     </div>
   );
 }
 
 function Heading({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
   return (
-    <div className="mb-6">
+    <div className="mb-8 text-center">
       <p className="mb-2 font-mono text-[11px] tracking-[0.08em] text-accent uppercase">{eyebrow}</p>
-      <h1 className="text-[26px] leading-tight font-medium tracking-[-0.03em] text-ink">{title}</h1>
-      {children ? <p className="mt-2 max-w-[600px] text-sm text-muted">{children}</p> : null}
+      <h1 className="text-[28px] leading-tight font-medium tracking-[-0.03em] text-ink sm:text-[32px]">{title}</h1>
+      {children ? <p className="mx-auto mt-2 max-w-[560px] text-sm text-muted">{children}</p> : null}
     </div>
   );
 }
@@ -73,14 +84,14 @@ function Choose({ onPick }: { onPick: (p: Path) => void }) {
       <div className="grid gap-4 md:grid-cols-2">
         {options.map((o, i) => (
           <button key={o.id} type="button" onClick={() => onPick(o.id)} style={{ animationDelay: `${i * 80}ms` }}
-            className="group flex animate-[fade-up_0.45s_ease_both] flex-col rounded-[10px] bg-surface p-6 text-left shadow-card transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-surface-2 active:translate-y-0">
-            <div className="flex items-start justify-between">
+            className="group relative flex animate-[fade-up_0.45s_ease_both] flex-col items-center rounded-[10px] bg-surface p-6 text-center shadow-card transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-surface-2 active:translate-y-0">
+            <span className="absolute top-4 right-4 text-xs text-faint">{o.time}</span>
+            <div className="flex items-start justify-center">
               <span className="grid size-11 place-items-center rounded-[8px] bg-accent-soft text-accent shadow-[inset_0_0_0_1px_var(--accent-line)]"><o.icon className="size-5" /></span>
-              <span className="text-xs text-faint">{o.time}</span>
             </div>
             <div className="mt-5 text-base font-medium text-ink">{o.title}</div>
             <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{o.body}</p>
-            <ul className="mt-4 flex flex-col gap-1.5">
+            <ul className="mt-4 flex flex-col items-center gap-1.5">
               {o.points.map((p) => <li key={p} className="flex items-center gap-2 text-[13px] text-ink-2"><Check className="size-3.5 text-success" />{p}</li>)}
             </ul>
             <span className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink transition-colors group-hover:text-accent">Start<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" /></span>
@@ -128,7 +139,7 @@ function PromptStep({ prompts, onNext }: { prompts: PromptCard[]; onNext: () => 
       <Heading eyebrow="Step 2" title="Ask it to set things up">Copy a prompt into your app. In Claude and other MCP apps they also appear in the prompt or slash-command menu. Start with the first one.</Heading>
       <PromptList prompts={prompts} highlight="setup-app" />
       <Callout title="You stay in control">Your agent asks in the chat before sending real email, creating keys or deleting anything, and says clearly when something can&apos;t be undone.</Callout>
-      <div className="mt-6 flex justify-end"><Button variant="primary" onClick={onNext}>I&apos;m set<ArrowRight /></Button></div>
+      <div className="mt-8 flex justify-center"><Button variant="primary" onClick={onNext}>I&apos;m set<ArrowRight /></Button></div>
     </>
   );
 }
@@ -167,7 +178,7 @@ function DomainStep({ onNext }: { onNext: () => void }) {
     return (
       <>
         <Heading eyebrow="Step 1" title="Your domain is ready">{verified} is verified, so you can send from any address on it.</Heading>
-        <div className="flex justify-end"><Button variant="primary" onClick={onNext}>Continue<ArrowRight /></Button></div>
+        <div className="flex justify-center"><Button variant="primary" onClick={onNext}>Continue<ArrowRight /></Button></div>
       </>
     );
   }
@@ -238,7 +249,7 @@ function KeyStep({ onKey, onNext }: { onKey: (k: string) => void; onNext: () => 
     return (
       <>
         <Heading eyebrow="Step 2" title="Get an API key">Only project owners can create keys. Ask an owner for a test key, then continue.</Heading>
-        <div className="flex justify-end"><Button variant="primary" onClick={onNext}>Continue<ArrowRight /></Button></div>
+        <div className="flex justify-center"><Button variant="primary" onClick={onNext}>Continue<ArrowRight /></Button></div>
       </>
     );
   }
@@ -260,7 +271,7 @@ function KeyStep({ onKey, onNext }: { onKey: (k: string) => void; onNext: () => 
         </div>
       )}
       <FormError>{error}</FormError>
-      <div className="mt-6 flex justify-end"><Button variant="primary" disabled={!key} onClick={onNext}>Continue<ArrowRight /></Button></div>
+      <div className="mt-8 flex justify-center"><Button variant="primary" disabled={!key} onClick={onNext}>Continue<ArrowRight /></Button></div>
     </>
   );
 }
@@ -307,7 +318,7 @@ function SendStep({ testKey, onNext }: { testKey: string; onNext: () => void }) 
         <SendSnippet from={from} to={to} />
       </div>
       <FormError>{error}</FormError>
-      <div className="mt-6 flex justify-end"><Button variant="primary" onClick={onNext}>Finish<ArrowRight /></Button></div>
+      <div className="mt-8 flex justify-center"><Button variant="primary" onClick={onNext}>Finish<ArrowRight /></Button></div>
     </>
   );
 }
@@ -326,7 +337,7 @@ function Done({ path, onSwitch }: { path: Path; onSwitch: () => void }) {
           <ButtonLink key={href} href={href} className="h-auto animate-[fade-up_0.4s_ease_both] justify-between px-4 py-3 text-left">{label}<ArrowRight /></ButtonLink>
         ))}
       </div>
-      <div className="mt-8 flex items-center gap-4">
+      <div className="mt-8 flex items-center justify-center gap-4">
         <ButtonLink href="/" variant="primary">Go to overview</ButtonLink>
         <button type="button" onClick={onSwitch} className="text-[13px] text-muted hover:text-ink">{path === 'ai' ? 'Also set it up by hand' : 'Also connect an AI agent'}</button>
       </div>
@@ -355,9 +366,12 @@ export default function Setup() {
   }, [path, step, storage]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [path, step]);
 
+  const skip = () => {
+    if (window.localStorage.getItem(storage) !== 'done') window.localStorage.setItem(storage, 'hidden');
+    router.push('/');
+  };
   const next = () => setStep((s) => s + 1);
   const back = () => (step > 0 ? setStep((s) => s - 1) : setPath(null));
   const switchPath = () => {
@@ -365,7 +379,7 @@ export default function Setup() {
     setStep(0);
   };
 
-  if (!path) return <Shell step={0} path={null}><Choose onPick={(p) => { setPath(p); setStep(0); }} /></Shell>;
+  if (!path) return <Shell step={0} path={null} onSkip={skip}><Choose onPick={(p) => { setPath(p); setStep(0); }} /></Shell>;
   const last = flows[path].length - 1;
   let body: ReactNode;
   if (step === last) body = <Done path={path} onSwitch={switchPath} />;
@@ -375,6 +389,6 @@ export default function Setup() {
   } else {
     body = step === 0 ? <DomainStep onNext={next} /> : step === 1 ? <KeyStep onKey={setTestKey} onNext={next} /> : <SendStep testKey={testKey} onNext={next} />;
   }
-  return <Shell step={step} path={path} onBack={step === last ? undefined : back}>{body}</Shell>;
+  return <Shell step={step} path={path} onSkip={skip} onBack={step === last ? undefined : back}>{body}</Shell>;
 }
 

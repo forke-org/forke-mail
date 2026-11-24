@@ -9,7 +9,7 @@
  */
 
 import clsx from 'clsx';
-import { Check, Copy } from 'lucide-react';
+import { BarChart3, Check, Copy, Globe, KeyRound, LifeBuoy, Mail, Newspaper, Repeat, Rocket, Truck, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import { CopyButton, Tabs } from './ui';
 
@@ -50,7 +50,19 @@ export function ConnectApps({ url, app, onApp }: { url: string; app?: AgentApp; 
   );
 }
 
-export function PromptList({ prompts, highlight }: { prompts: PromptCard[]; highlight?: string }) {
+const promptIcons: Record<string, [LucideIcon, string]> = {
+  'setup-app': [Rocket, 'Start here'],
+  'welcome-email': [Mail, 'Template'],
+  'auth-emails': [KeyRound, 'Templates'],
+  'welcome-series': [Repeat, 'Workflow'],
+  newsletter: [Newspaper, 'Broadcast'],
+  'verify-domain': [Globe, 'Domain'],
+  'debug-delivery': [LifeBuoy, 'Debug'],
+  migrate: [Truck, 'Migrate'],
+  'weekly-report': [BarChart3, 'Report'],
+};
+
+export function PromptList({ prompts, highlight, wide }: { prompts: PromptCard[]; highlight?: string; wide?: boolean }) {
   const [copied, setCopied] = useState('');
   const copy = async (p: PromptCard) => {
     try {
@@ -62,21 +74,35 @@ export function PromptList({ prompts, highlight }: { prompts: PromptCard[]; high
     }
   };
   return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {prompts.map((p) => (
-        <button key={p.name} type="button" onClick={() => copy(p)}
-          className={clsx('group flex flex-col gap-1.5 rounded-[8px] p-4 text-left transition-[background-color,box-shadow,transform] duration-150 active:scale-[0.99]',
-            p.name === highlight ? 'bg-accent-soft shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'bg-surface-2 shadow-[inset_0_0_0_1px_var(--line)] hover:bg-surface-3')}>
-          <span className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-ink">{p.title}</span>
-            <span className={clsx('inline-flex items-center gap-1 text-xs', copied === p.name ? 'text-success' : 'text-muted group-hover:text-ink')}>
-              {copied === p.name ? <><Check className="size-3.5" />Copied</> : <><Copy className="size-3.5" />Copy</>}
+    <div className={clsx('grid gap-3 md:grid-cols-2', wide && 'xl:grid-cols-3')}>
+      {prompts.map((p, i) => {
+        const [Icon, tag] = promptIcons[p.name] || [Mail, 'Prompt'];
+        const done = copied === p.name;
+        const lead = p.name === highlight;
+        return (
+          <button key={p.name} type="button" onClick={() => copy(p)} style={{ animationDelay: `${i * 40}ms` }}
+            className={clsx('group relative flex animate-[fade-up_0.4s_ease_both] flex-col overflow-hidden rounded-[10px] p-4 text-left transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]',
+              lead ? 'bg-accent-soft shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'bg-surface-2 shadow-[inset_0_0_0_1px_var(--line)] hover:bg-surface-3 hover:shadow-[inset_0_0_0_1px_var(--line-strong)]')}>
+            <span className="flex items-start justify-between gap-3">
+              <span className={clsx('grid size-9 shrink-0 place-items-center rounded-[8px] transition-colors', lead ? 'bg-accent text-white' : 'bg-surface-3 text-ink-2 group-hover:bg-accent-soft group-hover:text-accent')}>
+                <Icon className="size-[18px]" />
+              </span>
+              <span className={clsx('rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.06em] uppercase', lead ? 'bg-accent/15 text-accent' : 'bg-surface-3 text-faint')}>{lead ? 'Start here' : tag}</span>
             </span>
-          </span>
-          <span className="text-xs text-muted">{p.description}</span>
-          <span className="mt-1 line-clamp-3 font-mono text-[11.5px] leading-relaxed text-ink-2">{p.text}</span>
-        </button>
-      ))}
+            <span className="mt-3.5 text-[14px] font-medium text-ink">{p.title}</span>
+            <span className="mt-1 text-[12.5px] leading-relaxed text-muted">{p.description}</span>
+            <span className="mt-3.5 block rounded-[6px] bg-bg/60 px-3 py-2.5 shadow-[inset_0_0_0_1px_var(--line)]">
+              <span className="block max-h-[54px] overflow-hidden font-mono text-[11px] leading-relaxed text-ink-2 [mask-image:linear-gradient(to_bottom,black_45%,transparent)]">{p.text}</span>
+            </span>
+            <span className="mt-3.5 flex items-center justify-between gap-2 text-xs">
+              <code className="truncate font-mono text-faint">/{p.name}</code>
+              <span className={clsx('inline-flex items-center gap-1 font-medium transition-colors', done ? 'text-success' : 'text-muted group-hover:text-ink')}>
+                {done ? <><Check className="size-3.5 animate-[pop_0.25s_ease_both]" />Copied</> : <><Copy className="size-3.5" />Copy prompt</>}
+              </span>
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
