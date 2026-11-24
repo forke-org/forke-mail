@@ -12,7 +12,7 @@ import { BellRing, CalendarClock, CreditCard, Globe, HeartPulse, History, UserRo
 import { FormEvent, useEffect, useState } from 'react';
 import { Badge, Button, ButtonLink, Callout, Card, Checkbox, DefinitionRow, EmailFrame, Field, FormError, Input, Loading, Meter, PageHeader, Tabs, Textarea } from '../components/ui';
 import { api, describeError } from '../lib/api';
-import { number } from '../lib/format';
+import { number, rate } from '../lib/format';
 import { useMe, useSession } from '../lib/session';
 import { useToast } from '../lib/toast';
 import AccountSettings from '../components/AccountSettings';
@@ -51,8 +51,8 @@ function General() {
           </div>
           <div>
             <div className="text-[13px] text-muted">Send rate</div>
-            <div className="mt-1 text-2xl font-semibold text-ink tabular-nums">{me.rate_limits.send_per_second}<span className="text-sm font-normal text-muted"> / s</span></div>
-            <div className="text-xs text-muted">API {me.rate_limits.api_per_second} requests / s</div>
+            <div className="mt-1 text-2xl font-semibold text-ink tabular-nums">{rate(me.rate_limits.send_per_second)}<span className="text-sm font-normal text-muted"> / s</span></div>
+            <div className="text-xs text-muted">API {rate(me.rate_limits.api_per_second)} requests / s</div>
           </div>
         </div>
         {monthLimit > 0 ? <p className="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-muted">The monthly cap comes with your plan. Broadcasts that would not fit are refused before they start; transactional mail stops at the cap. It resets on the 1st.</p> : null}

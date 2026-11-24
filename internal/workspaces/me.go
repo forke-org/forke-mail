@@ -6,6 +6,7 @@
 package workspaces
 
 import (
+	"math"
 	"net/http"
 
 	"forkemail/internal/auth"
@@ -115,7 +116,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	resp.RateLimits = meRateLimits{
 		APIPerSecond:  rule.PerSecond,
 		APIBurst:      rule.Burst,
-		SendPerSecond: SendRate(resp.Workspace.Plan, configuredRate, h.GlobalSendRate(), h.TrialSendRate),
+		SendPerSecond: math.Round(SendRate(resp.Workspace.Plan, configuredRate, h.GlobalSendRate(), h.TrialSendRate)*1000) / 1000,
 	}
 	httpx.JSON(w, http.StatusOK, resp)
 }

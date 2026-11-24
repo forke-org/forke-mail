@@ -30,6 +30,10 @@ export function number(value: number | null | undefined): string {
   return Number(value || 0).toLocaleString();
 }
 
+export function rate(value: number): string {
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(value);
+}
+
 export function compact(value: number): string {
   return Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(value || 0);
 }

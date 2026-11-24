@@ -16,7 +16,7 @@ import DataTable, { Columns, Strong } from '../components/DataTable';
 import { QuickStart, SetupBanner, useGoal } from '../components/QuickStart';
 import { Badge, ButtonLink, Card, Meter, PageHeader, Skeleton, Stat } from '../components/ui';
 import { api } from '../lib/api';
-import { formatDate, number, percent } from '../lib/format';
+import { formatDate, number, percent, rate } from '../lib/format';
 import { useMe, useSession } from '../lib/session';
 import type { ApiKey, Dashboard } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
@@ -130,7 +130,7 @@ export default function Overview() {
         </Card>
         <Card title="Sending limits" description="How fast and how much this workspace can send">
           <div className="flex flex-col">
-            <div className="flex items-center justify-between border-b border-line pb-3 text-[13px]"><span className="text-muted">Send rate</span><span className="text-ink tabular-nums">{me.rate_limits.send_per_second} / second</span></div>
+            <div className="flex items-center justify-between border-b border-line pb-3 text-[13px]"><span className="text-muted">Send rate</span><span className="text-ink tabular-nums">{rate(me.rate_limits.send_per_second)} / second</span></div>
             <div className="flex items-center justify-between border-b border-line py-3 text-[13px]"><span className="text-muted">Daily limit</span><span className="text-ink tabular-nums">{me.quota.daily_limit > 0 ? number(me.quota.daily_limit) : 'Unlimited'}</span></div>
             <div className="flex items-center justify-between border-b border-line py-3 text-[13px]"><span className="text-muted">Monthly cap</span><span className="text-ink tabular-nums">{monthLimit > 0 ? number(monthLimit) : 'None'}</span></div>
             <div className="flex items-center justify-between pt-3 text-[13px]"><span className="text-muted">Verified identities</span><span className="text-ink tabular-nums">{me.domains.length}</span></div>
