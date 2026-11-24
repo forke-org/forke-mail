@@ -8,7 +8,8 @@
  * commercial license from Forke Inc. is strictly prohibited.
  */
 
-import { Bot, Link2, ShieldCheck, Sparkles, Unplug } from 'lucide-react';
+import { Link2, Plug, ShieldCheck, Unplug, Wand } from 'lucide-react';
+import { ConnectedAppLogo } from '../components/AppLogos';
 import { CodeLine, ConnectApps, PromptList, type PromptCard } from '../components/Agents';
 import { useConfirm } from '../components/Modal';
 import { Badge, Button, Card, Empty, Loading, PageHeader } from '../components/ui';
@@ -65,14 +66,15 @@ export default function ConnectorsPage() {
         <Card title="MCP server URL" icon={Link2} description="One address for every app. Sign-in happens in your browser; no keys to copy.">
           <CodeLine value={url} />
         </Card>
-        <Card title="Connect an AI app" icon={Bot} description="Give Claude, ChatGPT, Cursor or any MCP app access to this project. It can then add domains, write templates, send test emails and build email into your app for you."><ConnectApps url={url} /></Card>
-        <Card title="Prompts to try" icon={Sparkles} description="Click to copy and paste into your AI app, or pick it by name from the app's prompt menu. Agents ask you before anything risky."><PromptList prompts={prompts} highlight="setup-app" wide /></Card>
+        <Card title="Connect an AI app" icon={Plug} description="Give Claude, ChatGPT, Cursor or any MCP app access to this project. It can then add domains, write templates, send test emails and build email into your app for you."><ConnectApps url={url} /></Card>
+        <Card title="Prompts to try" icon={Wand} description="Click to copy and paste into your AI app, or pick it by name from the app's prompt menu. Agents ask you before anything risky."><PromptList prompts={prompts} highlight="setup-app" wide /></Card>
         <Safety />
         <Card title="Connected apps" flush icon={Unplug}>
           {connections.length ? (
             <div className="divide-y divide-line">
               {connections.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 px-4 py-3">
+                  <ConnectedAppLogo name={c.app} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-ink">{c.app}</p>
                     <p className="text-xs text-muted">{c.project} · connected {timeAgo(c.created_at)} · last used {c.last_used_at ? timeAgo(c.last_used_at) : 'never'}</p>
@@ -81,7 +83,7 @@ export default function ConnectorsPage() {
                 </div>
               ))}
             </div>
-          ) : <Empty title="No apps connected" hint="Add the MCP URL to an AI app to connect it." icon={Bot} />}
+          ) : <Empty title="No apps connected" hint="Add the MCP URL to an AI app to connect it." icon={Plug} />}
         </Card>
       </div>
     </>

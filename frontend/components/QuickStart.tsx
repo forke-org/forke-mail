@@ -9,7 +9,7 @@
  */
 
 import clsx from 'clsx';
-import { ArrowRight, Bot, Check, Code2, Megaphone, ShieldCheck, Users, KeyRound, Send } from 'lucide-react';
+import { ArrowRight, Plug, Check, Code2, Megaphone, ShieldCheck, Users, KeyRound, Send } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ButtonLink, Card, CopyButton, Meter, Tabs } from './ui';
@@ -36,7 +36,7 @@ export function useGoal(workspaceID: string): [Goal | null, (g: Goal | null) => 
 
 export function SetupBanner({ onDismiss }: { onDismiss: () => void }) {
   const choices: { path: 'ai' | 'manual'; icon: typeof Send; title: string; body: string }[] = [
-    { path: 'ai', icon: Bot, title: 'With an AI agent', body: 'Connect Claude, ChatGPT or Cursor and let it set up email for you.' },
+    { path: 'ai', icon: Plug, title: 'With an AI agent', body: 'Connect Claude, ChatGPT or Cursor and let it set up email for you.' },
     { path: 'manual', icon: Code2, title: 'Step by step myself', body: 'Domain, test key and your first email with copy-paste code.' },
   ];
   return (

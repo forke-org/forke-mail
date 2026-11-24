@@ -9,7 +9,7 @@
  */
 
 import clsx from 'clsx';
-import { ArrowLeft, ArrowRight, Bot, Check, Globe, KeyRound, Loader2, PartyPopper, Send, Wrench, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plug, Check, Globe, KeyRound, Loader2, PartyPopper, Send, Wrench, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { FormEvent, ReactNode, useCallback, useEffect, useState } from 'react';
 import Logo from '../components/Logo';
@@ -72,8 +72,8 @@ function Heading({ eyebrow, title, children }: { eyebrow: string; title: string;
 }
 
 function Choose({ onPick }: { onPick: (p: Path) => void }) {
-  const options: { id: Path; icon: typeof Bot; title: string; body: string; time: string; points: string[] }[] = [
-    { id: 'ai', icon: Bot, title: 'With an AI agent', time: '~3 minutes', body: 'Connect Claude, ChatGPT, Cursor or your coding agent and let it set up email for you while you watch.',
+  const options: { id: Path; icon: typeof Plug; title: string; body: string; time: string; points: string[] }[] = [
+    { id: 'ai', icon: Plug, title: 'With an AI agent', time: '~3 minutes', body: 'Connect Claude, ChatGPT, Cursor or your coding agent and let it set up email for you while you watch.',
       points: ['It adds your domain, keys and templates', 'It writes the code in your app', 'It asks you before anything real is sent'] },
     { id: 'manual', icon: Wrench, title: 'Step by step myself', time: '~5 minutes', body: 'Verify your domain, create a key and send your first email with copy-paste code.',
       points: ['Clear DNS records to copy', 'A test key so nothing goes out by accident', 'Code for cURL, Node.js and Python'] },

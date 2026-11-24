@@ -9,9 +9,11 @@
  */
 
 import clsx from 'clsx';
+import type React from 'react';
 import { BarChart3, Check, Copy, Globe, KeyRound, LifeBuoy, Mail, Newspaper, Repeat, Rocket, Truck, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import { CopyButton, Tabs } from './ui';
+import { AppLogo } from './AppLogos';
 
 export type AgentApp = 'claude' | 'chatgpt' | 'code' | 'cursor' | 'cli';
 export type PromptCard = { name: string; title: string; description: string; text: string };
@@ -43,7 +45,7 @@ export function ConnectApps({ url, app, onApp }: { url: string; app?: AgentApp; 
   const s = connectSteps(url)[current];
   return (
     <div className="flex flex-col gap-3">
-      <Tabs value={current} onChange={(a) => (onApp ? onApp(a) : setOwn(a))} className="self-start" options={agentApps} />
+      <Tabs value={current} onChange={(a) => (onApp ? onApp(a) : setOwn(a))} className="max-w-full self-start overflow-x-auto" options={agentApps.map(([v, label]) => [v, <span key={v} className="inline-flex items-center gap-1.5 whitespace-nowrap"><AppLogo app={v} />{label}</span>] as [AgentApp, React.ReactNode])} />
       <p className="text-[13px] text-muted">{s.text}</p>
       <CodeLine value={s.code} />
     </div>
