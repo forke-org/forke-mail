@@ -53,7 +53,7 @@ gh attestation verify forke-mail_1.1.0_linux_amd64.tar.gz --repo forke-org/forke
 
 ### 📚 Docs & Chores
 - Releases are built and published by GoReleaser on GitHub Actions from `v*` tags
-- Release notes come from the CLI changelog, with the commit list and a compare link added automatically
+- Release notes come from the CLI changelog, with a compare link added automatically
 
 ## 1.0.2
 
