@@ -1,14 +1,18 @@
-name: ci
+name: Build, Verify & Deploy
 
+# Same shape in every Forke app: check every pull request, deploy main to the Oracle server.
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  test:
+  verify:
+    name: Build & Error Verification
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17-alpine
@@ -26,52 +30,82 @@ jobs:
     env:
       TEST_DATABASE_URL: postgres://forkemail:forkemail@localhost:5432/forkemail_test?sslmode=disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
         working-directory: frontend
-      - run: npm run build
+
+      - name: Build the frontend
+        run: npm run build
         working-directory: frontend
-      - uses: actions/setup-go@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: test -z "$(gofmt -l cmd internal migrations frontend)"
-      - run: go vet ./...
-      - run: go build ./...
-      - run: go test -p 1 ./...
+
+      - name: Check formatting
+        run: test -z "$(gofmt -l cmd internal migrations frontend)"
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test -p 1 ./...
 
   deploy:
     name: Deploy to Oracle Cloud
-    needs: test
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # One deploy at a time per app, so two quick merges never clash on the server.
     concurrency:
-      group: forke-mail-deploy
+      group: deploy-${{ github.repository }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
         working-directory: frontend
-      - run: npm run build
+
+      - name: Build the frontend
+        run: npm run build
         working-directory: frontend
-      - uses: actions/setup-go@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
       - name: Build the ARM64 release
         run: |
           mkdir -p release
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o release/forke-mail-linux-arm64 ./cmd/server
           cp deploy/forke-mail.service deploy/install.sh release/
-      - name: Copy the release to the VM
+
+      - name: Copy the release to the server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.ORACLE_HOST }}
@@ -80,7 +114,8 @@ jobs:
           source: release/*
           target: /tmp
           strip_components: 1
-      - name: Install and restart Forke Mail
+
+      - name: Install, restart and health check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ORACLE_HOST }}
@@ -90,4 +125,8 @@ jobs:
             set -e
             bash /tmp/install.sh
             rm -f /tmp/install.sh
-            test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8085/healthz)" = "200"
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8085/healthz)" = "200" ] && { echo "Health check passed"; exit 0; }
+              sleep 3
+            done
+            echo "Health check failed on port 8085"; exit 1

@@ -4,7 +4,7 @@ Forke Mail runs on the Always Free Ampere VM as the `forke-mail` systemd service
 
 ## Release a new version
 
-Every push to `main` deploys automatically. The `deploy` job in `.github/workflows/ci.yml` runs after the tests pass:
+Every push to `main` deploys automatically. The `deploy` job in `.github/workflows/deploy.yml` runs after the checks pass:
 - it builds the dashboard and the ARM64 binary;
 - it copies them with `forke-mail.service` and `install.sh` to `/tmp` on the VM;
 - it runs `install.sh` and fails unless `/healthz` answers 200.
